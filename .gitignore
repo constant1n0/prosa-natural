@@ -1,0 +1,13 @@
+# Clones de upstream: solo lectura, fijados a commit en NOTICE.md
+/upstream/
+
+# Índice local de skills de gentle-ai
+/.atl/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Sistema
+.DS_Store
