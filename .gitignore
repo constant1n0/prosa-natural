@@ -1,6 +1,21 @@
 # Clones de upstream: solo lectura, fijados a commit en NOTICE.md
 /upstream/
 
+# Documentos internos de trabajo
+/docs/contexto.md
+/docs/notebook-log.md
+
+# Instrucciones y memoria de agentes concretos (no son parte de la skill;
+# skill/prosa-natural/SKILL.md sí se versiona)
+CLAUDE.md
+CLAUDE.local.md
+AGENTS.md
+AGENT.md
+GEMINI.md
+/.claude/
+/.github/copilot-instructions.md
+/.github/instructions/
+
 # Índice local de skills de gentle-ai
 /.atl/
 
