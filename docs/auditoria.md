@@ -1,6 +1,6 @@
 # Auditoría de patrones (Fase 1)
 
-Decisiones sobre cada patrón del catálogo de [estudio.md](estudio.md) §3, con motivo, destino en la skill y fuerza. Resultado: 83 patrones, de los que 27 se mantienen, 37 se adaptan y 19 se descartan. De los 25 de blader/humanizer v3.0.0 se mantienen 11, se adaptan 12 y se descartan 2. Las propuestas de §7 no están aprobadas: esperan la confirmación del usuario.
+Decisiones sobre cada patrón del catálogo de [estudio.md](estudio.md) §3, con motivo, destino en la skill y fuerza. Resultado: 83 patrones, de los que 27 se mantienen, 37 se adaptan y 19 se descartan. De los 25 de blader/humanizer v3.0.0 se mantienen 11, se adaptan 12 y se descartan 2. Las siete propuestas de §7 quedaron resueltas por delegación expresa del usuario el 2026-09-23; son decisiones documentales para el trabajo futuro y no implementan la Fase 2.
 
 ## 1. Criterios de decisión
 
@@ -58,7 +58,7 @@ Decisiones sobre cada patrón del catálogo de [estudio.md](estudio.md) §3, con
 | P40 | Revelación tras dos puntos | kjm | Adaptar | Solo si se repite | patrones.md | Débil |
 | P41 | Acumulación de epítetos | NTE; semilla; NGLE | Adaptar | La anteposición es gramatical; se marca la acumulación | patrones.md; scan_tells.py | Débil |
 | P42 | Aposición explicativa de manual | HUM P31 | Adaptar | Una sola fuente; solo si explica lo obvio | patrones.md | Débil |
-| P43 | Moraleja, resumen o epílogo | anti-ai H1, H8, resumen; HUM P26; P151 E; Aboudjem P39; StoryScope | Adaptar | Solo cortar. Se descarta "break the flatness", que añade datos. Resúmenes legítimos en documentos largos | discurso.md; vocabulario-es.md | Fuerte |
+| P43 | Moraleja, resumen o epílogo | anti-ai H1, H8, resumen; HUM P26; P151 E; Aboudjem P39; StoryScope | Adaptar | Solo cortar. Se descarta "break the flatness", que añade datos. Resúmenes legítimos en documentos largos. StoryScope ([arXiv:2604.03136][storyscope]) respalda la moraleja explícita en ficción (el narrador comenta el tema: IA 77 % frente a 52 %; §4.1, tabla 16); el epílogo es solo huella de Claude (tabla 17), no rasgo central. La fuerza se apoya en las fórmulas de cierre de las demás fuentes | discurso.md; vocabulario-es.md | Fuerte |
 | P44 | Apertura temporal o panorámica vacía | anti-ai; P151 A; ADS; I92; HUM §6.2 | Mantener | Cortar la frase; "en los últimos años" con un dato no cuenta | vocabulario-es.md; discurso.md | Fuerte |
 | P45 | Apertura de ambiente o pregunta retórica | anti-ai H5; P151 D; Russell et al. | Mantener | Abrir con el contenido | discurso.md | Débil |
 | P46 | Contexto ya conocido | anti-ai H7 | Mantener | Útil en emails; cortar no inventa | discurso.md | Débil |
@@ -78,19 +78,19 @@ Decisiones sobre cada patrón del catálogo de [estudio.md](estudio.md) §3, con
 | P60 | Marcadores de posición | Aboudjem P33; Wikipedia | Mantener | Determinista; no se rellenan: se pregunta | scan_tells.py; patrones.md | Fuerte |
 | P61 | Marcado de chatbot filtrado | Aboudjem P34; Wikipedia | Mantener | Determinista | scan_tells.py; patrones.md | Fuerte |
 | P62 | UTM de herramientas de IA | Aboudjem P35; Wikipedia | Adaptar | Solo se señala: las URL son intocables (§4.3) | scan_tells.py | Fuerte |
-| P63 | Fórmulas epistolares fuera de lugar | slopornot S5; jalaalrd; Wikipedia | Adaptar | En cartas y emails son legítimas; Wikipedia da el tono de carta como indicador ineficaz | patrones.md | Débil |
+| P63 | Fórmulas epistolares fuera de lugar | slopornot S5; jalaalrd; blader | Adaptar | En cartas y emails son legítimas; blader protege los saludos y despedidas propios del género ([SKILL.md:362][bl]) | patrones.md | Débil |
 | P64 | Cambio de registro o de variante | semilla; slopornot S8; Aboudjem P36; ADS | Adaptar | Se señala y no se cambia sin confirmación. "Ustedes" formal es correcto en ES-ES | revision.md; scan_tells.py; vocabulario-es.md | Fuerte (mezcla); débil (léxico) |
 | P65 | Transición de relleno | HUM §6.2; ADS; Aboudjem P43 | Adaptar | NTE recomienda "dicho esto": ni se veta ni se inserta; solo cuenta repetida | vocabulario-es.md | Débil |
 | P66 | Tics de humanización | P151; TPE; HPA; anti-ai; kjm; graef | Mantener | Autocomprobación de la salida de la propia skill (§4.4) | revision.md | Fuerte |
-| P67 | Hilo único | anti-ai H2 | Descartar | Corregirlo exige añadir un elemento que no está en el original | — | — |
-| P68 | Resolución fabricada | anti-ai H3 | Descartar | Su arreglo reescribe lo que el autor afirma (§5) | — | — |
-| P69 | Señales humanas a restaurar | anti-ai (6 señales) | Descartar | Son adiciones; solo se conservan si ya están en el original | — | — |
+| P67 | Hilo único | anti-ai H2 | Descartar | Corregirlo exige añadir un elemento que no está en el original. StoryScope confirma la brecha en ficción (sin subtramas: IA 79 % frente a 57 %; §4.1, tabla 16), pero cerrarla exigiría añadir trama (reglas 1 y 4) | — | — |
+| P68 | Resolución fabricada | anti-ai H3 | Descartar | Su arreglo reescribe lo que el autor afirma (§5). StoryScope confirma la brecha en ficción (resolución por decisión del protagonista: IA 69 % frente a 46 %; §4.1, tabla 16), pero cerrarla exigiría añadir ambigüedad o causas externas (reglas 1 y 4) | — | — |
+| P69 | Señales humanas a restaurar | anti-ai (6 señales) | Descartar | Son adiciones; solo se conservan si ya están en el original. StoryScope confirma las brechas en ficción (referencias con nombre: humanos 47 % frente a 24 %; §4.1, tabla 16), pero restaurarlas exigiría añadir referencias, saltos temporales o ambigüedad (reglas 1 y 4) | — | — |
 | P70 | Huella por modelo y primeras palabras | anti-ai; jalaalrd | Descartar | Sirve para atribuir autoría; caduca con cada modelo | — | — |
 | P71 | Variación elegante | Aboudjem; kjm; HUM P11; blader v2.5.1 | Descartar | Evitar la repetición es norma escolar en español; blader v3 la retiró y Wikipedia la pasó a histórico | — | — |
 | P72 | Falsos rangos | Aboudjem; kjm; HUM P12; blader v2.5.1 | Descartar | Retirado por blader v3 y por Wikipedia | — | — |
 | P73 | Longitud de frase uniforme | Aboudjem; stop-slop; jalaalrd; kjm; HUM P32; P151 B | Descartar | Es *burstiness* (§4.4). En Revisión solo se señala una monotonía concreta | — | — |
 | P74 | Prosa densa | kjm | Descartar | La prosa formal española usa periodos largos | — | — |
-| P75 | Emoción declarada | kjm | Descartar | StoryScope: los humanos etiquetan más la emoción (29 % frente a 8 %). Las fórmulas de anuncio van en P12 | — | — |
+| P75 | Emoción declarada | kjm | Descartar | StoryScope: los humanos etiquetan más la emoción (29 % frente a 8 %; §4.1, tabla 16). Las fórmulas de anuncio van en P12 | — | — |
 | P76 | Vocabulario inglés por eras | anti-ai; lista de blader §12 | Descartar | No se traduce (estudio §5) | — | — |
 | P77 | Prohibiciones generales | stop-slop (adverbios, pasiva, arranques con Wh-, extremos) | Descartar | Sin matiz; los extremos ("nunca", "siempre") pueden ser claims | — | — |
 | P78 | Alternancia de perfección y errores | Aboudjem P25, P26 | Descartar | No es estilo; la cero invención cubre lo relevante | — | — |
@@ -118,12 +118,12 @@ Recuento: 27 mantener (11 de blader), 37 adaptar (12 de blader), 19 descartar (2
 | Test de fuente | anti-ai [discourse-tells.md:158][aa-dtells] | Mantener | Toda adición sale del original o del usuario |
 | Presupuesto de adiciones | anti-ai [discourse-tells.md:156][aa-dtells] | Adaptar | Cero adiciones de contenido no dado por el usuario |
 | Puertas de registro | anti-ai [SKILL.md:220-234][aa-skill] | Mantener | Legal, cumplimiento, procedimiento y técnico: solo capa de superficie |
-| Bandas de longitud | anti-ai [SKILL.md:92-97][aa-skill] | Mantener | Sin reglas de discurso en textos cortos |
+| Bandas de longitud | anti-ai [SKILL.md:92-97][aa-skill] | Mantener | Sin reglas de discurso en textos cortos. StoryScope trabaja con relatos de unas 5000 palabras (media del corpus 4753, §2.1; media de los relatos humanos 6403, tabla 4) y afirma, sin medirlo, que los textos más cortos no sostienen esos rasgos (§1): su control de longitud solo compara tercios del propio corpus (apéndice G) |
 | Revisión estricta | anti-ai [strict-review.md][aa-strict] | Adaptar | Base del modo Revisión; añadir sugerencia por hallazgo y severidad crítica para claims alterados, intocables y datos nuevos |
 | Veredicto por densidad | anti-ai [strict-review.md:88-103][aa-strict] | Adaptar | Umbrales por calibrar en la Fase 3; nunca como "probabilidad de IA" |
-| `ask-author` y `Rewrite check` | adewale [SKILL.md:275-300][adw] | Mantener | Pendiente de aprobar la fuente (§7) |
+| `ask-author` y `Rewrite check` | adewale [SKILL.md:275-300][adw] | Mantener | Fuente y método aprobados para el diseño futuro (§7.1); todavía no implementados |
 | Edición mínima; no atribuir autoría | kjm [SKILL.md:68-69, 103][kjm] | Mantener | "Sin cambios necesarios" es una salida válida |
-| Presupuesto de reglas | kjm [SKILL.md:229-234][kjm] | Adaptar | Propuesta de tope de patrones activos (§7) |
+| Presupuesto de reglas | kjm [SKILL.md:229-234][kjm] | Adaptar | Carga progresiva y presupuesto activo aprobados; el límite numérico se medirá en las Fases 2 y 3 (§7.7) |
 | La skill no es un tribunal | anti-ai [SKILL.md:200][aa-skill] | Mantener | Se explica la regla y se acepta la decisión del usuario |
 
 ## 3. Vocabulario
@@ -157,7 +157,7 @@ Las estructuras de [banned-list.md:171-172][aa-banned] van a P08 (adaptada), P06
 | naturalizacion-texto-es ([NTE:40-60][nte]) | "Es evidente que", "Como se puede ver" (débil, P31); adverbios en *-mente* en cadena (P06) | "Sin embargo", "Por lo tanto", "En consecuencia", "También" al inicio (corrientes); "invaluable" (el DLE lo registra); "requerimiento" (sin verificar); "implementación", "metodología", "utilización" (P81) |
 | adelaidasofia e issue #92 ([ADS:95-112][ads]; [I92][i92]) | "es importante mencionar" (fuerte, P31); "en la era de" (fuerte, P44); "se posiciona como", "se presenta como", "se consolida como" (P18); "Profundicemos en", "Descubramos juntos" (fuerte, P04); "en este sentido", "Es menester", "Resulta imperativo", "Cobra especial relevancia" (débil) | — |
 | Humanizer-es ([HES:171][hes]) | "enclavado en", "en el corazón de", "visita obligada" (P16, débil) | Traducción literal del resto de la lista inglesa |
-| anti-ai, ejemplos ([examples.md:274][aa-examples]) | "me complace compartir", "me emociona anunciar" (débil) | — |
+| anti-ai, ejemplos ([examples.md:274][aa-examples]) | "me complace compartir" (débil) | — |
 
 ### 3.4 Semilla de `contexto.md` §6.6
 
@@ -187,7 +187,7 @@ Las estructuras de [banned-list.md:171-172][aa-banned] van a P08 (adaptada), P06
 | Adjetivos antepuestos y en tríada | Débil (P41, P06) | La anteposición es gramatical |
 | "No solo… sino también…", "no se trata de X, se trata de Y" | Fuerte (P01), con salvaguarda | Construcción correcta |
 
-Las entradas que necesitan confirmación del usuario están en §7.3.
+La resolución de estas entradas está en §7.3: las expresiones corrientes se mantienen como señales débiles y dependientes del contexto, no como errores universales.
 
 ## 4. Conflictos entre fuentes y cómo se resuelven
 
@@ -202,7 +202,7 @@ Las entradas que necesitan confirmación del usuario están en §7.3.
 | Autoridad sin fuente | blader: "A missing citation alone is not a tell" ([SKILL.md:254][bl]). anti-ai H6: cada párrafo con una afirmación debe nombrar algo real ([discourse-tells.md:130][aa-dtells]) | Seguir a blader; como mucho, preguntar |
 | Matices | blader conserva los matices con apoyo ([SKILL.md:171][bl]). anti-ai: "AI hedges. Humans take a stance." ([anti-ai-writing.md:250][aa-personal]). PR #151: "Moja: postura clara" | Se conservan los matices con apoyo y todos los de un claim |
 | Objeciones | blader §5 quita las que nadie planteó; la señal 5 de anti-ai añade "the case against" ([discourse-tells.md:188-200][aa-dtells]) | No se añaden; se conservan si están en el original |
-| Emoción | kjm marca la emoción declarada; StoryScope halla más etiquetas emocionales explícitas en humanos (29 % frente a 8 %); anti-ai H4 propone nombrar la emoción | Ni se añade ni se convierte: P75 descartado, P50 solo se señala |
+| Emoción | kjm marca la emoción declarada; StoryScope halla más etiquetas emocionales explícitas en humanos (29 % frente a 8 %; §4.1, tabla 16); anti-ai H4 propone nombrar la emoción | Ni se añade ni se convierte: P75 descartado, P50 solo se señala |
 | Tríadas | blader: "Keep three real items when the meaning needs three" ([SKILL.md:141][bl]). anti-ai, Fix B: añadir un cuarto elemento ([rewrites.md:128][aa-rewrites]) | Solo quitar o fusionar |
 | Estructura del original | Humanamente: "Si el original tiene cinco párrafos, la reescritura tiene cinco párrafos" ([HUM:32][hum]). blader permite cambiar la estructura ([SKILL.md:36][bl]) | Gana `contexto.md` §6.3: el borrador no trata la estructura como fija; la información se conserva |
 | "Sin embargo" al abrir párrafo | NTE lo marca siempre (Tier 1); humanamente: "Un 'sin embargo' no es un tic" | Solo cuenta en cadena (P37) |
@@ -213,7 +213,7 @@ Las entradas que necesitan confirmación del usuario están en §7.3.
 | Punto | `contexto.md` | Estudio | Tratamiento |
 |---|---|---|---|
 | §6.6, "en base a" entre los calcos | Lo lista como calco | La DPD 2.ª ed. lo admite como menos recomendable | Se mantiene en la lista como débil, no como error (§7.3) |
-| §6.4, porcentajes como claim | Ante la duda, claim | La regulación se refiere a eficacia, salud y seguridad; "20 % de descuento" no es claim | Se aplica `contexto.md`; propuesta de restringirlo (§7.4) |
+| §6.4, porcentajes como claim | Ante la duda, claim | La regulación se refiere a eficacia, salud y seguridad; "20 % de descuento" no es claim | Se conserva la detección conservadora de porcentajes y la regla de duda; no se aprueba una restricción general por verbo o sustantivo (§7.4) |
 | §6.2, claims → modo Revisión | Revisión por defecto si hay claims | Con la heurística amplia, casi cualquier ficha con descuento irá a Revisión | Se aplica; medir en la Fase 3 |
 | §6.6, "ustedes por vosotros" se señala | Rasgo americano | "Ustedes" es el plural formal en España | Se señala solo si convive con tuteo o trato de confianza |
 | §6.6, "¡Por supuesto!", "Espero que te sea útil" | Semilla | Legítimos en diálogo y en cartas | Se mantienen con la salvaguarda de contexto |
@@ -268,20 +268,54 @@ Las entradas que necesitan confirmación del usuario están en §7.3.
 | kjm, "Add disfluency" | Añadir disfluencias si el texto es uniforme ([SKILL.md:156][kjm]) | Regla 4 |
 | Método del PR #151 | Listas "Validadas empíricamente contra GPTZero" | Se usan sus observaciones, no el método |
 
-## 7. Propuestas que requieren confirmación del usuario
+## 7. Propuestas resueltas para el diseño futuro
 
-1. Fuentes upstream nuevas:
-   1. adewale/anti-slop-writing (MIT, `53370ff`): formato de veredicto `keep / revise / ask-author / reject`, `Rewrite check`, estructura de casos adversariales y oráculo de aserciones para los evals.
-   2. vicentealvarezasencio/humanamente (MIT, `1447b61`): patrones del castellano (aquí P08, P11, P15, P20, P37, P42 y P55; en su numeración, P14, P13, P22, P17, P33, P31 y P19) y lista de falsos positivos ([HUM:465-491][hum]). Doble atribución (Siqi Chen y V. Álvarez Asencio); sin su §6.6.
-   3. kjmagnan1s/anti-slop (MIT, `a3807e5`): solo ideas (portabilidad, presupuesto de reglas, conjunto "golden"). No exige aviso si no se copia texto.
-2. Cambios en `NOTICE.md`: aclarar que de blader se reutilizan ideas y reglas, no ejemplos (proceden de Wikipedia, CC BY-SA 4.0); citar Wikipedia:Signs of AI writing como fuente de ideas; añadir los avisos MIT de las fuentes que se aprueben en el punto 1; mantener la atribución a anti-ai-writing aunque su README la declare opcional.
-3. Entradas de la semilla §6.6 que el estudio desaconseja tratar como fuertes o como error, con la propuesta de dejarlas como débiles en lugar de quitarlas: "en base a", "jugar un papel/rol", "un antes y un después", "marca un hito", "sin lugar a dudas", "aprovechar al máximo", "En este sentido", "En definitiva", "¡Por supuesto!" y "Espero que te sea útil" (solo fuera de diálogo y cartas), "tomar lugar" (sin respaldo normativo).
-4. Heurística de claims (§6.4): contar un porcentaje como claim solo si acompaña a un verbo o sustantivo de eficacia, y añadir los marcadores de [estudio.md](estudio.md) §10.5 (duraciones, "hipoalergénico", "sin X", "no testado en animales", "natural" con efecto, autoevaluaciones de calidad).
-5. Verificaciones normativas pendientes en navegador (rae.es y fundeu.es bloquean la descarga automática):
-   - RAE: DPD *raya*; Ortografía, "la raya como signo delimitador"; DPD *comillas*; Libro de estilo, "elementos de titulación"; DPD *mayúsculas*; DPD *base* (2.ª ed.); DPD *jugar*; DPD *cara*; DPD *nivel*; DPD *gerundio*; DPD *severo*; DPD *eventual*; duda lingüística "hacer sentido"; DPD *escalar*; DPD *rol*; DPD *aplicar*; DPD *asumir*; DPD *empoderar*; DPD *impactar*; DPD *sino*; DPD *signos de interrogación y exclamación*; DPD *dos puntos*; DPD *vosotros*; DPD *usted*; DPD *computador*; DPD *porcentajes*; Ortografía, separador decimal y de millares; NGLE, pasiva refleja y perifrástica; NGLE, epítetos.
-   - Fundéu: "en base a"; "poner en valor"; "escalar"; "de cara a" y "severo" (Vademécum); "tomar lugar"; muletillas "cabe destacar" y "en este sentido"; abuso de la pasiva.
-6. Ampliar `scan_tells.py` (fuera de §6.7) para detectar patrones de datos personales (DNI/NIE, IBAN, teléfono, correo) con el único fin de disparar el aviso de §4.6, sin guardar nada.
-7. Fijar un tope de patrones activos en `patrones.md`, siguiendo el presupuesto de reglas de kjm.
+El estudio formuló estas siete propuestas para confirmación. El usuario delegó expresamente su resolución el 2026-09-23. Se conserva el contexto original y se fija aquí el límite de cada decisión; ninguna constituye implementación de la Fase 2.
+
+### 7.1 Fuentes complementarias
+
+**Propuesta original.** Incorporar el método de adewale/anti-slop-writing (`53370ff`), patrones y salvaguardas de humanamente (`1447b61`) e ideas de kjmagnan1s/anti-slop (`a3807e5`).
+
+**Resolución.** Se acepta de adewale el método de evaluación y veredicto (`keep / revise / ask-author / reject`, `Rewrite check`, casos adversariales y oráculo de aserciones). De humanamente se acepta una selección estrecha de patrones del castellano —P08, P11, P15, P20, P37, P42 y P55 de este catálogo— y sus salvaguardas contra falsos positivos. Se excluyen su §6.6, las muletillas artificiales, la variación de ritmo como objetivo, la invención y cualquier material de procedencia incompatible. De kjm se toman solo las ideas de portabilidad, presupuesto de reglas y prosa de control; no se copia texto ni se presume permiso sobre material de terceros.
+
+### 7.2 Licencias y atribución
+
+**Propuesta original.** Ampliar `NOTICE.md`, aclarar el origen de los ejemplos de blader y citar Wikipedia como fuente de ideas.
+
+**Resolución.** Se mantienen los avisos existentes y se añaden los avisos MIT exactos de adewale (© 2026 Ade Oshineye) y humanamente (© 2025 Siqi Chen, obra original; © 2026 Vicente Álvarez Asencio, adaptación al castellano), verificados en los `LICENSE` de los commits fijados. Las licencias de esos proyectos no cubren los ejemplos procedentes de Wikipedia:Signs of AI writing, revisión 1376018375, CC BY-SA 4.0. Wikipedia y kjm se citan como fuentes de ideas; la skill futura no copiará ejemplos de Wikipedia.
+
+### 7.3 Expresiones corrientes de la semilla
+
+**Propuesta original.** Rebajar, en vez de eliminar, expresiones con alto riesgo de falso positivo: "en base a", "jugar un papel/rol", "un antes y un después", "marca un hito", "sin lugar a dudas", "aprovechar al máximo", "En este sentido", "En definitiva", "¡Por supuesto!", "Espero que te sea útil" y "tomar lugar".
+
+**Resolución.** Se aceptan como señales débiles y dependientes del contexto, con las salvaguardas ya detalladas en §3.4. No son errores universales. Se conservan como fuertes los restos de chatbot inequívocos cuando aparecen fuera de su género. Claims, citas y contenido técnico protegido tienen prioridad sobre cualquier clasificación estilística. Las afirmaciones normativas pendientes, incluida "tomar lugar", siguen pendientes: rebajar la fuerza estilística no demuestra su corrección normativa.
+
+### 7.4 Heurística de claims
+
+**Propuesta original.** Añadir los marcadores de `estudio.md` §10.5 y restringir los porcentajes a los acompañados por un verbo o sustantivo de eficacia.
+
+**Resolución.** Se añaden al diseño futuro "dermatológicamente probado/testado", duraciones, "hipoalergénico", "sin X", "no testado en animales" y otras alegaciones sobre experimentación animal, "natural" asociado a un efecto y autoevaluaciones de calidad o cumplimiento (P30). Se rechaza la restricción general de porcentajes: se conserva la detección conservadora de porcentajes, la regla "ante la duda, claim" y la cobertura de todas las alegaciones de eficacia, salud o seguridad. No se aprueban excepciones ni listas blancas monetarias en esta fase.
+
+### 7.5 Verificación normativa pendiente
+
+**Propuesta original.** Completar en fuente primaria las comprobaciones que la descarga automática no permitió.
+
+**Resolución.** Se difieren a verificación manual, sin sortear bloqueos ni presentar este cierre documental como certificación normativa exhaustiva. Mientras sigan pendientes, estas afirmaciones no pueden autorizar correcciones automáticas como reglas establecidas. La lista completa se conserva:
+
+- RAE: DPD *raya*; Ortografía, "la raya como signo delimitador"; DPD *comillas*; Libro de estilo, "elementos de titulación"; DPD *mayúsculas*; DPD *base* (2.ª ed.); DPD *jugar*; DPD *cara*; DPD *nivel*; DPD *gerundio*; DPD *severo*; DPD *eventual*; duda lingüística "hacer sentido"; DPD *escalar*; DPD *rol*; DPD *aplicar*; DPD *asumir*; DPD *empoderar*; DPD *impactar*; DPD *sino*; DPD *signos de interrogación y exclamación*; DPD *dos puntos*; DPD *vosotros*; DPD *usted*; DPD *computador*; DPD *porcentajes*; Ortografía, separador decimal y de millares; NGLE, pasiva refleja y perifrástica; NGLE, epítetos.
+- Fundéu: "en base a"; "poner en valor"; "escalar"; "de cara a" y "severo" (Vademécum); "tomar lugar"; muletillas "cabe destacar" y "en este sentido"; abuso de la pasiva.
+
+### 7.6 Aviso de privacidad
+
+**Propuesta original.** Ampliar en la Fase 2 `scan_tells.py` para detectar patrones de DNI/NIE, IBAN, teléfono y correo con el único fin de activar el aviso de privacidad.
+
+**Resolución.** Se acepta como requisito futuro, no como implementación actual. El análisis será local, efímero y con biblioteca estándar; no almacenará, registrará ni repetirá en diagnósticos los valores personales encontrados. La salida incluirá solo la categoría y la ubicación mínima necesaria para localizar el aviso. La ausencia de hallazgos heurísticos no garantiza que el texto carezca de datos personales o sensibles. Se mantienen la confirmación del usuario y el aviso de valorar un modelo local; la skill no recogerá datos personales nuevos.
+
+### 7.7 Carga progresiva y presupuesto de reglas
+
+**Propuesta original.** Fijar un tope de patrones activos en `patrones.md`, siguiendo el presupuesto de reglas de kjm.
+
+**Resolución.** Se aceptan la carga progresiva y un mecanismo de presupuesto de reglas activas. El límite numérico se difiere hasta medir el contexto y los resultados reales en las Fases 2 y 3: no hay evidencia para fijar ahora un tope. Las reglas duras conservan siempre la prioridad y no se descartan patrones del catálogo ni salvaguardas para encajar en el presupuesto.
 
 ## 8. Implicaciones para `scan_tells.py`
 
@@ -298,8 +332,11 @@ Las entradas que necesitan confirmación del usuario están en §7.3.
 | Registro y variante | Recuento de formas de tú y usted, de vosotros y ustedes; lista corta de léxico americano. Solo aviso | P64 |
 | `--original` | Extrae y normaliza cifras (`1.000`, `1 000`, `1000`; `3,5`, `3.5`; ante la ambigüedad, las dos lecturas), porcentajes (`50 %`, `50%`, "por ciento"), fechas en español ("12 de marzo de 2024", "marzo de 2024", dd/mm/aaaa), precios (€, EUR, euros), duraciones y unidades ("48 h", "50 ml"), códigos y referencias, siglas e INCI en mayúsculas, nombres propios, URL, claims marcados y citas (literales). Informa de lo que falta y de lo nuevo, a diferencia de Aboudjem, que solo informa de lo perdido ([facts.js:178][abj-facts]). Compara también los recuentos de tú/usted | Reglas 1, 2 y 3 |
 | Candidatos a claim | Marca frases con los marcadores de §6.4 y de [estudio.md](estudio.md) §10.5; la decisión es del modelo o del usuario | P30; regla 2 |
+| Aviso de privacidad (Fase 2) | Detectará patrones de DNI/NIE, IBAN, teléfono y correo de forma local y efímera. Informará solo de categoría y ubicación mínima, sin almacenar, registrar ni repetir el valor. La ausencia de hallazgos no certificará que el texto sea seguro | Regla 6; §7.6 |
 | Salida | JSON estable (`sort_keys`, sin marcas de tiempo). Código de salida 1 si falta o aparece un dato o cambia un claim marcado. Sin puntuación de "probabilidad de IA" y sin métricas de ritmo en v1 | Regla 4 |
 | Tests | Primero hechos y claims; formatos de cifras españoles; un conjunto de prosa humana española que no debe dar hallazgos bloqueantes | §7.6 del estudio |
+
+La carga progresiva y el presupuesto de reglas activas de §7.7 pertenecen a `SKILL.md` y a la selección contextual de sus referencias. No reducen la cobertura determinista de `scan_tells.py` ni ninguna regla dura o salvaguarda.
 
 [bl]: https://github.com/blader/humanizer/blob/9862685f575c65a8247f90369951df1b3416e3d6/SKILL.md
 [bl-agents]: https://github.com/blader/humanizer/blob/9862685f575c65a8247f90369951df1b3416e3d6/AGENTS.md#L24
@@ -321,6 +358,7 @@ Las entradas que necesitan confirmación del usuario están en §7.3.
 [ads]: https://github.com/adelaidasofia/humanizer/blob/9c764db0e7331f27f803522205f01c78a0a67ed1/SKILL.md
 [nte]: https://github.com/dorelysm/naturalizacion-texto-es/blob/7eaba75f50678343263a17ace92bf09dff9af876/.claude/skills/naturalizacion-texto-ia/SKILL.md
 [abj-facts]: https://github.com/Aboudjem/humanizer-skill/blob/a58df065367550b6ce40ff3f648335018d8e0589/cli/lib/facts.js#L178
+[storyscope]: https://arxiv.org/abs/2604.03136v6
 [u1]: https://github.com/blader/humanizer/blob/9862685f575c65a8247f90369951df1b3416e3d6/README.md#L131-L159
 [u2]: https://github.com/blader/humanizer/blob/9862685f575c65a8247f90369951df1b3416e3d6/SKILL.md#L205
 [u3]: https://github.com/blader/humanizer/blob/9862685f575c65a8247f90369951df1b3416e3d6/SKILL.md#L289

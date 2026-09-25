@@ -1,6 +1,8 @@
 # Estudio de la Fase 1: skills existentes, rasgos y salvaguardas
 
-Este documento reúne lo que se sabe sobre las skills y herramientas que quitan rasgos de texto generado por IA, qué rasgos describen, cuáles valen para el español de España, con qué salvaguardas y con qué límites. Es la base de las decisiones de [auditoria.md](auditoria.md) y del diseño de la Fase 2. Fecha de consulta de todas las fuentes: 2026-09-22.
+Este documento reúne lo que se sabe sobre las skills y herramientas que quitan rasgos de texto generado por IA, qué rasgos describen, cuáles valen para el español de España, con qué salvaguardas y con qué límites. Es la base de las decisiones de [auditoria.md](auditoria.md) y del diseño de la Fase 2. Las fuentes del estudio se consultaron el 2026-09-22; las licencias incorporadas al cierre documental se verificaron el 2026-09-23.
+
+Las siete propuestas derivadas del estudio quedaron resueltas documentalmente el 2026-09-23 en `auditoria.md` §7. La resolución fija límites para el trabajo futuro: no implementa la Fase 2.
 
 Cómo leer las citas:
 
@@ -14,13 +16,13 @@ Cómo leer las citas:
 1. Ninguna de las fuentes revisadas protege claims regulados, trata el registro tú/usted ni la variante ES-ES frente a la americana, ni avisa de datos personales. Esas partes de prosa-natural son diseño propio (§9).
 2. Casi todas las skills con ejemplos "antes → después" inventan datos en esos ejemplos: blader, anti-ai-writing, humanamente, Humanizer-es, naturalizacion-texto-es, Aboudjem, slopornot y el PR #151 de blader. Varias de ellas prohíben inventar en sus propias reglas (§8). La regla de cero invención necesita una comprobación determinista (`scan_tells.py --original`) y ejemplos propios verificados.
 3. Varias instrucciones de los upstream cambian el alcance de una afirmación ("is designed to" → "will", "weaken the claim", cortar la autoridad sin fuente). En la UE se regula la redacción de los claims, incluido lo implícito (Reglamento 655/2013, art. 1 y 2; Reglamento 1924/2006, "mismo significado para el consumidor"). La skill no puede reformularlos (§10).
-4. Ninguna skill distingue el uso normativo de la raya en español. La RAE la admite en incisos, diálogo y listas; el rasgo es la raya a la inglesa: espaciada por ambos lados, sin cierre o en lugar de dos puntos (§4.1). La evidencia empírica no respalda tratar la raya como rasgo por sí sola (Russell et al. 2025; Wikipedia).
+4. Humanamente P14 protege los incisos y el diálogo y distingue el espaciado inglés; la RAE admite la raya en incisos, diálogo y listas. El rasgo es la raya a la inglesa: espaciada por ambos lados, sin cierre o en lugar de dos puntos (§4.1). La evidencia empírica no respalda tratar la raya como rasgo por sí sola (Russell et al. 2025; Wikipedia).
 5. No existe ningún estudio revisado por pares que liste vocabulario sobrerrepresentado en textos de IA en español. Lo más cercano es un preprint (Juzek 2026) con la familia "enfatizar, destacar, subrayar, realzar". La lista de prosa-natural será criterio propio documentado, por niveles y no como lista negra (§5).
 6. La norma actual corrige varias entradas de la semilla de `contexto.md` §6.6: "en base a" es admisible aunque menos recomendable (DPD, 2.ª ed.) y "jugar un papel" no es incorrecto. "A nivel de" sin idea de jerarquía, "hacer sentido" y el gerundio de posterioridad sí están censurados o desaconsejados (§4.5).
 7. Los rasgos tipográficos con respaldo normativo más firme son la mayúscula en cada palabra de los títulos y la omisión de los signos de apertura ¿ ¡. Las comillas inglesas no son error; solo se señala la incoherencia dentro de un mismo texto (§4.2, §4.3, §4.9).
 8. La evaluación no puede apoyarse en detectores: sesgan contra quien escribe en segunda lengua (Liang et al. 2023), caen con la paráfrasis (Sadasivan et al.) y en español rinden poco por encima de la línea base (AuTexTification). Funcionan mejor los jueces expertos con voto mayoritario (Russell et al. 2025: 1 error en 300 artículos), las aserciones deterministas y los casos adversariales (§7).
 9. El método más riguroso del corpus es el de adewale/anti-slop-writing (veredicto `ask-author`, `Rewrite check`, casos adversariales, reparto tune/holdout). kjmagnan1s/anti-slop aporta la edición mínima, la prueba de portabilidad y un presupuesto de reglas contra el crecimiento sin freno.
-10. La capa de discurso (StoryScope; anti-ai-writing) sirve sobre todo para cortar: moraleja final, epílogo, apertura de ambiente. Sus "señales a restaurar" son adiciones y chocan con las reglas 1 y 4. Se adoptan las puertas de registro que la desactivan en textos legales y técnicos.
+10. La capa de discurso sirve sobre todo para cortar: moraleja final (StoryScope y anti-ai-writing), epílogo y apertura de ambiente (anti-ai-writing). En StoryScope el epílogo es solo huella de Claude y la apertura situada en un escenario apenas separa (IA 2,33 frente a 2,12 humana, en el umbral mínimo de 0,20; tabla 16 y apéndice D). Las "señales a restaurar" de anti-ai-writing son adiciones y chocan con las reglas 1 y 4. Se adoptan las puertas de registro que la desactivan en textos legales y técnicos.
 11. Se descartan de raíz slopornot, TempParaphraser, Humanizer-Prompt-Advanced y humanizar-texto-es, y las partes de Aboudjem, naturalizacion-texto-es y humanamente que optimizan *burstiness* o insertan muletillas. Wikipedia pide expresamente no usar sus señales como lista de cosas que tapar.
 12. De blader y anti-ai-writing se reutilizan ideas y reglas (MIT). Los ejemplos de blader proceden de Wikipedia (CC BY-SA 4.0) y no se copian. Humanizer-es, Aboudjem y humanamente derivan de blader: si se usara su texto, habría que atribuir también a blader (§11).
 
@@ -131,6 +133,8 @@ Patrones deduplicados entre fuentes y agrupados por familias. Solo figuran los q
 | P50 | Emoción contada en el cuerpo | Emoción narrada como sensación física | «Sentí un nudo en el estómago al leer el correo.» | anti-ai H4; StoryScope |
 | P51 | Convergencia de lote | Varias piezas con la misma apertura, longitud y cierre | Cinco newsletters que abren con pregunta y cierran con «¡Nos vemos pronto!» | anti-ai |
 
+StoryScope ([arXiv:2604.03136][storyscope], ficción en inglés) respalda P43 en la moraleja: el narrador comenta el tema en el 77 % de los relatos de IA frente al 52 % de los humanos (§4.1, tabla 16). El epílogo solo aparece como huella de un modelo (Claude, §5 y tabla 17), no entre los rasgos centrales; la fuerza "Fuerte" de P43 se apoya en las fórmulas de cierre de las demás fuentes. Para P50, la emoción contada con el cuerpo es el modo predominante en el 81 % de los relatos de IA frente al 38 % (§4.1, tabla 16).
+
 ### 3.5 Formato y tipografía
 
 | Id | Patrón | Qué es | Ejemplo propio | Fuentes |
@@ -179,12 +183,14 @@ Patrones deduplicados entre fuentes y agrupados por familias. Solo figuran los q
 
 P10 guion en compuestos; P21 comillas curvas; P67 hilo único; P68 resolución fabricada; P69 señales humanas a restaurar; P70 huella por modelo; P71 variación elegante; P72 falsos rangos; P73 longitud de frase uniforme; P74 prosa densa; P75 emoción declarada; P76 vocabulario inglés por eras; P77 prohibiciones generales de stop-slop; P78 alternancia de perfección y errores; P79 etiquetas compuestas inventadas; P80 locuciones prepositivas ("a la hora de"); P81 nominalización; P82 puntos suspensivos de un carácter; P83 confusión *sino* / *si no*. Motivos en `auditoria.md` §2.
 
+Tampoco pasan, sin identificador propio, varios rasgos de ficción de StoryScope ([arXiv:2604.03136][storyscope], tabla 16): la densidad sensorial y olfativa y el escenario como espejo del estado interior (más frecuentes en IA), y la apelación al lector, los saltos temporales y la ambigüedad moral (más frecuentes en humanos). En una ficha de producto el detalle sensorial es contenido (aroma, textura) y quitarlo cambiaría lo que el texto dice; "restaurar" los rasgos humanos exigiría añadir contenido (reglas 1 y 4). Además, todos sus hallazgos son diferencias agregadas de frecuencia o de media con mucho solapamiento (el 52 % de los relatos humanos también comenta el tema; las distribuciones de rareza se solapan, fig. 5): ninguno se convierte en regla ni en umbral por texto.
+
 ## 4. Rasgos específicos del español
 
 ### 4.1 Raya
 
 - Norma. La raya doble aísla incisos, va pegada al texto que enmarca y separada por un espacio de lo de fuera, y la de cierre no se suprime aunque siga un punto ([DPD, raya][dpd-raya]; [Ortografía][ort-raya]; verificación pendiente en fuente primaria). Wikilengua lo confirma literalmente: "el espacio está antes de la raya de apertura y después de la raya de cierre" ([Wikilengua, Raya][wl-raya]). También introduce el diálogo, las acotaciones del narrador y los elementos de una lista.
-- Uso impropio. Wikilengua recoge "Usos impropios de la raya. La mayoría de ellos son calcos del inglés": en lugar de los dos puntos para una conclusión, en lugar del paréntesis para una sigla y en títulos en lugar de los dos puntos. La RAE no dice nada sobre la frecuencia.
+- Uso impropio. Wikilengua recoge "Usos impropios de la raya. La mayoría de ellos son calcos del inglés": en lugar de los dos puntos para una conclusión y en lugar del paréntesis para una sigla ([Wikilengua, Raya][wl-raya]). En títulos, Wikilengua considera anglicismo el uso de la raya en lugar de los dos puntos ([Wikilengua, Título][wl-titulo], §1). La RAE no dice nada sobre la frecuencia.
 - Intervalos. En "1990-2000" el signo es el guion; la semirraya aparece "por influencia del inglés" ([Wikilengua, Guion][wl-guion]). No es un rasgo de IA.
 - Evidencia. En Russell et al. (2025) los expertos notaban que los textos de IA evitaban rayas y puntos suspensivos. Wikipedia: el rasgo es útil "in combination with other indicators, not by itself"; cita un estudio de julio de 2026 según el cual, entre los modelos actuales, solo Claude usaba más rayas que los escritores profesionales (referencia primaria no localizada), y observa que las rayas generadas "are usually surrounded by spaces".
 - Consecuencia. Salvaguarda obligatoria (§6.6 de `contexto.md`). Rasgo: raya espaciada por ambos lados, raya suelta sin cierre, raya pegada a las dos palabras, raya en un encabezado. La densidad no tiene umbral normativo: PR #151 propone "máximo una por cada 500 palabras", que es un criterio propio de esa fuente.
@@ -265,7 +271,7 @@ Wikilengua y las notas antiguas de Fundéu reflejan a veces el DPD de 2005. Ejem
 
 ### 5.1 Qué se sabe (evidencia en inglés)
 
-- Kobak et al. (2025) miden el exceso de frecuencia en 15,1 millones de resúmenes de PubMed: al menos el 13,5 % de los de 2024 pasó por un LLM, y de las 454 palabras en exceso, el 66 % son verbos y el 14 % adjetivos, es decir, palabras de estilo ([Kobak et al.][kobak]).
+- Kobak et al. (2025) miden el exceso de frecuencia en 15,1 millones de resúmenes de PubMed: al menos el 13,5 % de los de 2024 pasó por un LLM. Detectan 454 palabras en exceso en total; 379 son palabras de estilo y, dentro de esas 379, el 66 % son verbos y el 14 % adjetivos ([Kobak et al.][kobak]).
 - Matsui (2025): 103 de 135 términos "potencialmente influidos por IA" superan el umbral en PubMed en 2024; el aumento empieza en 2020 ([Matsui][matsui]).
 - Russell et al. (2025): el vocabulario es la pista más citada por los jueces expertos (53,1 % de las explicaciones), seguida de la estructura de frase (35,9 %) ([Russell et al.][russell]).
 - Las listas caducan. Wikipedia documenta que *delve* "dropped off sharply in 2025" y organiza el vocabulario por épocas; adewale llama a *delve* "the cautionary example" ([ADW:157][adw]).
@@ -320,11 +326,14 @@ Russell, Karpinska e Iyyer (2025) pusieron a 5 anotadores que usan LLM a menudo 
 - Sesgo: siete detectores marcaron como IA el 61,22 % de media de 91 redacciones TOEFL, frente a casi ningún error con las de nativos; la causa es la menor variabilidad léxica ([Liang et al.][liang]). Pedir a un modelo que "mejore el vocabulario" bajaba la tasa: sonar humano ante un detector empuja hacia un léxico rebuscado.
 - Fragilidad: la paráfrasis recursiva reduce mucho la detección ([Sadasivan et al.][sadasivan]); la detección es posible, pero exige más muestras cuanto más se parecen las distribuciones ([Chakraborty et al.][chakraborty]); catorce herramientas (doce públicas más Turnitin y PlagiarismCheck) resultaron "neither accurate nor reliable" ([Weber-Wulff et al.][weber]).
 - Español: en AuTexTification el mejor sistema logró 70,77 de macro-F1 en español frente a una línea base de 68,52 ([Sarvazyan et al.][autex]). Microsoft reconoce que "accuracy drops when text is written or translated from another language" ([Microsoft][ms]).
+- Estructura: pulir la superficie no engaña a un clasificador de rasgos narrativos. Después de que LAMP corrigiera clichés, exposición redundante y prosa recargada en 278 relatos de Gemini, el clasificador siguió en 93,9 de macro-F1, frente a 95,5 sin editar ([arXiv:2604.03136][storyscope], §4.2 y tabla 2; ficción en inglés). Apoya la regla 4: la skill mejora el texto y no busca ni promete pasar detectores.
 - Consecuencia: ningún detector ni puntuación de "probabilidad de IA" como métrica. Se mide calidad: rasgos eliminados, hechos conservados, voz intacta.
 
 ### 7.3 Comprobación determinista de hechos
 
 Aboudjem extrae URL, fechas, porcentajes, versiones, números y siglas del antes y del después, y `compare --check-facts` falla si se pierde alguno ([index.js:30][abj-cli]; [facts.js][abj-facts]). Solo informa de lo perdido: "adding detail is a writing choice, not a factual error" ([facts.js:178][abj-facts]). Para prosa-natural esa decisión no vale, porque la regla 1 prohíbe añadir: `scan_tells.py --original` informará también de lo nuevo, con formatos españoles (§4.11) y con los claims marcados comparados literalmente.
+
+La igualdad de cifras, nombres, tokens protegidos y claims marcados es necesaria, pero no basta para garantizar fidelidad semántica: una reescritura puede conservar esos elementos y cambiar relaciones, negaciones, alcance o causalidad. La Fase 3 deberá combinar esas aserciones con revisión semántica humana; esta comprobación no está implementada todavía.
 
 ### 7.4 Casos adversariales y texto ya bueno
 
@@ -352,7 +361,7 @@ adewale mantiene casos adversariales de falsos positivos (`robust-engineering-co
 | Invención en los ejemplos | blader: el ejemplo de Lisboa añade detalles y cambia valoraciones ([README.md:131-159][bl-readme]); §12, §19, §20, §25 ([SKILL.md:205, 289, 302, 358][bl]). anti-ai: casi todos los "después" de `examples.md` y "Our coffee was on a tree in Ethiopia three weeks ago" ([rewrites.md:236-243][aa-rewrites]). Humanamente: «de unas diez mesas», «desde 2014» ([HUM:574-588][hum]). Humanizer-es: un estudio de 2019 inventado ([HES:149][hes]). PR #151 inventa una experiencia y quita el claim «reduce el estrés» ([P151:121-143][p151]). slopornot `es.md`: «La plataforma procesa 10.000 solicitudes por segundo». Aboudjem: "cuts p99 latency from 900ms to 40ms" ([SKILL.md:310][abj]) | Ejemplos propios verificados con `scan_tells.py --original`; los ejemplos upstream sirven como casos negativos |
 | Sobrecorrección | stop-slop es "demasiado agresivo" con documentación técnica ([#15][ss-15]) y sus ejemplos quitan el conector con la paja ([#42][ss-42]); anti-ai: "False positives are the failure mode of this mode" ([strict-review.md:141][aa-strict]) | Edición mínima; texto ya bueno como caso fijo |
 | Prohibir la raya | anti-ai "No exceptions" ([banned-list.md:109][aa-banned]); NTE "Deben eliminarse siempre"; Aboudjem "Zero tolerance" ([SKILL.md:170][abj]); stop-slop. Quitar rayas a máquina crea *comma splices*, rompe tablas y daña rangos ([stop-slop #60][ss-60]). anti-ai usa rayas en su propia prosa ([anti-ai-writing.md:3][aa-personal]) | Salvaguarda normativa (§4.1) |
-| Lista negra de palabras corrientes | anti-ai veta "Desarrollar", "Relevante", "Notable", "Sólido", "Permitirá" ([banned-list.md:154][aa-banned]); NTE afirma que "invaluable" no existe, y el [DLE][dle-invaluable] lo registra; la tabla de sustituciones de jalaalrd cambiaba "underscores" por "highlights", otra palabra delatora (issue #1) | Niveles y exclusiones (§5.3) |
+| Lista negra de palabras corrientes | anti-ai veta "Desarrollar", "Relevante", "Notable", "Sólido", "Permitirá" ([banned-list.md:154][aa-banned]); NTE afirma que "invaluable" no existe, y el [DLE][dle-invaluable] lo registra; el autor del [issue #1 de jalaalrd][jal-i1] describió que su tabla personal cambiaba "underscores" por "highlights", otra palabra delatora | Niveles y exclusiones (§5.3) |
 | Puntuaciones de "probabilidad de IA" | Aboudjem tiene dos fórmulas distintas con el mismo nombre y promete que en 0-20 "No detector should flag it" ([SKILL.md:419][abj]; [metrics.js][abj-metrics]); Humanizer-es ([HES:441-455][hes]) y humanizar-texto-es ([TPE:118-140][tpe]) puntúan "humanidad"; graef da "AI likelihood" | Sin puntuación compuesta en la skill ni en el script |
 | Nuevos tics | Cambiar palabras por sinónimos crea "a uniform humaniser dialect" ([graef][graef]); kjm: "over-constraint breeds displacement tells" ([SKILL.md:232][kjm]); anti-ai: "Defaulting to the number every time replaces one formula with another" ([discourse-rewrites.md:130][aa-drew]); Aboudjem: punto y coma o dos puntos en 3 o más frases seguidas ([SKILL.md:172][abj]); los textos humanizados de Russell et al. usaban títulos como Dr. o Prof. mucho más que los humanos | P66 como autocomprobación; presupuesto de reglas |
 | Atribución perdida | Aboudjem quitó el crédito a blader ([PR #8][abj-pr8]); slopornot reproduce blader v2.x y solo cita a Wikipedia; el LICENSE de Humanizer-es omite el copyright de blader; softaworks copia Wikipedia sin aviso CC BY-SA | Doble atribución si se usa texto derivado (§11) |
@@ -368,7 +377,7 @@ adewale mantiene casos adversariales de falsos positivos (`robust-engineering-co
 | Registro tú/usted | Solo slopornot S8 y Aboudjem P36 señalan la mezcla | No se cambia sin petición; `scan_tells.py` compara el recuento con el original |
 | Vosotros/ustedes y léxico por variante | Solo ADS (code-switching) y slopornot S8, en general | Se señala, no se cambia (P64, §4.10) |
 | Fichas de producto | anti-ai trata marketing y *landings*, no fichas | Casos de eval con claims; P26 (portabilidad) y P16 con puerta de claims |
-| Datos personales o sensibles | Ninguna | Aviso de §4.6 de `contexto.md`; la skill no los pide ni los guarda |
+| Datos personales o sensibles | Ninguna | Aviso de §4.6 de `contexto.md`; la skill no los pide ni los guarda. La detección heurística se planifica para la Fase 2 como aviso local y efímero; no encontrar patrones no certificará que el texto sea seguro |
 | Tipografía española (raya, comillas, ¿¡, mayúsculas) | Humanamente §6.5 lo enuncia sin fuentes normativas; el resto la contradice | §4 con respaldo normativo fechado |
 | Cifras con formato español en la comprobación de hechos | Aboudjem solo reconoce formatos ingleses | Normalización de §4.11 |
 | Intocables de comercio (INCI, precios, códigos) | blader protege código y datos; no INCI ni precios | Regla dura 3 y enmascarado en el script |
@@ -405,13 +414,15 @@ El documento técnico de la AEMPS sobre reivindicaciones (traducción del docume
 |---|---|---|---|
 | blader/humanizer | MIT (© 2025 Siqi Chen) | Ideas, reglas, estructura del flujo, salvaguardas | Aviso MIT en `NOTICE.md` (ya está). Los ejemplos no: proceden de Wikipedia (CC BY-SA 4.0), como Idescat 1989, Korattur o Gallery 825 |
 | avectats7/anti-ai-writing | MIT (© 2026 Tato Polanco) | Lista ES filtrada, capa de discurso para cortar, modo revisión estricta | Aviso MIT en `NOTICE.md` (ya está), aunque su README diga "Attribution is welcome but not required" ([README.md:184][aa-readme]) |
-| adewale/anti-slop-writing | MIT (© 2026 Ade Oshineye) | Formato de veredicto, `Rewrite check`, estructura de evals, oráculo de aserciones | Añadir a `NOTICE.md` solo si se copia texto o código |
-| kjmagnan1s/anti-slop | MIT (© 2026 Kevin Magnan) | Ideas (portabilidad, presupuesto de reglas) | Su [CREDITS.md][kjm-credits] advierte que parte del material de base es CC BY-SA 4.0: no copiar texto |
-| humanamente | MIT (© 2025 Siqi Chen y © 2026 V. Álvarez Asencio) | Patrones del castellano (P13, P14, P17, P19, P22, P31 y P33 en su numeración), lista de falsos positivos | Doble atribución (blader y V. Álvarez). No copiar su §6.6, que viene de humanizar-texto-es, sin licencia |
+| adewale/anti-slop-writing | MIT (© 2026 Ade Oshineye) | Método de evaluación: formato de veredicto, `Rewrite check`, estructura de evals y oráculo de aserciones | Aviso MIT exacto en `NOTICE.md`; adopción aprobada para el diseño futuro, no implementada en esta fase |
+| kjmagnan1s/anti-slop | MIT (© 2026 Kevin Magnan) | Ideas de portabilidad, presupuesto de reglas y conjunto de prosa de control | Se cita como fuente de ideas. Su [CREDITS.md][kjm-credits] advierte que parte del material de base es CC BY-SA 4.0: no copiar texto ni atribuirse permisos sobre material de terceros |
+| humanamente | MIT (© 2025 Siqi Chen, obra original; © 2026 Vicente Álvarez Asencio, adaptación al castellano) | Selección estrecha de patrones del castellano y salvaguardas contra falsos positivos | Aviso MIT exacto en `NOTICE.md`. Se excluyen §6.6, las muletillas artificiales, la variación de ritmo como objetivo, la invención y cualquier material de procedencia incompatible |
 | Humanizer-es | MIT (solo © mattc95) | Poco; como mucho, términos traducidos | Atribuir a mattc95 y a blader, cuyo copyright omite |
 | Aboudjem/humanizer-skill | MIT (© 2026 Adam Boudjemaa) | Diseño del extractor de hechos y del enmascarado (como modelo, no como código: prosa-natural usa Python) | Si se usara su texto: Aboudjem y blader, porque la PR #8 quitó el crédito de un catálogo derivado |
 | Wikipedia:Signs of AI writing | CC BY-SA 4.0 | Ideas y citas breves atribuidas | Citar la revisión; no copiar texto ni ejemplos |
 | jalaalrd, Declaude, graef.io, PR #151, humanizar-texto-es, Humanizer-Prompt-Advanced | Sin licencia utilizable | Nada | Solo citar como observación |
+
+Los avisos MIT de `NOTICE.md` corresponden a material de esos proyectos. Wikipedia se cita aparte, bajo CC BY-SA 4.0, solo como fuente de ideas: la skill futura no copiará sus ejemplos. La resolución completa y sus límites están en `auditoria.md` §7.
 
 ## 12. Referencias
 
@@ -448,7 +459,7 @@ Claves usadas en las tablas: "blader" = blader/humanizer; "anti-ai" = avectats7/
 - Russell, J.; Karpinska, M.; Iyyer, M. (2025). People who frequently use ChatGPT for writing tasks are accurate and robust detectors of AI-generated text. ACL 2025, pp. 5342-5373. DOI 10.18653/v1/2025.acl-long.267. [ACL Anthology][russell]; [arXiv:2501.15654][russell-arxiv]; [datos][russell-data].
 - Kobak, D.; González-Márquez, R.; Horvát, E.-Á.; Lause, J. (2025). Delving into LLM-assisted writing in biomedical publications through excess vocabulary. Science Advances 11(27). [DOI 10.1126/sciadv.adt3813][kobak]; [arXiv:2406.07016][kobak-arxiv].
 - Matsui, K. (2025). Delving Into PubMed Records. Perspectives on Medical Education 14(1): 882-890. [DOI 10.5334/pme.1929][matsui].
-- Russell, J.; Rajendhran, R.; Pham, C. M.; Iyyer, M.; Wieting, J. (2026). StoryScope: Investigating idiosyncrasies in AI fiction. Preprint. [arXiv:2604.03136][storyscope].
+- Russell, J.; Rajendhran, R.; Pham, C. M.; Iyyer, M.; Wieting, J. (2026). StoryScope: Investigating idiosyncrasies in AI fiction. Preprint, v6 (2026-08-10) según la página de arXiv, CC0 1.0. [arXiv:2604.03136v6][storyscope]. El PDF consultado no lleva número de versión; las secciones y tablas citadas son las suyas. Cautelas: el resumen de la página de arXiv dice que GPT abusa de las secuencias oníricas ("dream sequences") y el del PDF, del cotilleo ("gossip"), que es lo que sostienen §5 y la tabla 17; el PDF da 1377 prompts de test en §3 y 1384 en el apéndice D. Los 30 rasgos centrales ocupan 33 filas en las tablas 14 a 16 porque tres aparecen con dos opciones (expresión emocional, integración de subtramas y explicitud de las referencias).
 - Liang, W.; Yuksekgonul, M.; Mao, Y.; Wu, E.; Zou, J. (2023). GPT detectors are biased against non-native English writers. Patterns 4(7). [DOI 10.1016/j.patter.2023.100779][liang]; [arXiv:2304.02819][liang-arxiv].
 - Sadasivan, V. S. et al. Can AI-Generated Text be Reliably Detected? TMLR. [arXiv:2303.11156][sadasivan].
 - Chakraborty, S. et al. (2023). On the Possibilities of AI-Generated Text Detection. [arXiv:2304.04736][chakraborty].
@@ -523,6 +534,7 @@ Wikilengua (literal): [Raya][wl-raya]; [Guion][wl-guion]; [Comillas][wl-comillas
 [hpa]: https://github.com/POlLLOGAMER/Humanizer-Prompt-Advanced/blob/c44c2340d9e87b525641cc6061f3398f0d4cf0fd/README.md
 [slop]: https://github.com/numen-tech/slopornot/tree/71bf2ea2862817ed8d87196ddf1290ea37a439d4
 [jal]: https://github.com/jalaalrd/anti-ai-slop-writing/tree/63255f9bbb75a265dc5786a04535cd033f487756
+[jal-i1]: https://github.com/jalaalrd/anti-ai-slop-writing/issues/1
 [dec]: https://github.com/danielrosehill/Declaude/tree/a9adc34efbba6bf18850b0856b2be9aefb3709f7
 [gist]: https://gist.github.com/bketelsen/856cea9f602a1aed46cbc2e1b3f04270
 [soft]: https://github.com/softaworks/agent-toolkit/blob/011baf4acea99174acb5486a9b662a7e084be63b/skills/writing-clearly-and-concisely/signs-of-ai-writing.md
@@ -537,7 +549,7 @@ Wikilengua (literal): [Raya][wl-raya]; [Guion][wl-guion]; [Comillas][wl-comillas
 [kobak]: https://doi.org/10.1126/sciadv.adt3813
 [kobak-arxiv]: https://arxiv.org/abs/2406.07016
 [matsui]: https://doi.org/10.5334/pme.1929
-[storyscope]: https://arxiv.org/abs/2604.03136
+[storyscope]: https://arxiv.org/abs/2604.03136v6
 [liang]: https://doi.org/10.1016/j.patter.2023.100779
 [liang-arxiv]: https://arxiv.org/abs/2304.02819
 [sadasivan]: https://arxiv.org/abs/2303.11156
