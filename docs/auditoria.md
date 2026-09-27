@@ -30,7 +30,7 @@ Decisiones sobre cada patrón del catálogo de [estudio.md](estudio.md) §3, con
 | P12 | Vocabulario de registro IA | blader §12; anti-ai banned-list ES; HUM §6.1; P151 A; NTE; ADS; I92; HES | Adaptar | La lista inglesa no sirve. Se sustituye por una lista española por niveles y familias (§3) | vocabulario-es.md; scan_tells.py | Según entrada |
 | P13 | Significado inflado | blader §13; HUM P01, P06; P151; Wikipedia | Mantener | Igual; acabar en el último hecho concreto. Puerta de claims en fichas | patrones.md; vocabulario-es.md | Fuerte |
 | P14 | Relación vaga | blader §14 | Mantener | La salvaguarda de blader ya impide inventar la relación ([SKILL.md:227][bl]). "Vinculado a" es corriente en español: débil | patrones.md | Débil |
-| P15 | Gerundio ilativo o de posterioridad | blader §15; HUM P03, P22; P151 B; DPD | Adaptar | Dos niveles: la posterioridad pura se corrige como error (DPD); el de consecuencia solo si cuelga una interpretación sin apoyo | patrones.md; scan_tells.py | Fuerte (posterioridad); débil (consecuencia) |
+| P15 | Gerundio ilativo o de posterioridad | blader §15; HUM P03, P22; P151 B; DPD | Adaptar | Dos niveles: la posterioridad pura se señala con alternativa, sin tratarla como error (el DPD la admite si se infiere sucesión o relación lógica; §7.5); el de consecuencia solo si cuelga una interpretación sin apoyo | patrones.md; scan_tells.py | Media (posterioridad); débil (consecuencia) |
 | P16 | Lenguaje de folleto | blader §16; HUM P04; HES | Adaptar | Frecuente en fichas, donde suele coincidir con claims. "State what the thing is" solo fuera de claims | patrones.md; vocabulario-es.md | Fuerte |
 | P17 | Autoridad prestada y atribución vaga | blader §17; anti-ai H6; Wikipedia; HUM P05 | Adaptar | "Clínicamente probado" o "según estudios" son claims: no se cortan ni se reformulan. Fuera de claims, preguntar la fuente o mantener lo vago; no "restaurar" datos (H6) | patrones.md; claims.md | Fuerte |
 | P18 | Evitar "ser" y "tener" | blader §18; anti-ai verbos débiles; I92; HUM P08; adewale | Adaptar | "Se erige como" es fuerte; "cuenta con" y "ofrece" son corrientes y solo pesan acumulados. Se descarta "is designed to → will" (§5) | patrones.md; vocabulario-es.md | Débil, salvo "se erige/posiciona como" |
@@ -185,7 +185,7 @@ Lista de expresiones de partida del diseño. Hoy está repartida entre `vocabula
 | "de cara a" en exceso | Débil (P34) | Desaconsejado solo como 'en relación con' |
 | "tomar lugar" | Débil provisional (P36) | Sin pronunciamiento localizado |
 | "hacer sentido" | Fuerte (P33) | Lo recomendado es "tener sentido" |
-| Gerundio de posterioridad | Fuerte (P15) | Incorrecto si es pura posterioridad |
+| Gerundio de posterioridad | Media (P15) | NGLE: incorrecto si es mera sucesión temporal; el DPD lo admite si se infiere sucesión o relación lógica. Se señala con alternativa |
 | Adjetivos antepuestos y en tríada | Débil (P41, P06) | La anteposición es gramatical |
 | "No solo… sino también…", "no se trata de X, se trata de Y" | Fuerte (P01), con salvaguarda | Construcción correcta |
 
@@ -298,14 +298,25 @@ El estudio formuló estas siete propuestas para confirmación. El usuario deleg�
 
 **Resolución.** Se añaden al diseño futuro "dermatológicamente probado/testado", duraciones, "hipoalergénico", "sin X", "no testado en animales" y otras alegaciones sobre experimentación animal, "natural" asociado a un efecto y autoevaluaciones de calidad o cumplimiento (P30). Se rechaza la restricción general de porcentajes: se conserva la detección conservadora de porcentajes, la regla "ante la duda, claim" y la cobertura de todas las alegaciones de eficacia, salud o seguridad. No se aprueban excepciones ni listas blancas monetarias en esta fase.
 
-### 7.5 Verificación normativa pendiente
+### 7.5 Verificación normativa
 
 **Propuesta original.** Completar en fuente primaria las comprobaciones que la descarga automática no permitió.
 
-**Resolución.** Se difieren a verificación manual, sin sortear bloqueos ni presentar este cierre documental como certificación normativa exhaustiva. Mientras sigan pendientes, estas afirmaciones no pueden autorizar correcciones automáticas como reglas establecidas. La lista completa se conserva:
+**Resolución.** Se difirió a verificación manual, sin sortear bloqueos. Resuelta el 2026-09-27: el usuario guardó desde el navegador las 32 páginas de rae.es citadas en `estudio.md` §4 y dos copias en prensa de notas de Fundéu BBVA, y cada afirmación se cotejó literalmente con el texto de esas páginas.
 
-- RAE: DPD *raya*; Ortografía, "la raya como signo delimitador"; DPD *comillas*; Libro de estilo, "elementos de titulación"; DPD *mayúsculas*; DPD *base* (2.ª ed.); DPD *jugar*; DPD *cara*; DPD *nivel*; DPD *gerundio*; DPD *severo*; DPD *eventual*; duda lingüística "hacer sentido"; DPD *escalar*; DPD *rol*; DPD *aplicar*; DPD *asumir*; DPD *empoderar*; DPD *impactar*; DPD *sino*; DPD *signos de interrogación y exclamación*; DPD *dos puntos*; DPD *vosotros*; DPD *usted*; DPD *computador*; DPD *porcentajes*; Ortografía, separador decimal y de millares; NGLE, pasiva refleja y perifrástica; NGLE, epítetos.
-- Fundéu: "en base a"; "poner en valor"; "escalar"; "de cara a" y "severo" (Vademécum); "tomar lugar"; muletillas "cabe destacar" y "en este sentido"; abuso de la pasiva.
+De las 27 afirmaciones marcadas, 13 coinciden (en dos de ellas, solo la parte de la RAE), 12 coinciden con matices y 2 no coinciden. Las 14 últimas se han corregido en `estudio.md` para ajustarlas a la fuente, con citas literales. Ninguna corrección cambia una decisión de §2. La única fuerza que cambia es la de P15, por decisión del usuario (véase abajo). Las de más peso:
+
+- NGLE, pasiva refleja: no dice que en lo jurídico se prefiera la activa o la perifrástica; dice que los complementos agentes de la refleja "se aceptan a menudo en el código restrictivo del lenguaje jurídico". La excepción de registro de P11 se mantiene.
+- DPD *computador*: la 2.ª edición no contiene "igualmente normativas"; describe la distribución geográfica sin censurar ninguna forma.
+- DPD *gerundio*: matiza la censura del gerundio de posterioridad y lo considera "admisible cuando puede inferirse una sucesión o una relación lógicas"; la NGLE lo da por incorrecto cuando introduce "una mera sucesión temporal". **Decisión del usuario (P15, 2026-09-27):** la fuerza baja de "Fuerte (posterioridad)" a "Media (posterioridad)". La skill señala el gerundio de posterioridad pura y propone una alternativa, pero no lo trata como error ni lo corrige sola. El ejemplo ilustrativo de `estudio.md` ya no lleva "después".
+- DPD *dos puntos*: no formula la regla general de minúscula ni la excepción de las citas y remite a *mayúsculas*, no guardada. P57 ya solo señala.
+- DPD *porcentajes*: exige el espacio, pero no menciona la Ortografía de 2010; se ha retirado esa fecha.
+
+Siguen pendientes y no autorizan correcciones automáticas como reglas establecidas:
+
+- Publicaciones en X, que exigen iniciar sesión: FundéuRAE sobre "en base a" y @RAEinforma sobre "enfocarse". Conservan la marca en `estudio.md` §4.5.
+- Páginas de la RAE no guardadas: DPD *mayúsculas*, DPD *usted*, Libro de estilo, "clase de letra", duda lingüística sobre los emojis y DLE *invaluable*.
+- Fundéu en fundeu.es: "poner en valor" y "escalar" solo se han cotejado en copias de prensa; "de cara a" y "severo" (Vademécum), "tomar lugar", las muletillas "cabe destacar" y "en este sentido" y el abuso de la pasiva no se han cotejado.
 
 ### 7.6 Aviso de privacidad
 

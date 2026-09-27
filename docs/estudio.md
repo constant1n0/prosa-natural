@@ -7,7 +7,7 @@ Las siete propuestas derivadas del estudio quedaron resueltas documentalmente el
 Cómo leer las citas:
 
 - Los repositorios se citan fijados a un commit, con `ruta:línea` cuando importa la línea exacta. La lista completa con enlaces está en §12.
-- Las citas de la RAE (rae.es) y de Fundéu (fundeu.es) no se han podido leer en la web original, que bloquea la descarga automática. Proceden de extractos del buscador o de copias secundarias y llevan la marca "(verificación pendiente en fuente primaria)". Las de Wikilengua son literales.
+- Las citas de la RAE se cotejaron literalmente el 2026-09-27 con las páginas de rae.es guardadas desde el navegador, porque el sitio bloquea la descarga automática. Las de Fundéu se cotejaron con copias en prensa de sus notas, no con fundeu.es. Siguen pendientes de verificación en fuente primaria solo las dos publicaciones en X, que conservan la marca "(verificación pendiente en fuente primaria)", y las páginas de la RAE no guardadas que señala §12.3 (resultado en `auditoria.md` §7.5). Las de Wikilengua son literales.
 - Los identificadores P01…P83 son los mismos que en `auditoria.md`. P01–P25 corresponden a los patrones §1–§25 de blader/humanizer v3.0.0.
 - Todos los ejemplos de este documento son propios y usan marcas y personas ficticias.
 
@@ -189,7 +189,7 @@ Tampoco pasan, sin identificador propio, varios rasgos de ficción de StoryScope
 
 ### 4.1 Raya
 
-- Norma. La raya doble aísla incisos, va pegada al texto que enmarca y separada por un espacio de lo de fuera, y la de cierre no se suprime aunque siga un punto ([DPD, raya][dpd-raya]; [Ortografía][ort-raya]; verificación pendiente en fuente primaria). Wikilengua lo confirma literalmente: "el espacio está antes de la raya de apertura y después de la raya de cierre" ([Wikilengua, Raya][wl-raya]). También introduce el diálogo, las acotaciones del narrador y los elementos de una lista.
+- Norma. La raya doble aísla incisos, va pegada al texto que enmarca y separada por un espacio de lo de fuera, y la de cierre no se suprime aunque siga un punto ([DPD, raya][dpd-raya]; [Ortografía][ort-raya]). Wikilengua lo confirma literalmente: "el espacio está antes de la raya de apertura y después de la raya de cierre" ([Wikilengua, Raya][wl-raya]). También introduce el diálogo, las acotaciones del narrador y los elementos de una lista.
 - Uso impropio. Wikilengua recoge "Usos impropios de la raya. La mayoría de ellos son calcos del inglés": en lugar de los dos puntos para una conclusión y en lugar del paréntesis para una sigla ([Wikilengua, Raya][wl-raya]). En títulos, Wikilengua considera anglicismo el uso de la raya en lugar de los dos puntos ([Wikilengua, Título][wl-titulo], §1). La RAE no dice nada sobre la frecuencia.
 - Intervalos. En "1990-2000" el signo es el guion; la semirraya aparece "por influencia del inglés" ([Wikilengua, Guion][wl-guion]). No es un rasgo de IA.
 - Evidencia. En Russell et al. (2025) los expertos notaban que los textos de IA evitaban rayas y puntos suspensivos. Wikipedia: el rasgo es útil "in combination with other indicators, not by itself"; cita un estudio de julio de 2026 según el cual, entre los modelos actuales, solo Claude usaba más rayas que los escritores profesionales (referencia primaria no localizada), y observa que las rayas generadas "are usually surrounded by spaces".
@@ -197,19 +197,19 @@ Tampoco pasan, sin identificador propio, varios rasgos de ficción de StoryScope
 
 ### 4.2 Comillas
 
-- Norma. En textos impresos se recomiendan primero las angulares, y se anida «…“…‘…’…”…» ([DPD, comillas][dpd-comillas]; [Ortografía][ort-comillas]; verificación pendiente en fuente primaria).
+- Norma. En textos impresos se recomiendan primero las angulares, y se anida «…“…‘…’…”…» ([DPD, comillas][dpd-comillas]; [Ortografía][ort-comillas]).
 - Wikilengua: "No hay diferencia ortográfica alguna entre las comillas españolas («») y las inglesas (“”) y es una elección esencialmente tipográfica"; las rectas "se evitan en tipografía cuidada" ([Wikilengua, Comillas][wl-comillas]).
 - Evidencia. Wikipedia: "Curly quotes alone do not prove LLM use".
 - Consecuencia. No se convierten por sistema. Se señala la mezcla de tipos en el mismo nivel y el anidamiento invertido (P55). El patrón de blader sobre comillas curvas (§21) no se aplica, y tampoco el de Humanizer-es, que las pasa a rectas.
 
 ### 4.3 Mayúsculas en títulos y encabezados
 
-- Norma. "Solo se escribe con mayúscula inicial la primera palabra de los elementos de titulación, además de aquellas que lo requieran por su naturaleza" ([Libro de estilo, elementos de titulación][le-titulacion]; verificación pendiente en fuente primaria). Wikilengua: "El uso sistemático de la mayúscula inicial, incluso en nombres comunes, se considera anglicismo" ([Wikilengua, Título][wl-titulo]).
+- Norma. "Solo se escribe con mayúscula inicial la primera palabra de los elementos de titulación, además de aquellas que lo requieran por su naturaleza" ([Libro de estilo, elementos de titulación][le-titulacion]). Wikilengua: "El uso sistemático de la mayúscula inicial, incluso en nombres comunes, se considera anglicismo" ([Wikilengua, Título][wl-titulo]).
 - Consecuencia. Rasgo fuerte y corregible sin cambiar lo que se afirma (P20). Se excluyen nombres propios, siglas, marcas y títulos de obras extranjeras citadas en su idioma. Humanizer-es deja el ejemplo en inglés sin corregir.
 
 ### 4.4 Pasiva e impersonales
 
-- Norma. "En el español actual, las pasivas reflejas son más frecuentes que las perifrásticas" ([NGLE, pasiva refleja][gr-pasiva-ref]; verificación pendiente en fuente primaria). La NGLE solo señala influencia del inglés en casos concretos y no censura la perifrástica ([NGLE, pasiva perifrástica][gr-pasiva-per]). En textos jurídicos y administrativos se prefiere la activa o la perifrástica frente a la refleja con agente.
+- Norma. "Las pasivas reflejas son más frecuentes que las perifrásticas tanto en la lengua oral como en la escrita" ([NGLE, pasiva refleja][gr-pasiva-ref]). La NGLE solo señala influencia del inglés en casos concretos y no censura la perifrástica ([NGLE, pasiva perifrástica][gr-pasiva-per]). La refleja muestra "mayor resistencia a aceptar complementos agentes", que, sin embargo, "se aceptan a menudo en el código restrictivo del lenguaje jurídico" ([NGLE, pasiva refleja][gr-pasiva-ref]).
 - Humanamente precisa: "en castellano el tic no es tanto la pasiva inglesa como el impersonal de relleno" ([HUM:226][hum]).
 - Consecuencia. La pasiva refleja nunca se marca. Se señala por densidad la perifrástica innecesaria ("fue lanzada por") y el impersonal de relleno ("se hace necesario señalar"), con la excepción de los registros jurídico y administrativo (P11).
 
@@ -217,54 +217,54 @@ Tampoco pasan, sin identificador propio, varios rasgos de ficción de StoryScope
 
 | Uso | Qué dice la norma | Categoría | Fuente |
 |---|---|---|---|
-| "a nivel de" sin idea de altura o jerarquía | Impropio con el sentido de 'con respecto a', 'en' | Censurado | [DPD, nivel][dpd-nivel] (verificación pendiente en fuente primaria); [Wikilengua][wl-nivel] |
-| "eventualmente" = 'finalmente' | "Calco censurable" | Censurado | [DPD, eventual][dpd-eventual] (verificación pendiente en fuente primaria) |
-| "severo" = 'grave' | "Calcos inaceptables del inglés *severe*" | Censurado | [DPD, severo][dpd-severo] (verificación pendiente en fuente primaria) |
-| "hacer sentido" | Lo normal y recomendado es "tener sentido"; minoritario, hoy por influencia de otras lenguas | Desaconsejado | [RAE, duda lingüística][rae-sentido] (verificación pendiente en fuente primaria) |
-| "escalar" = 'elevar una queja' | "Calco algo opaco" que conviene evitar | Desaconsejado | [DPD, escalar][dpd-escalar] (verificación pendiente en fuente primaria) |
-| "de cara a" = 'en relación con' | Admitido como 'frente a' y 'con vistas a'; desaconsejado como 'en relación con' | Desaconsejado en ese sentido | [DPD, cara][dpd-cara] (verificación pendiente en fuente primaria); [Wikilengua][wl-cara] |
+| "a nivel de" sin idea de altura o jerarquía | Impropio con el sentido de 'con respecto a', 'en' | Censurado | [DPD, nivel][dpd-nivel]; [Wikilengua][wl-nivel] |
+| "eventualmente" = 'finalmente' | "calco censurable" | Censurado | [DPD, eventual][dpd-eventual] |
+| "severo" = 'grave' | "calcos rechazables del inglés *severe*" | Censurado | [DPD, severo][dpd-severo] |
+| "hacer sentido" | "Lo normal y recomendable es usar *no tiene sentido*"; *hacer sentido* "ha sido siempre minoritaria y puede deberse hoy en muchos casos al influjo de otras lenguas" | Desaconsejado | [RAE, duda lingüística][rae-sentido] |
+| "escalar" = 'elevar una queja' | "calco poco transparente que se recomienda evitar" | Desaconsejado | [DPD, escalar][dpd-escalar] |
+| "de cara a" = 'en relación con' | Admitido como 'frente a' y 'con vistas a'; desaconsejado como 'en relación con' | Desaconsejado en ese sentido | [DPD, cara][dpd-cara]; [Wikilengua][wl-cara] |
 | "en base a" | Admisible, "aunque menos recomendable" (DPD, 2.ª ed.); Fundéu prefiere "sobre la base de" | Admitido, menos recomendable | [DPD, base][dpd-base]; [FundéuRAE en X][fundeu-base] (verificación pendiente en fuente primaria) |
-| "jugar un papel" | Arraigado; "no puede considerarse incorrecto"; se prefieren "desempeñar", "representar" | Admitido, menos recomendable | [DPD, jugar][dpd-jugar] (verificación pendiente en fuente primaria); [Wikilengua][wl-jugar] |
-| "poner en valor" | Adecuada, pero convertida en cliché | Admitido, tópico | [Fundéu BBVA, 2013][fundeu-valor] (verificación pendiente en fuente primaria) |
-| "escalar" = 'aumentar' | Válido; recomienda alternativas más precisas | Admitido | [DPD, escalar][dpd-escalar]; [Fundéu BBVA, 2018][fundeu-escalar] (verificación pendiente en fuente primaria) |
-| "rol" | El DLE lo recoge como 'papel, función' | Admitido | [DPD, rol][dpd-rol] (verificación pendiente en fuente primaria) |
+| "jugar un papel" | Uso "ya muy arraigado en la lengua culta, por lo que no cabe censurarlo"; se recomiendan con preferencia *hacer*, *desempeñar* o *representar* | Admitido, menos recomendable | [DPD, jugar][dpd-jugar]; [Wikilengua][wl-jugar] |
+| "poner en valor" | Adecuada, pero convertida en cliché | Admitido, tópico | [Fundéu BBVA, 2013][fundeu-valor] (copia en prensa) |
+| "escalar" = 'aumentar' | Válido; "conviene no olvidar la existencia de alternativas, a veces más precisas" | Admitido | [DPD, escalar][dpd-escalar]; [Fundéu BBVA, 2018][fundeu-escalar] (copia en prensa) |
+| "rol" | Es "anglicismo asentado", con el sentido de 'papel o función que alguien o algo cumple' | Admitido | [DPD, rol][dpd-rol] |
 | "aplicar a" = 'solicitar'; "enfocarse en" | Usos americanos; en España, "solicitar", "centrarse en" | Variante | [DPD, aplicar][dpd-aplicar]; [@RAEinforma][rae-enfocarse] (verificación pendiente en fuente primaria) |
-| "empoderar", "asumir" = 'dar por sentado', "impactar", "remarcar", "evento", "sinergia" | Registrados sin censura localizada | Admitido | [DPD, empoderar][dpd-empoderar]; [DPD, asumir][dpd-asumir]; [DPD, impactar][dpd-impactar] (verificación pendiente en fuente primaria) |
+| "empoderar", "asumir" = 'dar por sentado', "impactar", "remarcar", "evento", "sinergia" | Registrados sin censura localizada | Admitido | [DPD, empoderar][dpd-empoderar]; [DPD, asumir][dpd-asumir]; [DPD, impactar][dpd-impactar] |
 | "tomar lugar" | Sin pronunciamiento localizado | Pendiente | — |
 
 Wikilengua y las notas antiguas de Fundéu reflejan a veces el DPD de 2005. Ejemplo: Wikilengua da "en base a" como incorrecto y la 2.ª edición lo admite. Cada regla de `references/` debe llevar la edición y la fecha de consulta.
 
 ### 4.6 Gerundio de posterioridad
 
-- Norma. Es incorrecto si expresa pura posterioridad (✗ *Estudió en Madrid, yendo después a Buenos Aires*); se atenúa si la posterioridad es casi inmediata o hay relación de causa o consecuencia ([DPD, gerundio][dpd-gerundio]; [NGLE][gr-gerundio]; verificación pendiente en fuente primaria; [Wikilengua][wl-gerundio] cita la NGLE 27.4h).
-- Consecuencia. Dos niveles dentro de P15: la posterioridad pura se corrige como error; el gerundio de consecuencia es gramatical y solo se trata cuando cuelga una interpretación sin apoyo en la fuente ("…, convirtiéndose en un referente"). Humanizer-es lo traduce como "participio presente", que en español no existe con ese valor.
+- Norma. Según la NGLE, el gerundio de posterioridad "se considera hoy incorrecto cuando introduce una mera sucesión temporal" (ejemplo ilustrativo: ✗ *Estudió en Madrid, yendo a Buenos Aires*) ([NGLE][gr-gerundio]; [Wikilengua][wl-gerundio] cita la NGLE 27.4h). El DPD matiza esa censura: lo acepta si la posterioridad es inmediata, lo considera "admisible cuando puede inferirse una sucesión o una relación lógicas (por lo general, de causa-consecuencia)" y cuenta expresiones como *después* o *luego* tras el gerundio entre los factores que evidencian esa relación ([DPD, gerundio][dpd-gerundio]). Decidido por el usuario el 2026-09-27: fuerza media para P15 (`auditoria.md` §7.5).
+- Consecuencia. Dos niveles dentro de P15: la posterioridad pura se señala y se propone una alternativa, sin tratarla como error, porque el DPD la admite cuando se infiere una sucesión; el gerundio de consecuencia es gramatical y solo se trata cuando cuelga una interpretación sin apoyo en la fuente ("…, convirtiéndose en un referente"). Humanizer-es lo traduce como "participio presente", que en español no existe con ese valor.
 
 ### 4.7 Adjetivo antepuesto y tríadas
 
-- Norma. "Los epítetos, que constituyen un rasgo característico de la lengua literaria, suelen anteponerse al nombre" ([NGLE, epítetos][gr-epitetos]; [posición del adjetivo][gr-adj-pos]; verificación pendiente en fuente primaria). La anteposición es gramatical.
+- Norma. El epíteto "admite con mayor facilidad la anteposición" ([Gramática básica, epítetos][gr-epitetos]), y "el adjetivo antepuesto se convirtió pronto en un rasgo característico de la lengua literaria" ([NGLE, posición del adjetivo][gr-adj-pos]). La anteposición es gramatical.
 - Consecuencia. No se marca la anteposición aislada. El rasgo es la acumulación: epíteto antepuesto más tríada de adjetivos pospuestos, o intensificadores en serie (P41, P06). Las listas reales (ingredientes, INCI, especificaciones, pasos) no son tríadas.
 
 ### 4.8 "No solo… sino"
 
-- Norma. En correlación con "no solo", *sino* "denota adición enfática" y va precedido de coma ([DPD, sino][dpd-sino]; verificación pendiente en fuente primaria; [Wikilengua][wl-sino]).
+- Norma. En correlación con "no solo", *sino* "denota adición enfática" y va precedido de coma ([DPD, sino][dpd-sino]; [Wikilengua][wl-sino]).
 - Consecuencia. La construcción es correcta. Se marca su uso como molde retórico (P01), no la construcción en sí. blader: "The formula appears in every language" ([SKILL.md:60][bl]); humanamente lo llama "el tic estrella del español-IA" ([HUM:189][hum]).
 
 ### 4.9 Signos de apertura y mayúscula tras dos puntos
 
-- Los signos de apertura "son característicos del español y no deben suprimirse por imitación de otras lenguas" ([DPD][dpd-signos]; verificación pendiente en fuente primaria). Su omisión es error objetivo (P56).
-- Tras dos puntos va minúscula, salvo en el saludo de una carta, las citas textuales y ciertas fórmulas jurídicas y administrativas ([DPD, dos puntos][dpd-dospuntos]; verificación pendiente en fuente primaria). Se señala (P57).
+- Los signos de apertura "son característicos del español y no deben suprimirse por imitación de otras lenguas" ([DPD][dpd-signos]). Su omisión es error objetivo (P56).
+- Tras dos puntos, el DPD pide minúscula después de conectores como *pues bien* ("La oración que los sigue se inicia con minúscula") y mayúscula después del saludo de una carta y del verbo que abre ciertos textos jurídicos y administrativos; en su ejemplo de cita textual, la cita empieza con mayúscula. La entrada no formula una regla general y remite a *mayúsculas* ([DPD, dos puntos][dpd-dospuntos]). Se señala (P57).
 
 ### 4.10 Variante ES-ES frente a LATAM
 
-- *Vosotros* es el plural de confianza en la mayor parte de España; en América, Canarias y parte de Andalucía *ustedes* sirve para confianza y respeto ([DPD, vosotros][dpd-vosotros]; verificación pendiente en fuente primaria). En España *ustedes* es el plural formal ([Wikilengua, ustedes][wl-ustedes]).
-- *Ordenador* y *computadora* son "igualmente normativas" con distinta distribución geográfica ([DPD, computador][dpd-computador]; verificación pendiente en fuente primaria).
+- *Vosotros* es la forma de trato informal "en la mayor parte de España"; en América y en áreas como Canarias y Andalucía occidental, "para el tratamiento informal en plural se emplea ustedes" ([DPD, vosotros][dpd-vosotros]). En España *ustedes* es el plural formal ([Wikilengua, ustedes][wl-ustedes]).
+- *Ordenador* y *computadora* tienen distinta distribución geográfica: "en la mayoría de los países de América se prefiere el femenino computadora" y "En España se usa preferentemente el término ordenador" ([DPD, computador][dpd-computador]). La entrada no censura ninguna de las dos.
 - Consecuencia. La variante americana nunca es error. En un texto ES-ES se señala, sin cambiarla, cuando convive con la otra (tú con usted, vosotros con ustedes de confianza) o cuando el usuario declara ES-ES (P64). "Ustedes" solo en un texto formal español es correcto. El fork de adelaidasofia pide además no forzar la traducción del cambio de código en textos bilingües ([ADS:110-112][ads]).
 
 ### 4.11 Cifras, porcentajes y separadores
 
-- El símbolo % se separa de la cifra con un espacio (*50 %*), desde la Ortografía de 2010 ([DPD, porcentajes][dpd-porcentajes]; verificación pendiente en fuente primaria; [Wikilengua][wl-porcentaje]). La prensa española lo escribe a menudo pegado: no se corrige.
-- Separador decimal: coma o punto; la Ortografía recomienda el punto, pero en España se usa la coma ([Ortografía, separador decimal][ort-decimal]; verificación pendiente en fuente primaria).
-- Millares: espacio en grupos de tres, no punto ni coma; con cuatro cifras lo normal es no separar ([Ortografía, millares][ort-millares]; verificación pendiente en fuente primaria).
+- El símbolo % "debe escribirse, como el resto de los símbolos pospuestos, precedido de un espacio" (*50 %*) ([DPD, porcentajes][dpd-porcentajes]; [Wikilengua][wl-porcentaje]). La prensa española lo escribe a menudo pegado: no se corrige.
+- Separador decimal: coma o punto; la Ortografía recomienda el punto, pero en España se usa la coma ([Ortografía, separador decimal][ort-decimal]).
+- Millares: espacio en grupos de tres, no punto ni coma; con cuatro cifras lo normal es no separar ([Ortografía, millares][ort-millares]).
 - Consecuencia para `scan_tells.py`: normalizar antes de comparar con el original (`1.000`, `1 000`, `1000`; `3,5`, `3.5`; `50%`, `50 %`, `50 por ciento`). `1.000` es ambiguo entre variantes: comparar las dos lecturas.
 
 ## 5. Vocabulario
@@ -473,9 +473,11 @@ Claves usadas en las tablas: "blader" = blader/humanizer; "anti-ai" = avectats7/
 
 ### 12.3 Normativa lingüística
 
-RAE (consulta vía extractos; verificación pendiente en fuente primaria): [DPD raya][dpd-raya]; [Ortografía, raya][ort-raya]; [DPD comillas][dpd-comillas]; [Ortografía, comillas][ort-comillas]; [Libro de estilo, titulación][le-titulacion]; [DPD mayúsculas][dpd-mayus]; [NGLE pasiva refleja][gr-pasiva-ref]; [NGLE pasiva perifrástica][gr-pasiva-per]; [DPD severo][dpd-severo]; [DPD eventual][dpd-eventual]; [hacer sentido][rae-sentido]; [DPD gerundio][dpd-gerundio]; [NGLE gerundio][gr-gerundio]; [DPD nivel][dpd-nivel]; [DPD escalar][dpd-escalar]; [DPD cara][dpd-cara]; [DPD base][dpd-base]; [DPD jugar][dpd-jugar]; [DPD rol][dpd-rol]; [DPD aplicar][dpd-aplicar]; [DPD empoderar][dpd-empoderar]; [DPD asumir][dpd-asumir]; [DPD impactar][dpd-impactar]; [NGLE epítetos][gr-epitetos]; [NGLE posición del adjetivo][gr-adj-pos]; [DPD sino][dpd-sino]; [DPD signos de interrogación y exclamación][dpd-signos]; [DPD dos puntos][dpd-dospuntos]; [DPD vosotros][dpd-vosotros]; [DPD usted][dpd-usted]; [DPD computador][dpd-computador]; [DPD porcentajes][dpd-porcentajes]; [Ortografía, separador decimal][ort-decimal]; [Ortografía, millares][ort-millares]; [Libro de estilo, clase de letra][le-clase-letra]; [emojis][rae-emojis]; [@RAEinforma, enfocarse][rae-enfocarse]; [DLE invaluable][dle-invaluable].
+RAE (páginas de rae.es guardadas desde el navegador y cotejadas literalmente el 2026-09-27): [DPD raya][dpd-raya]; [Ortografía, raya][ort-raya]; [DPD comillas][dpd-comillas]; [Ortografía, comillas][ort-comillas]; [Libro de estilo, titulación][le-titulacion]; [NGLE pasiva refleja][gr-pasiva-ref]; [NGLE pasiva perifrástica][gr-pasiva-per]; [DPD severo][dpd-severo]; [DPD eventual][dpd-eventual]; [hacer sentido][rae-sentido]; [DPD gerundio][dpd-gerundio]; [NGLE gerundio][gr-gerundio]; [DPD nivel][dpd-nivel]; [DPD escalar][dpd-escalar]; [DPD cara][dpd-cara]; [DPD base][dpd-base]; [DPD jugar][dpd-jugar]; [DPD rol][dpd-rol]; [DPD aplicar][dpd-aplicar]; [DPD empoderar][dpd-empoderar]; [DPD asumir][dpd-asumir]; [DPD impactar][dpd-impactar]; [Gramática básica, epítetos][gr-epitetos]; [NGLE posición del adjetivo][gr-adj-pos]; [DPD sino][dpd-sino]; [DPD signos de interrogación y exclamación][dpd-signos]; [DPD dos puntos][dpd-dospuntos]; [DPD vosotros][dpd-vosotros]; [DPD computador][dpd-computador]; [DPD porcentajes][dpd-porcentajes]; [Ortografía, separador decimal][ort-decimal]; [Ortografía, millares][ort-millares].
 
-Fundéu (copias secundarias; verificación pendiente en fuente primaria): [en base a][fundeu-base]; [poner en valor][fundeu-valor]; [escalar][fundeu-escalar].
+RAE, no guardadas (consulta vía extractos; verificación pendiente en fuente primaria): [DPD mayúsculas][dpd-mayus]; [DPD usted][dpd-usted]; [Libro de estilo, clase de letra][le-clase-letra]; [emojis][rae-emojis]; [@RAEinforma, enfocarse][rae-enfocarse] (publicación en X); [DLE invaluable][dle-invaluable].
+
+Fundéu: [poner en valor][fundeu-valor] y [escalar][fundeu-escalar] se cotejaron el 2026-09-27 con copias en prensa de las notas de Fundéu BBVA (El Informador, 2013; COPE, 2018); siguen siendo copias secundarias, no fundeu.es. [En base a][fundeu-base] es una publicación de FundéuRAE en X que no se ha podido guardar (verificación pendiente en fuente primaria).
 
 Wikilengua (literal): [Raya][wl-raya]; [Guion][wl-guion]; [Comillas][wl-comillas]; [Título][wl-titulo]; [Pasiva refleja][wl-pasiva-ref]; [Gerundio][wl-gerundio]; [a nivel de][wl-nivel]; [de cara a][wl-cara]; [jugar un papel][wl-jugar]; [sino/si no][wl-sino]; [ustedes][wl-ustedes]; [Porcentaje][wl-porcentaje].
 
