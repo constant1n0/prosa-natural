@@ -612,6 +612,21 @@ class TestSourceHygiene(unittest.TestCase):
             "escapes \\uXXXX, nunca como el carácter en crudo",
         )
 
+    def test_source_file_has_no_raw_nbsp_or_narrow_nbsp(self):
+        """Revisión review-4e912a0ac78c9cff (R2-002): el espacio de no
+        separación (NBSP, U+00A0) y el espacio fino de no separación
+        (U+202F) usados en las clases de caracteres de las expresiones
+        regulares de cifras, porcentajes y duraciones/unidades deben
+        escribirse siempre como escapes ``\\u00a0``/``\\u202f``, nunca como
+        el carácter en crudo: un carácter en crudo es indistinguible de un
+        espacio normal en un editor o en un diff, y un editor puede
+        normalizarlo sin avisar."""
+        source = SCRIPT_PATH.read_text(encoding="utf-8")
+        self.assertNotIn(chr(0x00A0), source, "NBSP en crudo: debe ser el escape \\u00a0")
+        self.assertNotIn(
+            chr(0x202F), source, "espacio fino de no separación en crudo: debe ser \\u202f"
+        )
+
 
 # ---------------------------------------------------------------------------
 # T3, parte B: detectores de forma (rayas, comillas, encabezados, tipografía)
@@ -935,6 +950,42 @@ class TestFormSafeguards(unittest.TestCase):
         self.assertEqual(tipografia["signos_sin_apertura"], [])
 
 
+def _entradas_pilar_fundamental(module):
+    """Vocabulario mínimo y propio del test, aislado de
+    ``references/vocabulario-es.md`` (revisión review-4e912a0ac78c9cff,
+    R3-test-rendimiento-acoplado-vocabulario): el test de rendimiento
+    necesita EXACTAMENTE dos entradas que se solapen ("pilar fundamental" y
+    "fundamental") para predecir un número de comparaciones exacto: si
+    dependiera del archivo de vocabulario real, añadir o editar cualquier
+    entrada que coincidiese con la frase de la muestra cambiaría ese número
+    sin que hubiera ninguna regresión real. Construye los objetos
+    ``VocabEntry`` directamente (sin pasar por un archivo), como permite
+    ``_build_pattern``.
+    """
+    return [
+        module.VocabEntry(
+            expresion="pilar fundamental",
+            nivel="Débil",
+            familia="Familia de prueba",
+            origen="PXX · prueba",
+            pendiente=False,
+            fecha="2026-09-27",
+            line=1,
+            pattern=module._build_pattern("pilar fundamental"),
+        ),
+        module.VocabEntry(
+            expresion="fundamental",
+            nivel="Débil",
+            familia="Familia de prueba",
+            origen="PXX · prueba",
+            pendiente=False,
+            fecha="2026-09-27",
+            line=2,
+            pattern=module._build_pattern("fundamental"),
+        ),
+    ]
+
+
 class TestPerformance(unittest.TestCase):
     """Revisión review-faf981a2b76764c9 (R4-001, R4-002): el anidamiento de
     comillas y la resolución de solapamientos deben comparar solo dentro de
@@ -957,7 +1008,7 @@ class TestPerformance(unittest.TestCase):
         self.module = load_module()
 
     def test_quote_nesting_and_overlap_resolution_scale_per_paragraph_not_globally(self):
-        entries = self.module.parse_vocabulary(VOCAB_PATH)
+        entries = _entradas_pilar_fundamental(self.module)
         n_parrafos = 300
         parrafos = [
             "Marta dijo «uno» y «dos» sobre un pilar fundamental hoy."
@@ -1004,7 +1055,7 @@ class TestPerformance(unittest.TestCase):
         )
 
     def test_overlap_resolution_unchanged_on_known_fixture(self):
-        entries = self.module.parse_vocabulary(VOCAB_PATH)
+        entries = _entradas_pilar_fundamental(self.module)
         text = "Este proyecto es un pilar fundamental para la empresa.\n"
         report = self.module.build_report(text, entries)
         hallazgos = report["vocabulario"]["hallazgos"]
@@ -1012,6 +1063,46 @@ class TestPerformance(unittest.TestCase):
         suelto = [h for h in hallazgos if h["expresion"] == "fundamental"]
         self.assertEqual(len(colocacion), 1)
         self.assertEqual(len(suelto), 0)
+
+    def test_original_comparison_overlap_check_is_linear_not_quadratic(self):
+        """Revisión review-4e912a0ac78c9cff (R4-001): las categorías de
+        hechos de ``--original`` (fechas, porcentajes, precios, duraciones,
+        códigos, cifras) comparten un único ``consumidos`` para todo el
+        documento. Comprobar el solapamiento de cada coincidencia contra
+        TODOS los tramos ya consumidos (en vez de solo contra el más
+        cercano) haría que el número de comparaciones creciera de forma
+        cuadrática con el número de cifras del documento.
+
+        Con ``n`` cifras sueltas, sin ninguna otra categoría que las
+        preceda: la primera consulta encuentra la lista de tramos
+        consumidos vacía (0 comparaciones); cada una de las siguientes
+        compara exactamente una vez, contra su predecesora inmediata
+        (nunca contra las demás, porque los tramos consumidos están
+        ordenados y no se solapan entre sí). Total exacto: n - 1. Una
+        resolución que comparase contra todos los tramos anteriores daría
+        n * (n - 1) / 2 (cuadrático): con n=400 eso son 79 800
+        comparaciones frente a las 399 que predice la resolución acotada.
+        """
+        n = 400
+        parrafos = [
+            "Este texto de prueba contiene el número {} en la frase.".format(1000 + i)
+            for i in range(n)
+        ]
+        text = "\n\n".join(parrafos) + "\n"
+        line_starts = self.module._build_line_index(text)
+
+        overlap_calls = []
+        original_overlap = self.module._ranges_overlap
+
+        def contando(*args):
+            overlap_calls.append(args)
+            return original_overlap(*args)
+
+        with mock.patch.object(self.module, "_ranges_overlap", side_effect=contando):
+            hechos = self.module._extract_all_facts(text, line_starts)
+
+        self.assertEqual(len(hechos["cifras"]), n)
+        self.assertEqual(len(overlap_calls), n - 1)
 
 
 class TestEstructuras(unittest.TestCase):
@@ -1500,6 +1591,75 @@ class TestComparacionNombresPropios(unittest.TestCase):
         self.assertEqual(nombres["faltantes"], [])
         self.assertEqual(nombres["nuevas"], [])
 
+    def test_capital_after_inverted_question_mark_is_not_a_proper_noun(self):
+        """Revisión review-4e912a0ac78c9cff (R3-nombres-propios-falsos-
+        bloqueantes): una mayúscula justo tras "¿" es principio de
+        pregunta, no un nombre propio."""
+        original = "¿Te apetece un descuento esta semana, Marta?\n"
+        nuevo = "¿Quieres un descuento esta semana, Marta?\n"
+        report = _con_original(self.module, nuevo, original)
+        nombres = report["comparacion"]["nombres_propios"]
+        self.assertEqual(nombres["faltantes"], [])
+        self.assertEqual(nombres["nuevas"], [])
+
+    def test_capital_after_inverted_exclamation_mark_is_not_a_proper_noun(self):
+        original = "¡Enhorabuena por tu compra, Marta!\n"
+        nuevo = "¡Felicidades por tu compra, Marta!\n"
+        report = _con_original(self.module, nuevo, original)
+        nombres = report["comparacion"]["nombres_propios"]
+        self.assertEqual(nombres["faltantes"], [])
+        self.assertEqual(nombres["nuevas"], [])
+
+    def test_capital_after_bullet_list_marker_is_not_a_proper_noun(self):
+        original = "Ventajas:\n\n- Envío gratuito en 48 h.\n- Devolución sencilla.\n"
+        nuevo = "Ventajas:\n\n- Entrega gratuita en 48 h.\n- Devolución sencilla.\n"
+        report = _con_original(self.module, nuevo, original)
+        nombres = report["comparacion"]["nombres_propios"]
+        self.assertEqual(nombres["faltantes"], [])
+        self.assertEqual(nombres["nuevas"], [])
+
+    def test_capital_after_heading_hashes_is_not_a_proper_noun(self):
+        original = "## Cuidados básicos\n\nSigue estos pasos cada día.\n"
+        nuevo = "## Consejos básicos\n\nSigue estos pasos cada día.\n"
+        report = _con_original(self.module, nuevo, original)
+        nombres = report["comparacion"]["nombres_propios"]
+        self.assertEqual(nombres["faltantes"], [])
+        self.assertEqual(nombres["nuevas"], [])
+
+    def test_capital_after_colon_starting_a_new_sentence_is_not_a_proper_noun(self):
+        original = "Aviso: Este producto no sustituye un tratamiento médico.\n"
+        nuevo = "Aviso: Ese producto no sustituye un tratamiento médico.\n"
+        report = _con_original(self.module, nuevo, original)
+        nombres = report["comparacion"]["nombres_propios"]
+        self.assertEqual(nombres["faltantes"], [])
+        self.assertEqual(nombres["nuevas"], [])
+
+    def test_capital_after_dialogue_dash_at_sentence_start_is_not_a_proper_noun(self):
+        original = "Marta llegó pronto. —Buenos días —dijo con una sonrisa.\n"
+        nuevo = "Marta llegó pronto. —Hola de nuevo —dijo con una sonrisa.\n"
+        report = _con_original(self.module, nuevo, original)
+        nombres = report["comparacion"]["nombres_propios"]
+        self.assertEqual(nombres["faltantes"], [])
+        self.assertEqual(nombres["nuevas"], [])
+
+    def test_capital_after_opening_quote_at_sentence_start_is_not_a_proper_noun(self):
+        original = 'Marta explicó lo siguiente. "Aplica el producto cada noche."\n'
+        nuevo = 'Marta explicó lo siguiente. "Usa el producto cada noche."\n'
+        report = _con_original(self.module, nuevo, original)
+        nombres = report["comparacion"]["nombres_propios"]
+        self.assertEqual(nombres["faltantes"], [])
+        self.assertEqual(nombres["nuevas"], [])
+
+    def test_real_proper_noun_in_a_list_item_is_still_detected(self):
+        """El aval a los marcadores de lista no debe tapar un nombre propio
+        real que cambia a mitad de la línea, dentro del mismo elemento."""
+        original = "- Contacta con Marta en atención al cliente.\n"
+        nuevo = "- Contacta con Laura en atención al cliente.\n"
+        report = _con_original(self.module, nuevo, original)
+        nombres = report["comparacion"]["nombres_propios"]
+        self.assertIn("Marta", [h["texto"] for h in nombres["faltantes"]])
+        self.assertIn("Laura", [h["texto"] for h in nombres["nuevas"]])
+
 
 class TestComparacionUrl(unittest.TestCase):
     def setUp(self):
@@ -1567,6 +1727,107 @@ class TestComparacionCitas(unittest.TestCase):
         citas = report["comparacion"]["citas"]
         self.assertEqual(len(citas["faltantes"]), 1)
         self.assertEqual(len(citas["nuevas"]), 1)
+
+
+class TestComparacionPrivacidad(unittest.TestCase):
+    """Revisión review-4e912a0ac78c9cff (R1-001): 'comparacion' no debe
+    repetir nunca un valor que coincida con un patrón de datos personales,
+    ni siquiera cuando ese valor cambia y por tanto cuenta como hecho
+    faltante o nuevo (un teléfono cambiado SÍ es un hecho cambiado: debe
+    seguir contando para el código de salida, solo el valor se oculta).
+    Identificadores sintéticos y evidentemente ficticios, igual que en
+    TestPrivacidad."""
+
+    DNI_ORIGINAL = "11223344B"
+    DNI_NUEVO = "99887766P"
+    TELEFONO_ORIGINAL = "611223344"
+    TELEFONO_NUEVO = "622334455"
+    EMAIL_LOCAL_ORIGINAL = "Contacto"
+    EMAIL_LOCAL_NUEVO = "Soporte"
+    EMAIL_DOMINIO = "tienda-robledo.example"
+
+    def setUp(self):
+        self.module = load_module()
+
+    def test_changed_phone_number_never_appears_raw_in_cifras(self):
+        original = "Puedes llamarnos al {} en horario de oficina.\n".format(
+            self.TELEFONO_ORIGINAL
+        )
+        nuevo = "Puedes llamarnos al {} en horario de oficina.\n".format(
+            self.TELEFONO_NUEVO
+        )
+        report = _con_original(self.module, nuevo, original)
+        volcado = json.dumps(report, ensure_ascii=False)
+        self.assertNotIn(self.TELEFONO_ORIGINAL, volcado)
+        self.assertNotIn(self.TELEFONO_NUEVO, volcado)
+        cifras = report["comparacion"]["cifras"]
+        self.assertEqual(len(cifras["faltantes"]), 1)
+        self.assertEqual(len(cifras["nuevas"]), 1)
+        self.assertEqual(cifras["faltantes"][0]["texto"], "[dato personal: telefono]")
+        self.assertEqual(cifras["faltantes"][0]["lecturas"], [])
+        self.assertEqual(cifras["nuevas"][0]["texto"], "[dato personal: telefono]")
+        self.assertEqual(cifras["nuevas"][0]["lecturas"], [])
+        self.assertTrue(
+            self.module._comparacion_tiene_diferencias_bloqueantes(report["comparacion"])
+        )
+
+    def test_unchanged_phone_number_yields_no_difference(self):
+        texto = "Puedes llamarnos al {} en horario de oficina.\n".format(
+            self.TELEFONO_ORIGINAL
+        )
+        report = _con_original(self.module, texto, texto)
+        cifras = report["comparacion"]["cifras"]
+        self.assertEqual(cifras["faltantes"], [])
+        self.assertEqual(cifras["nuevas"], [])
+
+    def test_changed_dni_never_appears_raw_in_codigos(self):
+        original = "Datos del cliente: DNI {}.\n".format(self.DNI_ORIGINAL)
+        nuevo = "Datos del cliente: DNI {}.\n".format(self.DNI_NUEVO)
+        report = _con_original(self.module, nuevo, original)
+        volcado = json.dumps(report, ensure_ascii=False)
+        self.assertNotIn(self.DNI_ORIGINAL, volcado)
+        self.assertNotIn(self.DNI_NUEVO, volcado)
+        codigos = report["comparacion"]["codigos"]
+        self.assertEqual(len(codigos["faltantes"]), 1)
+        self.assertEqual(len(codigos["nuevas"]), 1)
+        self.assertEqual(codigos["faltantes"][0]["texto"], "[dato personal: dni_nie]")
+        self.assertEqual(codigos["nuevas"][0]["texto"], "[dato personal: dni_nie]")
+
+    def test_phone_inside_quote_never_appears_raw_in_citas(self):
+        original = "Ella dijo «Llámanos al {} por la mañana».\n".format(
+            self.TELEFONO_ORIGINAL
+        )
+        nuevo = "Ella dijo «Llámanos al {} por la mañana».\n".format(self.TELEFONO_NUEVO)
+        report = _con_original(self.module, nuevo, original)
+        volcado = json.dumps(report, ensure_ascii=False)
+        self.assertNotIn(self.TELEFONO_ORIGINAL, volcado)
+        self.assertNotIn(self.TELEFONO_NUEVO, volcado)
+        citas = report["comparacion"]["citas"]
+        self.assertEqual(len(citas["faltantes"]), 1)
+        self.assertEqual(len(citas["nuevas"]), 1)
+        self.assertEqual(citas["faltantes"][0]["texto"], "[dato personal: telefono]")
+        self.assertEqual(citas["faltantes"][0]["lecturas"], [])
+
+    def test_email_local_part_never_appears_raw_in_nombres_propios(self):
+        original = "Escríbenos a {}@{} si tienes dudas.\n".format(
+            self.EMAIL_LOCAL_ORIGINAL, self.EMAIL_DOMINIO
+        )
+        nuevo = "Escríbenos a {}@{} si tienes dudas.\n".format(
+            self.EMAIL_LOCAL_NUEVO, self.EMAIL_DOMINIO
+        )
+        report = _con_original(self.module, nuevo, original)
+        volcado = json.dumps(report, ensure_ascii=False)
+        self.assertNotIn(
+            "{}@{}".format(self.EMAIL_LOCAL_ORIGINAL, self.EMAIL_DOMINIO), volcado
+        )
+        self.assertNotIn(
+            "{}@{}".format(self.EMAIL_LOCAL_NUEVO, self.EMAIL_DOMINIO), volcado
+        )
+        nombres = report["comparacion"]["nombres_propios"]
+        self.assertEqual(len(nombres["faltantes"]), 1)
+        self.assertEqual(len(nombres["nuevas"]), 1)
+        self.assertEqual(nombres["faltantes"][0]["texto"], "[dato personal: email]")
+        self.assertEqual(nombres["nuevas"][0]["texto"], "[dato personal: email]")
 
 
 class TestComparacionRegistro(unittest.TestCase):

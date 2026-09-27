@@ -129,6 +129,16 @@ multiconjunto (ver el docstring de ``_diff_by_any_reading``); una cifra
 ambigua como "1.500" guarda dos lecturas ("1500" y "1.5") y basta
 coincidir con cualquiera de las dos.
 
+Ningún elemento de ``comparacion`` repite jamás un valor que coincida con
+un patrón de datos personales (los mismos de ``privacidad``): si el tramo
+de un hecho —cifra, código, nombre propio, cita o claim marcado— solapa un
+DNI/NIE, un IBAN, un teléfono o un correo, sus campos ``texto`` y
+``lecturas`` se sustituyen por un marcador (``"[dato personal:
+<categoría>]"`` y ``[]``), conservando categoría, línea y columna; el
+elemento se sigue contando igual, así que un dato personal que cambia
+entre los dos textos sigue produciendo código de salida 1, solo se oculta
+el valor.
+
 Códigos de salida: 2 en errores de uso, de lectura de archivo o de
 vocabulario (antes de imprimir cualquier JSON); 1 cuando se pasa
 ``--original`` y falta o aparece nuevo algún dato de las categorías
@@ -1735,10 +1745,12 @@ def analyze_deterministas(ctx):
 # comparación ahora es sensible a tildes (solo se pliegan mayúsculas y
 # minúsculas, nunca los diacríticos), así que cada forma cuenta solo la
 # suya: "tú" ya no coincide con "tu", y "té" ya no coincide con "te".
-# Ambigüedad conocida y aceptada: "tu"/"tus" no tienen ninguna otra palabra
-# española corriente que se les parezca sin la tilde que los distinga de
-# "tú" (ya no aplica, al no plegar tildes), así que no queda ninguna
-# colisión pendiente de resolver para este conjunto de marcadores.
+# Al ser sensible a tildes, cada marcador cuenta solo su propia forma:
+# "tu"/"tus" (posesivo) nunca se confunden con "tú" (pronombre sujeto) ni
+# con ninguna forma de "usted", así que no queda ninguna colisión abierta
+# para este conjunto de marcadores (revisión review-4e912a0ac78c9cff,
+# R2-001: este párrafo sustituye a uno anterior que se contradecía a sí
+# mismo).
 _TU_MARCADORES = ("tú", "tu", "tus", "te", "ti", "contigo")
 _USTED_MARCADORES = ("usted",)
 _VOSOTROS_MARCADORES = ("vosotros", "vosotras", "vuestro", "vuestra", "vuestros", "vuestras", "os")
@@ -1823,7 +1835,28 @@ def _mask_for_comparacion(text):
 
 
 def _ranges_overlap_span(start, end, spans):
-    return any(_ranges_overlap(start, end, s_ini, s_fin) for s_ini, s_fin in spans)
+    """True si ``[start, end)`` solapa con algún tramo de ``spans``.
+
+    ``spans`` (la lista compartida ``consumidos`` de ``_extract_all_facts``)
+    se mantiene siempre ordenada por inicio y con sus tramos disjuntos entre
+    sí: cada nuevo tramo solo se añade (con ``bisect.insort``, en el
+    llamador) después de comprobar aquí que no solapa con ninguno de los ya
+    presentes. Con esa invariante, dos tramos disjuntos y ordenados por
+    inicio quedan también ordenados por fin, así que basta comparar
+    ``[start, end)`` contra su predecesor inmediato (el último tramo cuyo
+    inicio es menor que ``end``): si ese no solapa, ninguno de los
+    anteriores puede hacerlo tampoco, porque todos terminan antes o en el
+    mismo punto que él. Antes (revisión review-4e912a0ac78c9cff, R4-001)
+    esta función comparaba contra TODOS los tramos ya consumidos en el
+    documento entero, con coste O(n) por consulta y O(n²) en total; con
+    ``bisect`` el coste por consulta es O(log n) y como mucho una sola
+    llamada a ``_ranges_overlap``.
+    """
+    idx = bisect.bisect_left(spans, (end,))
+    if idx == 0:
+        return False
+    s_ini, s_fin = spans[idx - 1]
+    return _ranges_overlap(start, end, s_ini, s_fin)
 
 
 # --- Cifras: enteros, separador de miles (punto, espacio, NBSP o espacio
@@ -1835,7 +1868,7 @@ def _ranges_overlap_span(start, end, spans):
 _CIFRA_TOKEN_RE = re.compile(
     r"(?<![\w.,])(?:"
     r"\d{1,3}(?:\.\d{3})+,\d+"
-    r"|\d{1,3}(?:[   ]\d{3})+(?:,\d+)?"
+    r"|\d{1,3}(?:[\u0020\u00a0\u202f]\d{3})+(?:,\d+)?"
     r"|\d{1,3}(?:\.\d{3})+"
     r"|\d+,\d+"
     r"|\d+\.\d+"
@@ -1851,9 +1884,9 @@ def _parse_cifra(token):
     if m:
         return [m.group(1).replace(".", "") + "." + m.group(2)]
 
-    m = re.fullmatch(r"(\d{1,3}(?:[   ]\d{3})+)(?:,(\d+))?", token)
+    m = re.fullmatch(r"(\d{1,3}(?:[\u0020\u00a0\u202f]\d{3})+)(?:,(\d+))?", token)
     if m:
-        entero = re.sub(r"[   ]", "", m.group(1))
+        entero = re.sub(r"[\u0020\u00a0\u202f]", "", m.group(1))
         return [entero + "." + m.group(2)] if m.group(2) else [entero]
 
     if re.fullmatch(r"\d{1,3}\.\d{3}", token):
@@ -1871,45 +1904,45 @@ def _parse_cifra(token):
     return [token]
 
 
-def _find_cifras(text, line_starts, consumidos):
+def _find_cifras(text, line_starts, consumidos, privacy_spans):
     hallazgos = []
     for m in _CIFRA_TOKEN_RE.finditer(text):
         if _ranges_overlap_span(m.start(), m.end(), consumidos):
             continue
         lecturas = _parse_cifra(m.group(0))
-        consumidos.append((m.start(), m.end()))
+        bisect.insort(consumidos, (m.start(), m.end()))
         line_no, col = _line_col(line_starts, m.start())
-        hallazgos.append(
-            {"texto": m.group(0), "linea": line_no, "columna": col, "lecturas": lecturas}
-        )
+        hallazgo = {"texto": m.group(0), "linea": line_no, "columna": col, "lecturas": lecturas}
+        _marcar_si_privado(hallazgo, m.start(), m.end(), privacy_spans)
+        hallazgos.append(hallazgo)
     hallazgos.sort(key=lambda h: (h["linea"], h["columna"]))
     return hallazgos
 
 
 # --- Porcentajes: "50 %", "50%" y "50 por ciento" son la misma lectura.
 _PORCENTAJE_RE = re.compile(
-    r"\b(\d+(?:[.,]\d+)?)[   ]?%"
+    r"\b(\d+(?:[.,]\d+)?)[\u0020\u00a0\u202f]?%"
     r"|\b(\d+(?:[.,]\d+)?)\s+por\s+ciento\b",
     re.IGNORECASE,
 )
 
 
-def _find_porcentajes(text, line_starts, consumidos):
+def _find_porcentajes(text, line_starts, consumidos, privacy_spans):
     hallazgos = []
     for m in _PORCENTAJE_RE.finditer(text):
         if _ranges_overlap_span(m.start(), m.end(), consumidos):
             continue
         numero = m.group(1) or m.group(2)
-        consumidos.append((m.start(), m.end()))
+        bisect.insort(consumidos, (m.start(), m.end()))
         line_no, col = _line_col(line_starts, m.start())
-        hallazgos.append(
-            {
-                "texto": _clip_texto(m.group(0)),
-                "linea": line_no,
-                "columna": col,
-                "lecturas": [numero.replace(",", ".")],
-            }
-        )
+        hallazgo = {
+            "texto": _clip_texto(m.group(0)),
+            "linea": line_no,
+            "columna": col,
+            "lecturas": [numero.replace(",", ".")],
+        }
+        _marcar_si_privado(hallazgo, m.start(), m.end(), privacy_spans)
+        hallazgos.append(hallazgo)
     hallazgos.sort(key=lambda h: (h["linea"], h["columna"]))
     return hallazgos
 
@@ -1945,7 +1978,7 @@ def _normalizar_fecha_numerica(m):
         return None
 
 
-def _find_fechas(text, line_starts, consumidos):
+def _find_fechas(text, line_starts, consumidos, privacy_spans):
     hallazgos = []
     for pattern, normalizar in (
         (_FECHA_TEXTUAL_RE, _normalizar_fecha_textual),
@@ -1957,16 +1990,16 @@ def _find_fechas(text, line_starts, consumidos):
             valor = normalizar(m)
             if valor is None:
                 continue
-            consumidos.append((m.start(), m.end()))
+            bisect.insort(consumidos, (m.start(), m.end()))
             line_no, col = _line_col(line_starts, m.start())
-            hallazgos.append(
-                {
-                    "texto": _clip_texto(m.group(0)),
-                    "linea": line_no,
-                    "columna": col,
-                    "lecturas": [valor],
-                }
-            )
+            hallazgo = {
+                "texto": _clip_texto(m.group(0)),
+                "linea": line_no,
+                "columna": col,
+                "lecturas": [valor],
+            }
+            _marcar_si_privado(hallazgo, m.start(), m.end(), privacy_spans)
+            hallazgos.append(hallazgo)
     hallazgos.sort(key=lambda h: (h["linea"], h["columna"]))
     return hallazgos
 
@@ -1984,22 +2017,22 @@ _PRECIO_RE = re.compile(
 )
 
 
-def _find_precios(text, line_starts, consumidos):
+def _find_precios(text, line_starts, consumidos, privacy_spans):
     hallazgos = []
     for m in _PRECIO_RE.finditer(text):
         if _ranges_overlap_span(m.start(), m.end(), consumidos):
             continue
         numero = m.group(1) or m.group(2)
-        consumidos.append((m.start(), m.end()))
+        bisect.insort(consumidos, (m.start(), m.end()))
         line_no, col = _line_col(line_starts, m.start())
-        hallazgos.append(
-            {
-                "texto": _clip_texto(m.group(0)),
-                "linea": line_no,
-                "columna": col,
-                "lecturas": _parse_cifra(numero),
-            }
-        )
+        hallazgo = {
+            "texto": _clip_texto(m.group(0)),
+            "linea": line_no,
+            "columna": col,
+            "lecturas": _parse_cifra(numero),
+        }
+        _marcar_si_privado(hallazgo, m.start(), m.end(), privacy_spans)
+        hallazgos.append(hallazgo)
     hallazgos.sort(key=lambda h: (h["linea"], h["columna"]))
     return hallazgos
 
@@ -2016,30 +2049,30 @@ _UNIDADES = (
     "g", "gr", "gramo", "gramos", "kg", "mg", "cm", "mm",
 )
 _DURACION_UNIDAD_RE = re.compile(
-    r"\b(\d+(?:[.,]\d+)?)[   ](?:"
+    r"\b(\d+(?:[.,]\d+)?)[\u0020\u00a0\u202f](?:"
     + "|".join(sorted(_UNIDADES, key=len, reverse=True))
     + r")\b",
     re.IGNORECASE,
 )
 
 
-def _find_duraciones_unidades(text, line_starts, consumidos):
+def _find_duraciones_unidades(text, line_starts, consumidos, privacy_spans):
     hallazgos = []
     for m in _DURACION_UNIDAD_RE.finditer(text):
         if _ranges_overlap_span(m.start(), m.end(), consumidos):
             continue
         numero = m.group(1).replace(",", ".")
         unidad = _normalize_for_matching(m.group(0)[len(m.group(1)):].strip())
-        consumidos.append((m.start(), m.end()))
+        bisect.insort(consumidos, (m.start(), m.end()))
         line_no, col = _line_col(line_starts, m.start())
-        hallazgos.append(
-            {
-                "texto": _clip_texto(m.group(0)),
-                "linea": line_no,
-                "columna": col,
-                "lecturas": ["{}|{}".format(numero, unidad)],
-            }
-        )
+        hallazgo = {
+            "texto": _clip_texto(m.group(0)),
+            "linea": line_no,
+            "columna": col,
+            "lecturas": ["{}|{}".format(numero, unidad)],
+        }
+        _marcar_si_privado(hallazgo, m.start(), m.end(), privacy_spans)
+        hallazgos.append(hallazgo)
     hallazgos.sort(key=lambda h: (h["linea"], h["columna"]))
     return hallazgos
 
@@ -2050,21 +2083,21 @@ def _find_duraciones_unidades(text, line_starts, consumidos):
 _CODIGO_RE = re.compile(r"\b(?=[A-Za-z0-9-]*\d)(?=[A-Za-z0-9-]*[A-Za-z])[A-Za-z0-9][A-Za-z0-9-]{3,}\b")
 
 
-def _find_codigos(text, line_starts, consumidos):
+def _find_codigos(text, line_starts, consumidos, privacy_spans):
     hallazgos = []
     for m in _CODIGO_RE.finditer(text):
         if _ranges_overlap_span(m.start(), m.end(), consumidos):
             continue
-        consumidos.append((m.start(), m.end()))
+        bisect.insort(consumidos, (m.start(), m.end()))
         line_no, col = _line_col(line_starts, m.start())
-        hallazgos.append(
-            {
-                "texto": m.group(0),
-                "linea": line_no,
-                "columna": col,
-                "lecturas": [m.group(0).upper()],
-            }
-        )
+        hallazgo = {
+            "texto": m.group(0),
+            "linea": line_no,
+            "columna": col,
+            "lecturas": [m.group(0).upper()],
+        }
+        _marcar_si_privado(hallazgo, m.start(), m.end(), privacy_spans)
+        hallazgos.append(hallazgo)
     hallazgos.sort(key=lambda h: (h["linea"], h["columna"]))
     return hallazgos
 
@@ -2075,29 +2108,76 @@ def _find_codigos(text, line_starts, consumidos):
 _SIGLA_RE = re.compile(r"\b[A-ZÁÉÍÓÚÑ]{2,}\b")
 
 
-def _find_siglas(text, line_starts):
+def _find_siglas(text, line_starts, privacy_spans):
     hallazgos = []
     for m in _SIGLA_RE.finditer(text):
         line_no, col = _line_col(line_starts, m.start())
-        hallazgos.append(
-            {"texto": m.group(0), "linea": line_no, "columna": col, "lecturas": [m.group(0)]}
-        )
+        hallazgo = {"texto": m.group(0), "linea": line_no, "columna": col, "lecturas": [m.group(0)]}
+        _marcar_si_privado(hallazgo, m.start(), m.end(), privacy_spans)
+        hallazgos.append(hallazgo)
     hallazgos.sort(key=lambda h: (h["linea"], h["columna"]))
     return hallazgos
 
 
 # --- Nombres propios: palabras con mayúscula inicial que NO están al
 # principio de una oración ni de un párrafo. Heurística basada en
-# puntuación de cierre de frase (".", "!", "?") y en saltos de párrafo (dos
-# o más saltos de línea seguidos); no distingue un nombre propio real de
-# cualquier otra palabra capitalizada a mitad de frase (p. ej. una sigla de
-# una sola letra en mayúscula no cuenta, ya la excluye la clase de
+# puntuación de cierre de frase (".", "!", "?"), en los signos de apertura
+# "¿"/"¡", en saltos de párrafo (dos o más saltos de línea seguidos), en
+# marcadores de lista Markdown y encabezados, en dos puntos que introducen
+# una oración completa (misma condición que
+# ``_tipografia_mayuscula_tras_dos_puntos``, pero en sentido inverso) y en
+# una comilla de apertura o una raya que a su vez sean principio de
+# oración (revisión review-4e912a0ac78c9cff,
+# R3-nombres-propios-falsos-bloqueantes); no distingue un nombre propio
+# real de cualquier otra palabra capitalizada a mitad de frase (p. ej. una
+# sigla de una sola letra en mayúscula no cuenta, ya la excluye la clase de
 # caracteres). Limitación documentada, igual que la de "title_case" en el
 # analizador de encabezados.
 _PALABRA_CAPITALIZADA_RE = re.compile(r"\b[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+\b")
 
+# Comilla de apertura o raya que, si a su vez es principio de oración,
+# arrastra ese principio de oración a la palabra que la sigue pegada (sin
+# espacio, como en la raya de diálogo, o con espacio, como tras dos
+# puntos). "«" y "“" y "‘" son siempre de apertura; la comilla recta '"'
+# es ambigua entre apertura y cierre, pero tratarla aquí como posible
+# apertura solo amplía qué se EXCLUYE de nombres propios, nunca al revés,
+# así que no crea un falso negativo de privacidad ni de cifras.
+_APERTURA_ORACION_CHARS = "«“‘\"" + _EM_DASH
+_ENCABEZADO_PREFIJO_RE = re.compile(r"^#{1,6}[ \t]+$")
+_LISTA_PREFIJO_RE = re.compile(r"^[ \t]*(?:[-*+]|\d+[.)])[ \t]+$")
+
+
+def _precedido_de_dos_puntos_de_oracion(text, pos):
+    """True si, retrocediendo desde ``pos`` solo sobre espacios y
+    tabulaciones (nunca sobre un salto de línea), el carácter anterior es
+    ':'. Es la misma condición que usa
+    ``_tipografia_mayuscula_tras_dos_puntos`` para decidir si una mayúscula
+    sigue "pegada" a los dos puntos en la misma línea, aplicada aquí al
+    revés: unos dos puntos que introducen una oración completa hacen que
+    la palabra siguiente sea principio de oración, no un nombre propio.
+    """
+    k = pos
+    while k > 0 and text[k - 1] in " \t":
+        k -= 1
+    return k > 0 and text[k - 1] == ":"
+
 
 def _es_inicio_de_oracion(text, inicio):
+    """True si la posición ``inicio`` empieza una oración (o un párrafo, o
+    el texto), y por tanto una mayúscula ahí nunca debe tratarse como
+    nombre propio.
+
+    Además del final de frase (".", "!", "?") y del salto de párrafo (dos
+    o más saltos de línea seguidos), se consideran principio de oración:
+    justo tras un signo de apertura español ("¿" o "¡"); al principio de
+    la línea, tras un marcador de lista Markdown ("-", "*", "+" o
+    "1.")  o tras las almohadillas de un encabezado ("#" a "######"); tras
+    dos puntos que introducen una oración completa en la misma línea
+    (``_precedido_de_dos_puntos_de_oracion``); y tras una comilla de
+    apertura o una raya que a su vez sean, recursivamente, principio de
+    oración (por ejemplo, la raya de diálogo al empezar una línea de
+    parlamento, o una cita que reproduce una frase completa).
+    """
     j = inicio
     saltos_seguidos = 0
     while j > 0 and text[j - 1] in " \t\n":
@@ -2108,18 +2188,29 @@ def _es_inicio_de_oracion(text, inicio):
         return True
     if saltos_seguidos >= 2:
         return True
-    return text[j - 1] in ".!?"
+    anterior = text[j - 1]
+    if anterior in ".!?¿¡":
+        return True
+    if anterior in _APERTURA_ORACION_CHARS and _es_inicio_de_oracion(text, j - 1):
+        return True
+    line_start = text.rfind("\n", 0, inicio) + 1
+    prefijo_linea = text[line_start:inicio]
+    if _ENCABEZADO_PREFIJO_RE.match(prefijo_linea) or _LISTA_PREFIJO_RE.match(prefijo_linea):
+        return True
+    if saltos_seguidos == 0 and _precedido_de_dos_puntos_de_oracion(text, j):
+        return True
+    return False
 
 
-def _find_nombres_propios(text, line_starts):
+def _find_nombres_propios(text, line_starts, privacy_spans):
     hallazgos = []
     for m in _PALABRA_CAPITALIZADA_RE.finditer(text):
         if _es_inicio_de_oracion(text, m.start()):
             continue
         line_no, col = _line_col(line_starts, m.start())
-        hallazgos.append(
-            {"texto": m.group(0), "linea": line_no, "columna": col, "lecturas": [m.group(0)]}
-        )
+        hallazgo = {"texto": m.group(0), "linea": line_no, "columna": col, "lecturas": [m.group(0)]}
+        _marcar_si_privado(hallazgo, m.start(), m.end(), privacy_spans)
+        hallazgos.append(hallazgo)
     hallazgos.sort(key=lambda h: (h["linea"], h["columna"]))
     return hallazgos
 
@@ -2135,26 +2226,26 @@ def _find_urls_comparacion(text, line_starts):
     return hallazgos
 
 
-def _find_claims_marcados(text):
+def _find_claims_marcados(text, privacy_spans):
     line_starts = _build_line_index(text)
     hallazgos = []
     for m in _CLAIM_RE.finditer(text):
         interior = m.group(0)[len("[[claim]]"):-len("[[/claim]]")]
         valor = re.sub(r"\s+", " ", interior).strip()
         line_no, col = _line_col(line_starts, m.start())
-        hallazgos.append(
-            {
-                "texto": _clip_texto(interior),
-                "linea": line_no,
-                "columna": col,
-                "lecturas": [valor],
-            }
-        )
+        hallazgo = {
+            "texto": _clip_texto(interior),
+            "linea": line_no,
+            "columna": col,
+            "lecturas": [valor],
+        }
+        _marcar_si_privado(hallazgo, m.start(), m.end(), privacy_spans)
+        hallazgos.append(hallazgo)
     hallazgos.sort(key=lambda h: (h["linea"], h["columna"]))
     return hallazgos
 
 
-def _find_citas_literales(text, line_starts):
+def _find_citas_literales(text, line_starts, privacy_spans):
     hallazgos = []
     for _tipo, pattern in _QUOTE_TYPES:
         for m in pattern.finditer(text):
@@ -2163,14 +2254,14 @@ def _find_citas_literales(text, line_starts):
             if not valor:
                 continue
             line_no, col = _line_col(line_starts, m.start())
-            hallazgos.append(
-                {
-                    "texto": _clip_texto(m.group(0)),
-                    "linea": line_no,
-                    "columna": col,
-                    "lecturas": [valor],
-                }
-            )
+            hallazgo = {
+                "texto": _clip_texto(m.group(0)),
+                "linea": line_no,
+                "columna": col,
+                "lecturas": [valor],
+            }
+            _marcar_si_privado(hallazgo, m.start(), m.end(), privacy_spans)
+            hallazgos.append(hallazgo)
     hallazgos.sort(key=lambda h: (h["linea"], h["columna"]))
     return hallazgos
 
@@ -2191,8 +2282,16 @@ def _diff_by_any_reading(originales, nuevas):
     for it in originales:
         lecturas_originales.update(it["lecturas"])
 
+    # La comparación de lecturas usa siempre el valor real, ANTES de
+    # redactar: dos apariciones idénticas de un mismo dato personal no
+    # deben marcarse como diferencia solo porque su valor se oculte al
+    # mostrarlo (revisión review-4e912a0ac78c9cff, R1-001). La redacción
+    # ocurre después, solo sobre los elementos que de verdad van a
+    # aparecer en el informe.
     faltantes = [it for it in originales if not (set(it["lecturas"]) & lecturas_nuevas)]
     agregadas = [it for it in nuevas if not (set(it["lecturas"]) & lecturas_originales)]
+    faltantes = [_redactar_si_privado(it) for it in faltantes]
+    agregadas = [_redactar_si_privado(it) for it in agregadas]
     faltantes.sort(key=lambda h: (h["linea"], h["columna"]))
     agregadas.sort(key=lambda h: (h["linea"], h["columna"]))
     return faltantes, agregadas
@@ -2204,18 +2303,27 @@ def _extract_all_facts(text, line_starts):
     específica consume su propio tramo de texto (``consumidos``) antes de
     que la categoría más genérica de cifras sueltas la vuelva a encontrar
     (p. ej. el "20" de "20 %" no debe contarse también como cifra suelta).
+
+    Todas las categorías reciben además ``privacy_spans`` (los mismos
+    patrones que ``analyze_privacidad``, calculados una sola vez sobre
+    ``base``) para poder marcar como dato personal cualquier hecho cuyo
+    tramo los solape (revisión review-4e912a0ac78c9cff, R1-001): un
+    teléfono, un DNI/NIE o un correo puede coincidir con una cifra, un
+    código o un nombre propio, y esta comparación nunca debe repetir su
+    valor en el informe.
     """
     base = _mask_for_comparacion(text)
     urls = _find_urls_comparacion(base, line_starts)
     sin_urls, _ = _mask_pattern(base, _URL_RE)
+    privacy_spans = _find_privacy_spans(base)
 
     consumidos = []
-    fechas = _find_fechas(sin_urls, line_starts, consumidos)
-    porcentajes = _find_porcentajes(sin_urls, line_starts, consumidos)
-    precios = _find_precios(sin_urls, line_starts, consumidos)
-    duraciones = _find_duraciones_unidades(sin_urls, line_starts, consumidos)
-    codigos = _find_codigos(sin_urls, line_starts, consumidos)
-    cifras = _find_cifras(sin_urls, line_starts, consumidos)
+    fechas = _find_fechas(sin_urls, line_starts, consumidos, privacy_spans)
+    porcentajes = _find_porcentajes(sin_urls, line_starts, consumidos, privacy_spans)
+    precios = _find_precios(sin_urls, line_starts, consumidos, privacy_spans)
+    duraciones = _find_duraciones_unidades(sin_urls, line_starts, consumidos, privacy_spans)
+    codigos = _find_codigos(sin_urls, line_starts, consumidos, privacy_spans)
+    cifras = _find_cifras(sin_urls, line_starts, consumidos, privacy_spans)
     return {
         "cifras": cifras,
         "porcentajes": porcentajes,
@@ -2223,8 +2331,8 @@ def _extract_all_facts(text, line_starts):
         "precios": precios,
         "duraciones_unidades": duraciones,
         "codigos": codigos,
-        "siglas": _find_siglas(sin_urls, line_starts),
-        "nombres_propios": _find_nombres_propios(sin_urls, line_starts),
+        "siglas": _find_siglas(sin_urls, line_starts, privacy_spans),
+        "nombres_propios": _find_nombres_propios(sin_urls, line_starts, privacy_spans),
         "url": urls,
     }
 
@@ -2271,15 +2379,18 @@ def _build_comparacion(ctx, original_text, registro_nuevo):
         faltantes, nuevas = _diff_by_any_reading(hechos_originales[clave], hechos_nuevos[clave])
         resultado[clave] = {"faltantes": faltantes, "nuevas": nuevas}
 
-    claims_originales = _find_claims_marcados(original_text)
-    claims_nuevos = _find_claims_marcados(ctx.original_text)
+    base_original = _mask_for_comparacion(original_text)
+    base_nuevo = _mask_for_comparacion(ctx.original_text)
+    privacy_original = _find_privacy_spans(base_original)
+    privacy_nuevo = _find_privacy_spans(base_nuevo)
+
+    claims_originales = _find_claims_marcados(original_text, privacy_original)
+    claims_nuevos = _find_claims_marcados(ctx.original_text, privacy_nuevo)
     faltantes, nuevas = _diff_by_any_reading(claims_originales, claims_nuevos)
     resultado["claims_marcados"] = {"faltantes": faltantes, "nuevas": nuevas}
 
-    base_original = _mask_for_comparacion(original_text)
-    base_nuevo = _mask_for_comparacion(ctx.original_text)
-    citas_originales = _find_citas_literales(base_original, original_line_starts)
-    citas_nuevas = _find_citas_literales(base_nuevo, ctx.line_starts)
+    citas_originales = _find_citas_literales(base_original, original_line_starts, privacy_original)
+    citas_nuevas = _find_citas_literales(base_nuevo, ctx.line_starts, privacy_nuevo)
     faltantes, nuevas = _diff_by_any_reading(citas_originales, citas_nuevas)
     resultado["citas"] = {"faltantes": faltantes, "nuevas": nuevas}
 
@@ -2475,6 +2586,78 @@ _PRIVACY_RULES = (
     ("telefono", _TELEFONO_RE, None),
     ("email", _EMAIL_RE, None),
 )
+
+
+# ---------------------------------------------------------------------------
+# Redacción de datos personales dentro de ``comparacion`` (revisión
+# review-4e912a0ac78c9cff, R1-001). ``analyze_privacidad`` nunca repite el
+# valor que encuentra, pero antes de esta revisión ``comparacion`` sí lo
+# hacía: un teléfono, un DNI/NIE, un IBAN o un correo que cambiaba entre el
+# original y el nuevo texto se copiaba tal cual en ``cifras``, ``codigos``,
+# ``citas`` o ``nombres_propios`` porque esas categorías no reutilizaban
+# los mismos patrones. Estas funciones reutilizan exactamente
+# ``_PRIVACY_RULES`` para que ninguna categoría de ``comparacion`` pueda
+# volver a filtrar un dato personal, cambie o no entre los dos textos.
+# ---------------------------------------------------------------------------
+
+
+def _find_privacy_spans(text):
+    """Tramos ``(inicio, fin, categoria)`` de datos personales detectados
+    en ``text`` con los mismos patrones y validadores que
+    ``analyze_privacidad``, ordenados por inicio. Se calculan una sola vez
+    por texto y se reutilizan para marcar como privado cualquier hecho de
+    ``comparacion`` cuyo tramo los solape.
+    """
+    spans = []
+    for categoria, pattern, validador in _PRIVACY_RULES:
+        for m in pattern.finditer(text):
+            if validador is not None and not validador(m):
+                continue
+            spans.append((m.start(), m.end(), categoria))
+    spans.sort(key=lambda s: s[0])
+    return spans
+
+
+def _categoria_privada_solapada(inicio, fin, privacy_spans):
+    """Categoría del primer tramo de ``privacy_spans`` que solapa
+    ``[inicio, fin)``, o ``None`` si ninguno lo hace. ``privacy_spans`` está
+    ordenado por inicio, así que basta cortar en cuanto un tramo empieza en
+    o después de ``fin``: ninguno de los siguientes puede solapar tampoco.
+    """
+    for p_inicio, p_fin, categoria in privacy_spans:
+        if p_inicio >= fin:
+            break
+        if _ranges_overlap(inicio, fin, p_inicio, p_fin):
+            return categoria
+    return None
+
+
+def _marcar_si_privado(hallazgo, inicio, fin, privacy_spans):
+    """Si ``[inicio, fin)`` solapa un dato personal, añade la marca interna
+    ``_privado`` al hallazgo (nunca se serializa: ``_diff_by_any_reading``
+    la consume y la retira con ``_redactar_si_privado`` antes de devolver
+    el resultado). El valor real se conserva hasta ese punto porque la
+    comparación de lecturas debe seguir funcionando con normalidad."""
+    categoria = _categoria_privada_solapada(inicio, fin, privacy_spans)
+    if categoria is not None:
+        hallazgo["_privado"] = categoria
+
+
+def _redactar_si_privado(hallazgo):
+    """Sustituye ``texto``/``lecturas`` por un marcador de redacción si el
+    hallazgo se marcó como dato personal, conservando categoría, línea y
+    columna. El elemento se sigue contando (no se descarta) para que un
+    dato personal que cambia siga produciendo código de salida 1: lo único
+    que se oculta es el valor, nunca el hecho de que hay una diferencia."""
+    categoria = hallazgo.get("_privado")
+    if categoria is None:
+        return hallazgo
+    redactado = dict(hallazgo)
+    del redactado["_privado"]
+    redactado["texto"] = "[dato personal: {}]".format(categoria)
+    redactado["lecturas"] = []
+    return redactado
+
 
 _AVISO_PRIVACIDAD = (
     "La ausencia de hallazgos en esta lista NO certifica que el texto esté "
