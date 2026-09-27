@@ -1626,10 +1626,21 @@ class TestComparacionNombresPropios(unittest.TestCase):
         self.assertEqual(nombres["faltantes"], [])
         self.assertEqual(nombres["nuevas"], [])
 
-    def test_capital_after_colon_starting_a_new_sentence_is_not_a_proper_noun(self):
-        original = "Aviso: Este producto no sustituye un tratamiento médico.\n"
-        nuevo = "Aviso: Ese producto no sustituye un tratamiento médico.\n"
+    def test_changed_proper_noun_right_after_colon_is_reported(self):
+        # Revisión del tramo 06: tratar la mayúscula tras dos puntos como
+        # principio de oración ocultaba un nombre cambiado. La comprobación
+        # de cero invención prefiere una falsa alarma («Aviso: Este» →
+        # «Aviso: Ese») a dejar pasar un nombre distinto.
+        original = "Contacto: Marta, en la tienda de Arcilla.\n"
+        nuevo = "Contacto: Laura, en la tienda de Arcilla.\n"
         report = _con_original(self.module, nuevo, original)
+        nombres = report["comparacion"]["nombres_propios"]
+        self.assertEqual([h["texto"] for h in nombres["faltantes"]], ["Marta"])
+        self.assertEqual([h["texto"] for h in nombres["nuevas"]], ["Laura"])
+
+    def test_long_run_of_opening_marks_does_not_crash(self):
+        texto = "Dijo " + "«" * 5000 + "Hola a todos.\n"
+        report = _con_original(self.module, texto, texto)
         nombres = report["comparacion"]["nombres_propios"]
         self.assertEqual(nombres["faltantes"], [])
         self.assertEqual(nombres["nuevas"], [])

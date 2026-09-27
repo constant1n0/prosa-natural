@@ -2123,12 +2123,12 @@ def _find_siglas(text, line_starts, privacy_spans):
 # principio de una oración ni de un párrafo. Heurística basada en
 # puntuación de cierre de frase (".", "!", "?"), en los signos de apertura
 # "¿"/"¡", en saltos de párrafo (dos o más saltos de línea seguidos), en
-# marcadores de lista Markdown y encabezados, en dos puntos que introducen
-# una oración completa (misma condición que
-# ``_tipografia_mayuscula_tras_dos_puntos``, pero en sentido inverso) y en
-# una comilla de apertura o una raya que a su vez sean principio de
-# oración (revisión review-4e912a0ac78c9cff,
-# R3-nombres-propios-falsos-bloqueantes); no distingue un nombre propio
+# marcadores de lista Markdown y encabezados, y en una comilla de apertura
+# o una raya que a su vez sean principio de oración (revisión
+# review-4e912a0ac78c9cff, R3-nombres-propios-falsos-bloqueantes). Tras
+# dos puntos no se asume principio de oración, para no ocultar un nombre
+# cambiado («Contacto: Marta»); se acepta alguna falsa alarma a cambio.
+# No distingue un nombre propio
 # real de cualquier otra palabra capitalizada a mitad de frase (p. ej. una
 # sigla de una sola letra en mayúscula no cuenta, ya la excluye la clase de
 # caracteres). Limitación documentada, igual que la de "title_case" en el
@@ -2147,19 +2147,23 @@ _ENCABEZADO_PREFIJO_RE = re.compile(r"^#{1,6}[ \t]+$")
 _LISTA_PREFIJO_RE = re.compile(r"^[ \t]*(?:[-*+]|\d+[.)])[ \t]+$")
 
 
-def _precedido_de_dos_puntos_de_oracion(text, pos):
-    """True si, retrocediendo desde ``pos`` solo sobre espacios y
-    tabulaciones (nunca sobre un salto de línea), el carácter anterior es
-    ':'. Es la misma condición que usa
-    ``_tipografia_mayuscula_tras_dos_puntos`` para decidir si una mayúscula
-    sigue "pegada" a los dos puntos en la misma línea, aplicada aquí al
-    revés: unos dos puntos que introducen una oración completa hacen que
-    la palabra siguiente sea principio de oración, no un nombre propio.
-    """
-    k = pos
-    while k > 0 and text[k - 1] in " \t":
-        k -= 1
-    return k > 0 and text[k - 1] == ":"
+# Longitud máxima del prefijo de línea que puede ser solo un marcador de
+# lista o de encabezado (con su sangría). Más allá, no hace falta mirar:
+# acota el coste por palabra en líneas muy largas.
+_PREFIJO_LINEA_MAX = 40
+
+
+def _prefijo_de_linea_es_marcador(text, pos):
+    """True si lo que hay entre el principio de la línea y ``pos`` es solo
+    un marcador de lista Markdown o las almohadillas de un encabezado."""
+    inicio_busqueda = max(0, pos - _PREFIJO_LINEA_MAX - 1)
+    line_start = text.rfind("\n", inicio_busqueda, pos) + 1
+    if line_start == 0 and inicio_busqueda > 0:
+        return False
+    prefijo_linea = text[line_start:pos]
+    return bool(
+        _ENCABEZADO_PREFIJO_RE.match(prefijo_linea) or _LISTA_PREFIJO_RE.match(prefijo_linea)
+    )
 
 
 def _es_inicio_de_oracion(text, inicio):
@@ -2170,36 +2174,37 @@ def _es_inicio_de_oracion(text, inicio):
     Además del final de frase (".", "!", "?") y del salto de párrafo (dos
     o más saltos de línea seguidos), se consideran principio de oración:
     justo tras un signo de apertura español ("¿" o "¡"); al principio de
-    la línea, tras un marcador de lista Markdown ("-", "*", "+" o
-    "1.")  o tras las almohadillas de un encabezado ("#" a "######"); tras
-    dos puntos que introducen una oración completa en la misma línea
-    (``_precedido_de_dos_puntos_de_oracion``); y tras una comilla de
-    apertura o una raya que a su vez sean, recursivamente, principio de
-    oración (por ejemplo, la raya de diálogo al empezar una línea de
-    parlamento, o una cita que reproduce una frase completa).
+    la línea, tras un marcador de lista Markdown ("-", "*", "+" o "1.") o
+    tras las almohadillas de un encabezado ("#" a "######"); y tras una
+    comilla de apertura o una raya que a su vez sean principio de oración
+    (la raya de diálogo, o una cita que reproduce una frase completa). Las
+    cadenas de comillas y rayas se recorren con un bucle, sin recursión,
+    para que una racha muy larga no agote la pila.
+
+    Tras dos puntos NO se asume principio de oración: «Contacto: Marta»
+    lleva un nombre propio, y esta comprobación de cero invención prefiere
+    una falsa alarma («Aviso: Este» → «Aviso: Ese») a dejar pasar un
+    nombre cambiado.
     """
-    j = inicio
-    saltos_seguidos = 0
-    while j > 0 and text[j - 1] in " \t\n":
-        if text[j - 1] == "\n":
-            saltos_seguidos += 1
-        j -= 1
-    if j == 0:
-        return True
-    if saltos_seguidos >= 2:
-        return True
-    anterior = text[j - 1]
-    if anterior in ".!?¿¡":
-        return True
-    if anterior in _APERTURA_ORACION_CHARS and _es_inicio_de_oracion(text, j - 1):
-        return True
-    line_start = text.rfind("\n", 0, inicio) + 1
-    prefijo_linea = text[line_start:inicio]
-    if _ENCABEZADO_PREFIJO_RE.match(prefijo_linea) or _LISTA_PREFIJO_RE.match(prefijo_linea):
-        return True
-    if saltos_seguidos == 0 and _precedido_de_dos_puntos_de_oracion(text, j):
-        return True
-    return False
+    pos = inicio
+    while True:
+        j = pos
+        saltos_seguidos = 0
+        while j > 0 and text[j - 1] in " \t\n":
+            if text[j - 1] == "\n":
+                saltos_seguidos += 1
+            j -= 1
+        if j == 0 or saltos_seguidos >= 2:
+            return True
+        anterior = text[j - 1]
+        if anterior in ".!?¿¡":
+            return True
+        if _prefijo_de_linea_es_marcador(text, pos):
+            return True
+        if anterior in _APERTURA_ORACION_CHARS:
+            pos = j - 1
+            continue
+        return False
 
 
 def _find_nombres_propios(text, line_starts, privacy_spans):
