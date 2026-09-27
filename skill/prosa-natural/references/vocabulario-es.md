@@ -56,9 +56,12 @@ Este archivo se parsea con la biblioteca estándar de Python (sin YAML ni
 CSV de terceros), así que el formato es estricto. `scan_tells.py` sigue
 exactamente estas reglas y su docstring las repite.
 
-- Solo hay dos encabezados de nivel, escritos tal cual: `## Fuerte` y
-  `## Débil`. Cualquier otro encabezado `##` (como este mismo `## Formato` o
-  `## Excluidas y variantes`) cierra la región que se parsea.
+- Solo se parsean los encabezados `## Fuerte` y `## Débil`, escritos tal
+  cual. Cualquier otro encabezado `##` termina la región de nivel que esté
+  abierta en ese momento —por ejemplo, `## Excluidas y variantes` cierra la
+  región `## Débil` que lo precede—; el texto que quede fuera de esas dos
+  regiones nunca se lee, incluido este mismo `## Formato`, que va antes de
+  `## Fuerte` y por tanto es preámbulo, no una región que cerrar.
 - Dentro de un nivel, cada familia es un encabezado `### <nombre de
   familia>`. Puede ir seguida de una o dos líneas de motivo que empiezan por
   `> ` (el porqué de la familia); esas líneas no son entradas.

@@ -128,15 +128,76 @@ class TestVocabularyParser(unittest.TestCase):
         self.assertIn(str(path), result.stderr)
         self.assertIn("5", result.stderr)
 
-    def test_real_vocabulario_counts(self):
+    def test_real_vocabulario_invariants(self):
+        # Sustituye a los recuentos codificados (104/27/77/7): estas
+        # invariantes estructurales permiten añadir entradas al vocabulario
+        # real sin tener que tocar los tests (hallazgo de revisión R2).
+        import datetime
+
         entries = self.module.parse_vocabulary(VOCAB_PATH)
-        self.assertEqual(len(entries), 104)
         fuerte = [e for e in entries if e.nivel == "Fuerte"]
         debil = [e for e in entries if e.nivel == "Débil"]
-        pendientes = [e for e in entries if e.pendiente]
-        self.assertEqual(len(fuerte), 27)
-        self.assertEqual(len(debil), 77)
-        self.assertEqual(len(pendientes), 7)
+        self.assertTrue(fuerte, "el vocabulario debe tener al menos una entrada Fuerte")
+        self.assertTrue(debil, "el vocabulario debe tener al menos una entrada Débil")
+        for entry in entries:
+            if entry.pendiente:
+                self.assertEqual(entry.nivel, "Débil")
+            self.assertTrue(entry.origen)
+            datetime.date.fromisoformat(entry.fecha)
+        normalizados = [
+            self.module._normalize_for_matching(e.expresion) for e in entries
+        ]
+        self.assertEqual(
+            len(normalizados),
+            len(set(normalizados)),
+            "no debe haber expresiones duplicadas tras normalizar",
+        )
+
+    def test_non_utf8_vocabulary_raises_without_misleading_line(self):
+        path = Path(self.tmp.name) / "vocab-binario.md"
+        path.write_bytes(
+            "## Fuerte\n\n### Familia\n\nalgo ".encode("utf-8") + b"\xff\xfe\n"
+        )
+        with self.assertRaises(self.module.VocabParseError) as ctx:
+            self.module.parse_vocabulary(path)
+        mensaje = str(ctx.exception)
+        self.assertIn(str(path), mensaje)
+        self.assertNotIn(":0:", mensaje)
+        self.assertIsNone(ctx.exception.line)
+
+    def test_non_utf8_vocabulary_via_cli_exits_2_without_traceback(self):
+        path = Path(self.tmp.name) / "vocab-binario.md"
+        path.write_bytes(b"## Fuerte\n\n### Familia\n\nalgo \xff\xfe\n")
+        result = run_cli(["--vocabulario", str(path), "-"], input_text="hola\n")
+        self.assertEqual(result.returncode, 2)
+        self.assertIn(str(path), result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
+
+    def test_vocab_without_level_headings_is_malformed(self):
+        content = "# Título\n\nEsto es solo prosa sin encabezados de nivel.\n"
+        path = write_vocab(self.tmp.name, content)
+        with self.assertRaises(self.module.VocabParseError):
+            self.module.parse_vocabulary(path)
+
+    def test_vocab_with_heading_but_no_entries_is_malformed(self):
+        content = "## Fuerte\n\n### Familia sin entradas\n\n## Otra cosa\n\nprosa\n"
+        path = write_vocab(self.tmp.name, content)
+        with self.assertRaises(self.module.VocabParseError):
+            self.module.parse_vocabulary(path)
+
+    def test_empty_vocabulary_via_cli_exits_2(self):
+        content = "# Título\n\nprosa suelta.\n"
+        path = write_vocab(self.tmp.name, content)
+        result = run_cli(["--vocabulario", str(path), "-"], input_text="hola\n")
+        self.assertEqual(result.returncode, 2)
+        self.assertIn(str(path), result.stderr)
+
+    def test_invalid_calendar_date_raises(self):
+        content = "## Fuerte\n\n### Familia\n\nalgo raro | 2026-13-40 | prueba\n"
+        path = write_vocab(self.tmp.name, content)
+        with self.assertRaises(self.module.VocabParseError) as ctx:
+            self.module.parse_vocabulary(path)
+        self.assertEqual(ctx.exception.line, 5)
 
 
 class TestMatching(unittest.TestCase):
@@ -271,6 +332,101 @@ class TestMasking(unittest.TestCase):
         matches = [h for h in hits if h["expresion"] == "clave"]
         self.assertEqual(len(matches), 1)
         self.assertEqual(mask_counts["comillas"], 0)
+
+
+class TestCRLF(unittest.TestCase):
+    def setUp(self):
+        self.module = load_module()
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.vocab_path = write_vocab(self.tmp.name, MINIMAL_VOCAB)
+        self.entries = self.module.parse_vocabulary(self.vocab_path)
+
+    def test_frontmatter_masked_with_crlf(self):
+        text = "---\r\ntitulo: clave del proyecto\r\n---\r\nCuerpo con una clave real.\r\n"
+        report = self.module.build_report(text, self.entries)
+        hits = [h for h in report["vocabulario"]["hallazgos"] if h["expresion"] == "clave"]
+        self.assertEqual(len(hits), 1)
+        self.assertEqual(report["enmascarado"]["frontmatter"], 1)
+        self.assertEqual(hits[0]["linea"], 4)
+
+    def test_fenced_code_masked_with_crlf(self):
+        text = (
+            "Texto normal.\r\n\r\n"
+            "```python\r\n"
+            "clave = 1\r\n"
+            "```\r\n\r\n"
+            "Después la clave real.\r\n"
+        )
+        report = self.module.build_report(text, self.entries)
+        hits = [h for h in report["vocabulario"]["hallazgos"] if h["expresion"] == "clave"]
+        self.assertEqual(len(hits), 1)
+        self.assertGreaterEqual(report["enmascarado"]["bloques_codigo"], 1)
+        last_line = text.count("\n", 0, text.index("Después"))
+        self.assertEqual(hits[0]["linea"], last_line + 1)
+
+    def test_frontmatter_with_lone_trailing_cr(self):
+        text = "---\r\ntitulo: clave\r\n---\r"
+        report = self.module.build_report(text, self.entries)
+        self.assertEqual(report["enmascarado"]["frontmatter"], 1)
+
+
+class TestOverlappingMatches(unittest.TestCase):
+    def setUp(self):
+        self.module = load_module()
+        self.real_entries = self.module.parse_vocabulary(VOCAB_PATH)
+
+    def test_collocation_counts_once_not_its_inner_word(self):
+        text = "Este proyecto es un pilar fundamental para la empresa.\n"
+        report = self.module.build_report(text, self.real_entries)
+        hallazgos = report["vocabulario"]["hallazgos"]
+        colocacion = [h for h in hallazgos if h["expresion"] == "pilar fundamental"]
+        suelto = [h for h in hallazgos if h["expresion"] == "fundamental"]
+        self.assertEqual(len(colocacion), 1)
+        self.assertEqual(len(suelto), 0)
+        densidad = report["vocabulario"]["densidad"]["por_nivel"]["Débil"]
+        self.assertEqual(densidad["ocurrencias"], 1)
+
+    def test_collocation_jugar_un_papel_clave_counts_once(self):
+        text = "Resulta que jugar un papel clave será determinante hoy.\n"
+        report = self.module.build_report(text, self.real_entries)
+        hallazgos = report["vocabulario"]["hallazgos"]
+        colocacion = [h for h in hallazgos if h["expresion"] == "jugar un papel clave"]
+        suelto = [h for h in hallazgos if h["expresion"] == "clave"]
+        self.assertEqual(len(colocacion), 1)
+        self.assertEqual(len(suelto), 0)
+
+    def test_fuerte_wins_over_debil_on_equal_span(self):
+        content = (
+            "## Fuerte\n\n### Familia fuerte\n\n"
+            "clave | 2026-09-27 | PXX · prueba\n\n"
+            "## Débil\n\n### Familia débil\n\n"
+            "clave | 2026-09-27 | PXX · prueba\n"
+        )
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            path = write_vocab(tmp_dir, content)
+            entries = self.module.parse_vocabulary(path)
+        text = "Esto es la clave del proyecto.\n"
+        report = self.module.build_report(text, entries)
+        hallazgos = report["vocabulario"]["hallazgos"]
+        self.assertEqual(len(hallazgos), 1)
+        self.assertEqual(hallazgos[0]["nivel"], "Fuerte")
+        self.assertEqual(hallazgos[0]["familia"], "Familia fuerte")
+
+    def test_alphabetical_tiebreak_on_equal_span_and_level(self):
+        content = (
+            "## Débil\n\n### Familia\n\n"
+            "Clave | 2026-09-27 | PXX · prueba\n"
+            "clave | 2026-09-27 | PXX · prueba\n"
+        )
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            path = write_vocab(tmp_dir, content)
+            entries = self.module.parse_vocabulary(path)
+        text = "Esto es la clave del proyecto.\n"
+        report = self.module.build_report(text, entries)
+        hallazgos = report["vocabulario"]["hallazgos"]
+        self.assertEqual(len(hallazgos), 1)
+        self.assertEqual(hallazgos[0]["expresion"], "Clave")
 
 
 class TestCLI(unittest.TestCase):

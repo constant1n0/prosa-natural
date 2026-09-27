@@ -59,6 +59,7 @@ regla ya establecida ni la usa para corregir nada automáticamente.
 
 import argparse
 import bisect
+import datetime
 import json
 import re
 import sys
@@ -84,15 +85,24 @@ NIVELES_VALIDOS = ("Fuerte", "Débil")
 class VocabParseError(Exception):
     """Error de formato al parsear ``vocabulario-es.md`` (o equivalente).
 
-    Se informa siempre con archivo y número de línea, para que el mensaje en
-    stderr permita localizar y corregir la entrada sin ambigüedad.
+    Se informa con archivo y número de línea siempre que el error señale una
+    línea concreta, para que el mensaje en stderr permita localizar y
+    corregir la entrada sin ambigüedad. Cuando el fallo es del archivo
+    completo (no se pudo leer, o no es UTF-8 válido) ``line`` es ``None`` y
+    el mensaje no menciona ningún número de línea, para no sugerir de forma
+    engañosa que el problema está en una línea concreta (por ejemplo, no se
+    informa como "línea 0").
     """
 
     def __init__(self, path, line, message):
         self.path = path
         self.line = line
         self.message = message
-        super().__init__("{}:{}: {}".format(path, line, message))
+        if line is None:
+            text = "{}: {}".format(path, message)
+        else:
+            text = "{}:{}: {}".format(path, line, message)
+        super().__init__(text)
 
 
 @dataclass
@@ -129,11 +139,15 @@ def _normalize_for_matching(text):
 def _build_pattern(expresion):
     """Construye el patrón compilado para una expresión del vocabulario.
 
-    Reglas: comparación ya normalizada (case/accent-insensitive) por el
-    llamador; aquí solo se ocupa de límites de palabra, comodín final y de
-    permitir que las palabras de una expresión multipalabra se separen por
-    cualquier tanda de espacio en blanco (incluido un salto de línea dentro
-    de un mismo párrafo).
+    Recibe la expresión tal como está escrita en el archivo de vocabulario
+    (sin normalizar) y la normaliza aquí mismo con
+    ``_normalize_for_matching`` antes de construir el patrón, para que
+    coincida con el texto ya normalizado sobre el que se busca (el
+    llamador no la normaliza). Además de esa normalización, esta función se
+    ocupa de los límites de palabra, del comodín final y de permitir que
+    las palabras de una expresión multipalabra se separen por cualquier
+    tanda de espacio en blanco (incluido un salto de línea dentro de un
+    mismo párrafo).
     """
     normalized = _normalize_for_matching(expresion)
     tokens = re.split(r"\s+", normalized.strip())
@@ -178,7 +192,13 @@ def parse_vocabulary(path):
     try:
         raw_text = path.read_text(encoding="utf-8")
     except OSError as exc:
-        raise VocabParseError(path, 0, "no se pudo leer el archivo de vocabulario ({})".format(exc))
+        raise VocabParseError(
+            path, None, "no se pudo leer el archivo de vocabulario ({})".format(exc)
+        )
+    except UnicodeDecodeError as exc:
+        raise VocabParseError(
+            path, None, "el archivo de vocabulario no es UTF-8 válido ({})".format(exc)
+        )
 
     entries = []
     nivel_actual = None
@@ -251,6 +271,12 @@ def parse_vocabulary(path):
             raise VocabParseError(
                 path, lineno, "fecha inválida, se esperaba el formato AAAA-MM-DD"
             )
+        try:
+            datetime.date.fromisoformat(fecha)
+        except ValueError:
+            raise VocabParseError(
+                path, lineno, "fecha inválida, se esperaba el formato AAAA-MM-DD"
+            )
         if not origen:
             raise VocabParseError(path, lineno, "el origen no puede estar vacío")
 
@@ -269,6 +295,14 @@ def parse_vocabulary(path):
             )
         )
 
+    if not entries:
+        raise VocabParseError(
+            path,
+            None,
+            "el vocabulario está vacío: no contiene los encabezados "
+            "'## Fuerte' / '## Débil' con al menos una entrada válida",
+        )
+
     return entries
 
 
@@ -276,8 +310,15 @@ def parse_vocabulary(path):
 # Enmascarado con posiciones preservadas
 # ---------------------------------------------------------------------------
 
-_FRONTMATTER_RE = re.compile(r"\A---[ \t]*\n.*?\n---[ \t]*\n?", re.DOTALL)
-_CODE_FENCE_RE = re.compile(r"^([`~]{3,})[^\n]*\n.*?^\1[ \t]*$", re.DOTALL | re.MULTILINE)
+# Los ``\r?`` antes de un ``\n`` (o de un ``$`` de fin de línea) hacen que
+# estos dos patrones funcionen igual con saltos de línea CRLF que con LF, sin
+# tener que normalizar el texto antes (lo que cambiaría longitudes y
+# posiciones). También toleran un ``\r`` suelto al final del archivo, sin
+# ``\n`` detrás (revisión R3-001).
+_FRONTMATTER_RE = re.compile(r"\A---[ \t]*\r?\n.*?\n---[ \t]*\r?\n?", re.DOTALL)
+_CODE_FENCE_RE = re.compile(
+    r"^([`~]{3,})[^\n]*\n.*?^\1[ \t]*\r?$", re.DOTALL | re.MULTILINE
+)
 _INLINE_CODE_RE = re.compile(r"`[^`\n]+`")
 _URL_RE = re.compile(r"(?:https?://|www\.)\S+")
 _CLAIM_RE = re.compile(r"\[\[claim\]\].*?\[\[/claim\]\]", re.DOTALL)
@@ -494,8 +535,39 @@ def analyze_enmascarado(ctx):
 # ---------------------------------------------------------------------------
 
 
+def _resolve_overlapping_hits(raw_hits):
+    """Descarta hallazgos solapados, quedándose con uno solo por tramo.
+
+    Dos hallazgos "solapan" cuando sus tramos de carácter en el texto
+    original comparten al menos una posición (por ejemplo, la colocación
+    "pilar fundamental" y la palabra suelta "fundamental" que cae dentro de
+    ella). Ante un solapamiento se aplica, en este orden: el tramo más
+    largo; si empatan en longitud, el nivel más alto (Fuerte antes que
+    Débil); si también empatan, la expresión por orden alfabético (revisión
+    R3-005). La densidad se calcula después, solo sobre los hallazgos que
+    sobreviven a esta resolución.
+    """
+    ordered = sorted(
+        raw_hits,
+        key=lambda h: (
+            -(h["_fin"] - h["_inicio"]),
+            NIVELES_VALIDOS.index(h["nivel"]),
+            h["expresion"],
+        ),
+    )
+    kept = []
+    covered = []
+    for h in ordered:
+        inicio, fin = h["_inicio"], h["_fin"]
+        if any(inicio < c_fin and c_inicio < fin for c_inicio, c_fin in covered):
+            continue
+        covered.append((inicio, fin))
+        kept.append(h)
+    return kept
+
+
 def _find_vocabulary_hits(ctx):
-    hits = []
+    raw_hits = []
     for entry in ctx.vocab_entries:
         for p_start, p_end in ctx.paragraphs:
             n_start = ctx.norm_start_for_orig[p_start]
@@ -503,9 +575,10 @@ def _find_vocabulary_hits(ctx):
             if n_start >= n_end:
                 continue
             for m in entry.pattern.finditer(ctx.normalized_text, n_start, n_end):
-                orig_idx = ctx.orig_index_for_normpos[m.start()]
-                line_no, column = _line_col(ctx.line_starts, orig_idx)
-                hits.append(
+                orig_inicio = ctx.orig_index_for_normpos[m.start()]
+                orig_fin = ctx.orig_index_for_normpos[m.end() - 1] + 1
+                line_no, column = _line_col(ctx.line_starts, orig_inicio)
+                raw_hits.append(
                     {
                         "expresion": entry.expresion,
                         "nivel": entry.nivel,
@@ -514,8 +587,15 @@ def _find_vocabulary_hits(ctx):
                         "pendiente": entry.pendiente,
                         "linea": line_no,
                         "columna": column,
+                        "_inicio": orig_inicio,
+                        "_fin": orig_fin,
                     }
                 )
+
+    hits = _resolve_overlapping_hits(raw_hits)
+    for h in hits:
+        del h["_inicio"]
+        del h["_fin"]
     hits.sort(key=lambda h: (h["linea"], h["columna"], h["expresion"]))
     return hits
 
