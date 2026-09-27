@@ -2215,13 +2215,17 @@ def _find_nombres_propios(text, line_starts, privacy_spans):
     return hallazgos
 
 
-def _find_urls_comparacion(text, line_starts):
+def _find_urls_comparacion(text, line_starts, privacy_spans):
     hallazgos = []
     for m in _URL_RE.finditer(text):
         line_no, col = _line_col(line_starts, m.start())
-        hallazgos.append(
-            {"texto": m.group(0), "linea": line_no, "columna": col, "lecturas": [m.group(0)]}
-        )
+        hallazgo = {
+            "texto": m.group(0), "linea": line_no, "columna": col, "lecturas": [m.group(0)],
+        }
+        # Una URL puede llevar un correo o un teléfono en la consulta
+        # (p. ej. «?correo=…»): se oculta igual que en el resto de categorías.
+        _marcar_si_privado(hallazgo, m.start(), m.end(), privacy_spans)
+        hallazgos.append(hallazgo)
     hallazgos.sort(key=lambda h: (h["linea"], h["columna"]))
     return hallazgos
 
@@ -2313,9 +2317,9 @@ def _extract_all_facts(text, line_starts):
     valor en el informe.
     """
     base = _mask_for_comparacion(text)
-    urls = _find_urls_comparacion(base, line_starts)
-    sin_urls, _ = _mask_pattern(base, _URL_RE)
     privacy_spans = _find_privacy_spans(base)
+    urls = _find_urls_comparacion(base, line_starts, privacy_spans)
+    sin_urls, _ = _mask_pattern(base, _URL_RE)
 
     consumidos = []
     fechas = _find_fechas(sin_urls, line_starts, consumidos, privacy_spans)

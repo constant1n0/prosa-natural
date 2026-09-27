@@ -1749,6 +1749,23 @@ class TestComparacionPrivacidad(unittest.TestCase):
     def setUp(self):
         self.module = load_module()
 
+    def test_changed_email_inside_url_never_appears_raw_in_url(self):
+        plantilla = "Reserva en https://reservas.example/alta?correo={}@{} hoy.\n"
+        original = plantilla.format(self.EMAIL_LOCAL_ORIGINAL, self.EMAIL_DOMINIO)
+        nuevo = plantilla.format(self.EMAIL_LOCAL_NUEVO, self.EMAIL_DOMINIO)
+        report = _con_original(self.module, nuevo, original)
+        volcado = json.dumps(report, ensure_ascii=False)
+        for local in (self.EMAIL_LOCAL_ORIGINAL, self.EMAIL_LOCAL_NUEVO):
+            self.assertNotIn("{}@{}".format(local, self.EMAIL_DOMINIO), volcado)
+        url = report["comparacion"]["url"]
+        self.assertEqual(len(url["faltantes"]), 1)
+        self.assertEqual(len(url["nuevas"]), 1)
+        self.assertEqual(url["faltantes"][0]["texto"], "[dato personal: email]")
+        self.assertEqual(url["nuevas"][0]["lecturas"], [])
+        self.assertTrue(
+            self.module._comparacion_tiene_diferencias_bloqueantes(report["comparacion"])
+        )
+
     def test_changed_phone_number_never_appears_raw_in_cifras(self):
         original = "Puedes llamarnos al {} en horario de oficina.\n".format(
             self.TELEFONO_ORIGINAL
