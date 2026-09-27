@@ -97,6 +97,46 @@ poder leer sus parámetros); nunca corre dentro de un bloque de código ni
 del frontmatter. ``registro`` cuenta formas de tú/usted, de vosotros/ustedes
 y un léxico americano corto: es solo aviso, nunca corrige ni reformula
 nada, y "ustedes" en solitario no se trata como error.
+
+``candidatos_claim`` (siempre presente) señala frases con marcadores de
+eficacia, salud o seguridad (verbos de eficacia, duraciones, "clínicamente
+probado", "dermatológicamente probado/testado", "hipoalergénico", "sin X",
+"no testado en animales", "natural" + efecto, referencias a estudios,
+autoevaluaciones de calidad y CUALQUIER porcentaje, sin restringirlo a
+contextos de eficacia): solo marca candidatos, nunca decide si son un
+claim ni los reformula; esa decisión es de quien revisa o del modelo. El
+texto ya protegido con ``[[claim]]…[[/claim]]`` no se cuenta aquí (queda en
+blanco en ``masked_text``); su recuento aparte está en la clave
+``marcados``.
+
+``privacidad`` (siempre presente) detecta DNI/NIE (con la letra de control
+cuando es barato comprobarla), IBAN español (con el dígito de control
+ISO 7064), teléfonos españoles y correos electrónicos, sobre una vista que
+enmascara frontmatter y código pero deja visibles las URL y las comillas.
+Es local y efímero: informa solo la categoría y la línea, JAMÁS el valor
+encontrado, y no lo guarda ni lo registra en ningún sitio; la ausencia de
+hallazgos no certifica que el texto esté libre de datos personales.
+
+``comparacion`` (solo presente cuando se pasa ``--original RUTA``) compara
+el texto fuente con el texto ya analizado, categoría por categoría: cifras,
+porcentajes, fechas, precios, duraciones/unidades, códigos, siglas, nombres
+propios, URL, claims marcados y citas literales, señalando en ambas
+direcciones lo que falta en el nuevo texto (``faltantes``) y lo que aparece
+de nuevo (``nuevas``); también compara los recuentos de tú/usted y
+vosotros/ustedes bajo la subclave ``registro``, solo como dato. La
+comparación es por presencia de una lectura normalizada, no por
+multiconjunto (ver el docstring de ``_diff_by_any_reading``); una cifra
+ambigua como "1.500" guarda dos lecturas ("1500" y "1.5") y basta
+coincidir con cualquiera de las dos.
+
+Códigos de salida: 2 en errores de uso, de lectura de archivo o de
+vocabulario (antes de imprimir cualquier JSON); 1 cuando se pasa
+``--original`` y falta o aparece nuevo algún dato de las categorías
+bloqueantes (cifras, porcentajes, fechas, precios, duraciones/unidades,
+códigos, nombres propios, URL, claims marcados o citas) — las siglas y el
+aviso de registro tú/usted son solo informativos y nunca cambian el código
+de salida; 0 en cualquier otro caso, incluida la ejecución sin
+``--original``.
 """
 
 import argparse
@@ -1757,6 +1797,710 @@ def analyze_registro(ctx):
 
 
 # ---------------------------------------------------------------------------
+# Comparación con el original (--original). Extrae hechos (cifras,
+# porcentajes, fechas, precios, duraciones/unidades, códigos, siglas,
+# nombres propios y URL) de dos textos y señala, por categoría, lo que falta
+# en el nuevo texto y lo que aparece de nuevo, en ambas direcciones
+# (auditoria.md :333; a diferencia de Aboudjem, que solo informa de lo
+# perdido, aquí se informa también de lo añadido). Los claims marcados
+# ``[[claim]]…[[/claim]]`` y las citas literales se comparan aparte, de
+# forma literal y con los espacios normalizados. También se comparan los
+# recuentos de tú/usted y vosotros/ustedes entre los dos textos, solo como
+# dato informativo (nunca hace que el código de salida sea 1).
+# ---------------------------------------------------------------------------
+
+
+def _mask_for_comparacion(text):
+    """Vista para la comparación con el original: enmascara frontmatter y
+    código (igual que ``_mask_for_deterministas``), pero dejando visibles
+    las URL, las comillas y los claims marcados, porque cada uno de ellos
+    es su propia categoría de comparación y necesita verse tal cual.
+    """
+    text, _ = _mask_pattern(text, _FRONTMATTER_RE)
+    text, _ = _mask_pattern(text, _CODE_FENCE_RE)
+    text, _ = _mask_pattern(text, _INLINE_CODE_RE)
+    return text
+
+
+def _ranges_overlap_span(start, end, spans):
+    return any(_ranges_overlap(start, end, s_ini, s_fin) for s_ini, s_fin in spans)
+
+
+# --- Cifras: enteros, separador de miles (punto, espacio, NBSP o espacio
+# fino de no separación U+202F) y decimales (coma o punto). Un token de un
+# único grupo "N.NNN" es ambiguo entre lectura de miles y lectura decimal
+# (p. ej. "1.500"): se devuelven ambas lecturas, y basta una coincidencia
+# con cualquiera de ellas para considerarlo el mismo dato (fase2-mapa.md
+# §4.1, fila "--original").
+_CIFRA_TOKEN_RE = re.compile(
+    r"(?<![\w.,])(?:"
+    r"\d{1,3}(?:\.\d{3})+,\d+"
+    r"|\d{1,3}(?:[   ]\d{3})+(?:,\d+)?"
+    r"|\d{1,3}(?:\.\d{3})+"
+    r"|\d+,\d+"
+    r"|\d+\.\d+"
+    r"|\d+"
+    r")(?!\w)"
+)
+
+
+def _parse_cifra(token):
+    """Normaliza un token numérico español a una o más lecturas canónicas
+    comparables. Ver la cabecera de esta sección para el caso ambiguo."""
+    m = re.fullmatch(r"(\d{1,3}(?:\.\d{3})+),(\d+)", token)
+    if m:
+        return [m.group(1).replace(".", "") + "." + m.group(2)]
+
+    m = re.fullmatch(r"(\d{1,3}(?:[   ]\d{3})+)(?:,(\d+))?", token)
+    if m:
+        entero = re.sub(r"[   ]", "", m.group(1))
+        return [entero + "." + m.group(2)] if m.group(2) else [entero]
+
+    if re.fullmatch(r"\d{1,3}\.\d{3}", token):
+        miles = token.replace(".", "")
+        decimal = str(float(token))
+        return sorted({miles, decimal})
+
+    if re.fullmatch(r"\d{1,3}(?:\.\d{3}){2,}", token):
+        return [token.replace(".", "")]
+
+    m = re.fullmatch(r"(\d+),(\d+)", token)
+    if m:
+        return [m.group(1) + "." + m.group(2)]
+
+    return [token]
+
+
+def _find_cifras(text, line_starts, consumidos):
+    hallazgos = []
+    for m in _CIFRA_TOKEN_RE.finditer(text):
+        if _ranges_overlap_span(m.start(), m.end(), consumidos):
+            continue
+        lecturas = _parse_cifra(m.group(0))
+        consumidos.append((m.start(), m.end()))
+        line_no, col = _line_col(line_starts, m.start())
+        hallazgos.append(
+            {"texto": m.group(0), "linea": line_no, "columna": col, "lecturas": lecturas}
+        )
+    hallazgos.sort(key=lambda h: (h["linea"], h["columna"]))
+    return hallazgos
+
+
+# --- Porcentajes: "50 %", "50%" y "50 por ciento" son la misma lectura.
+_PORCENTAJE_RE = re.compile(
+    r"\b(\d+(?:[.,]\d+)?)[   ]?%"
+    r"|\b(\d+(?:[.,]\d+)?)\s+por\s+ciento\b",
+    re.IGNORECASE,
+)
+
+
+def _find_porcentajes(text, line_starts, consumidos):
+    hallazgos = []
+    for m in _PORCENTAJE_RE.finditer(text):
+        if _ranges_overlap_span(m.start(), m.end(), consumidos):
+            continue
+        numero = m.group(1) or m.group(2)
+        consumidos.append((m.start(), m.end()))
+        line_no, col = _line_col(line_starts, m.start())
+        hallazgos.append(
+            {
+                "texto": _clip_texto(m.group(0)),
+                "linea": line_no,
+                "columna": col,
+                "lecturas": [numero.replace(",", ".")],
+            }
+        )
+    hallazgos.sort(key=lambda h: (h["linea"], h["columna"]))
+    return hallazgos
+
+
+# --- Fechas españolas: "3 de marzo de 2026" y "03/03/2026". Se normalizan
+# a ISO AAAA-MM-DD para comparar ambas formas por igual.
+_MESES = {
+    "enero": 1, "febrero": 2, "marzo": 3, "abril": 4, "mayo": 5, "junio": 6,
+    "julio": 7, "agosto": 8, "septiembre": 9, "setiembre": 9, "octubre": 10,
+    "noviembre": 11, "diciembre": 12,
+}
+_FECHA_TEXTUAL_RE = re.compile(
+    r"\b(\d{1,2})\s+de\s+(" + "|".join(_MESES) + r")\s+de[l]?\s+(\d{4})\b",
+    re.IGNORECASE,
+)
+_FECHA_NUMERICA_RE = re.compile(r"\b(\d{1,2})/(\d{1,2})/(\d{4})\b")
+
+
+def _normalizar_fecha_textual(m):
+    mes = _MESES.get(m.group(2).lower())
+    if mes is None:
+        return None
+    try:
+        return datetime.date(int(m.group(3)), mes, int(m.group(1))).isoformat()
+    except ValueError:
+        return None
+
+
+def _normalizar_fecha_numerica(m):
+    try:
+        return datetime.date(int(m.group(3)), int(m.group(2)), int(m.group(1))).isoformat()
+    except ValueError:
+        return None
+
+
+def _find_fechas(text, line_starts, consumidos):
+    hallazgos = []
+    for pattern, normalizar in (
+        (_FECHA_TEXTUAL_RE, _normalizar_fecha_textual),
+        (_FECHA_NUMERICA_RE, _normalizar_fecha_numerica),
+    ):
+        for m in pattern.finditer(text):
+            if _ranges_overlap_span(m.start(), m.end(), consumidos):
+                continue
+            valor = normalizar(m)
+            if valor is None:
+                continue
+            consumidos.append((m.start(), m.end()))
+            line_no, col = _line_col(line_starts, m.start())
+            hallazgos.append(
+                {
+                    "texto": _clip_texto(m.group(0)),
+                    "linea": line_no,
+                    "columna": col,
+                    "lecturas": [valor],
+                }
+            )
+    hallazgos.sort(key=lambda h: (h["linea"], h["columna"]))
+    return hallazgos
+
+
+# --- Precios: "10 €", "€10", "10 EUR", "10 euros". Se compara solo el
+# importe (misma lógica de lectura que las cifras), no la forma de
+# escribir la moneda.
+_PRECIO_RE = re.compile(
+    r"(\d{1,3}(?:[.   ]\d{3})*(?:[.,]\d+)?)[   ]?(?:€|EUR\b|euros?\b)"
+    r"|€[   ]?(\d{1,3}(?:[.   ]\d{3})*(?:[.,]\d+)?)",
+    re.IGNORECASE,
+)
+
+
+def _find_precios(text, line_starts, consumidos):
+    hallazgos = []
+    for m in _PRECIO_RE.finditer(text):
+        if _ranges_overlap_span(m.start(), m.end(), consumidos):
+            continue
+        numero = m.group(1) or m.group(2)
+        consumidos.append((m.start(), m.end()))
+        line_no, col = _line_col(line_starts, m.start())
+        hallazgos.append(
+            {
+                "texto": _clip_texto(m.group(0)),
+                "linea": line_no,
+                "columna": col,
+                "lecturas": _parse_cifra(numero),
+            }
+        )
+    hallazgos.sort(key=lambda h: (h["linea"], h["columna"]))
+    return hallazgos
+
+
+# --- Duraciones y unidades: "48 h", "24 horas", "50 ml", "200 g". La
+# lectura combina número y unidad tal cual se escribieron; no se convierte
+# entre unidades distintas ("horas" no se compara con "h"), limitación que
+# se documenta aquí porque exigiría una tabla de conversión fuera de
+# alcance de un escáner determinista.
+_UNIDADES = (
+    "h", "hora", "horas", "min", "minuto", "minutos", "s", "segundo", "segundos",
+    "dia", "dias", "día", "días", "semana", "semanas", "mes", "meses",
+    "ano", "anos", "año", "años", "ml", "l", "litro", "litros",
+    "g", "gr", "gramo", "gramos", "kg", "mg", "cm", "mm",
+)
+_DURACION_UNIDAD_RE = re.compile(
+    r"\b(\d+(?:[.,]\d+)?)[   ](?:"
+    + "|".join(sorted(_UNIDADES, key=len, reverse=True))
+    + r")\b",
+    re.IGNORECASE,
+)
+
+
+def _find_duraciones_unidades(text, line_starts, consumidos):
+    hallazgos = []
+    for m in _DURACION_UNIDAD_RE.finditer(text):
+        if _ranges_overlap_span(m.start(), m.end(), consumidos):
+            continue
+        numero = m.group(1).replace(",", ".")
+        unidad = _normalize_for_matching(m.group(0)[len(m.group(1)):].strip())
+        consumidos.append((m.start(), m.end()))
+        line_no, col = _line_col(line_starts, m.start())
+        hallazgos.append(
+            {
+                "texto": _clip_texto(m.group(0)),
+                "linea": line_no,
+                "columna": col,
+                "lecturas": ["{}|{}".format(numero, unidad)],
+            }
+        )
+    hallazgos.sort(key=lambda h: (h["linea"], h["columna"]))
+    return hallazgos
+
+
+# --- Códigos y referencias: tokens alfanuméricos con al menos una letra y
+# un dígito (p. ej. lotes o referencias de producto). La comparación pliega
+# mayúsculas: una diferencia de caja sola no se marca.
+_CODIGO_RE = re.compile(r"\b(?=[A-Za-z0-9-]*\d)(?=[A-Za-z0-9-]*[A-Za-z])[A-Za-z0-9][A-Za-z0-9-]{3,}\b")
+
+
+def _find_codigos(text, line_starts, consumidos):
+    hallazgos = []
+    for m in _CODIGO_RE.finditer(text):
+        if _ranges_overlap_span(m.start(), m.end(), consumidos):
+            continue
+        consumidos.append((m.start(), m.end()))
+        line_no, col = _line_col(line_starts, m.start())
+        hallazgos.append(
+            {
+                "texto": m.group(0),
+                "linea": line_no,
+                "columna": col,
+                "lecturas": [m.group(0).upper()],
+            }
+        )
+    hallazgos.sort(key=lambda h: (h["linea"], h["columna"]))
+    return hallazgos
+
+
+# --- Siglas: tokens en mayúsculas de dos o más letras (P59/INCI). Solo
+# informativo: nunca hace que el código de salida sea 1 (el riesgo de falso
+# positivo es mayor que en el resto de categorías).
+_SIGLA_RE = re.compile(r"\b[A-ZÁÉÍÓÚÑ]{2,}\b")
+
+
+def _find_siglas(text, line_starts):
+    hallazgos = []
+    for m in _SIGLA_RE.finditer(text):
+        line_no, col = _line_col(line_starts, m.start())
+        hallazgos.append(
+            {"texto": m.group(0), "linea": line_no, "columna": col, "lecturas": [m.group(0)]}
+        )
+    hallazgos.sort(key=lambda h: (h["linea"], h["columna"]))
+    return hallazgos
+
+
+# --- Nombres propios: palabras con mayúscula inicial que NO están al
+# principio de una oración ni de un párrafo. Heurística basada en
+# puntuación de cierre de frase (".", "!", "?") y en saltos de párrafo (dos
+# o más saltos de línea seguidos); no distingue un nombre propio real de
+# cualquier otra palabra capitalizada a mitad de frase (p. ej. una sigla de
+# una sola letra en mayúscula no cuenta, ya la excluye la clase de
+# caracteres). Limitación documentada, igual que la de "title_case" en el
+# analizador de encabezados.
+_PALABRA_CAPITALIZADA_RE = re.compile(r"\b[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+\b")
+
+
+def _es_inicio_de_oracion(text, inicio):
+    j = inicio
+    saltos_seguidos = 0
+    while j > 0 and text[j - 1] in " \t\n":
+        if text[j - 1] == "\n":
+            saltos_seguidos += 1
+        j -= 1
+    if j == 0:
+        return True
+    if saltos_seguidos >= 2:
+        return True
+    return text[j - 1] in ".!?"
+
+
+def _find_nombres_propios(text, line_starts):
+    hallazgos = []
+    for m in _PALABRA_CAPITALIZADA_RE.finditer(text):
+        if _es_inicio_de_oracion(text, m.start()):
+            continue
+        line_no, col = _line_col(line_starts, m.start())
+        hallazgos.append(
+            {"texto": m.group(0), "linea": line_no, "columna": col, "lecturas": [m.group(0)]}
+        )
+    hallazgos.sort(key=lambda h: (h["linea"], h["columna"]))
+    return hallazgos
+
+
+def _find_urls_comparacion(text, line_starts):
+    hallazgos = []
+    for m in _URL_RE.finditer(text):
+        line_no, col = _line_col(line_starts, m.start())
+        hallazgos.append(
+            {"texto": m.group(0), "linea": line_no, "columna": col, "lecturas": [m.group(0)]}
+        )
+    hallazgos.sort(key=lambda h: (h["linea"], h["columna"]))
+    return hallazgos
+
+
+def _find_claims_marcados(text):
+    line_starts = _build_line_index(text)
+    hallazgos = []
+    for m in _CLAIM_RE.finditer(text):
+        interior = m.group(0)[len("[[claim]]"):-len("[[/claim]]")]
+        valor = re.sub(r"\s+", " ", interior).strip()
+        line_no, col = _line_col(line_starts, m.start())
+        hallazgos.append(
+            {
+                "texto": _clip_texto(interior),
+                "linea": line_no,
+                "columna": col,
+                "lecturas": [valor],
+            }
+        )
+    hallazgos.sort(key=lambda h: (h["linea"], h["columna"]))
+    return hallazgos
+
+
+def _find_citas_literales(text, line_starts):
+    hallazgos = []
+    for _tipo, pattern in _QUOTE_TYPES:
+        for m in pattern.finditer(text):
+            interior = m.group(0)[1:-1]
+            valor = re.sub(r"\s+", " ", interior).strip()
+            if not valor:
+                continue
+            line_no, col = _line_col(line_starts, m.start())
+            hallazgos.append(
+                {
+                    "texto": _clip_texto(m.group(0)),
+                    "linea": line_no,
+                    "columna": col,
+                    "lecturas": [valor],
+                }
+            )
+    hallazgos.sort(key=lambda h: (h["linea"], h["columna"]))
+    return hallazgos
+
+
+def _diff_by_any_reading(originales, nuevas):
+    """Compara dos listas de ocurrencias por presencia de lectura, no por
+    multiconjunto: si un dato aparece dos veces en un texto y una sola en
+    el otro, no se marca como falta. Lo relevante para "cero invención" es
+    si el dato en sí sigue presente, no cuántas veces se repite; esta
+    simplificación se documenta como límite conocido del diseño. Una
+    ocurrencia con varias lecturas (cifras ambiguas) cuenta como
+    encontrada si CUALQUIERA de sus lecturas aparece en el otro lado.
+    """
+    lecturas_nuevas = set()
+    for it in nuevas:
+        lecturas_nuevas.update(it["lecturas"])
+    lecturas_originales = set()
+    for it in originales:
+        lecturas_originales.update(it["lecturas"])
+
+    faltantes = [it for it in originales if not (set(it["lecturas"]) & lecturas_nuevas)]
+    agregadas = [it for it in nuevas if not (set(it["lecturas"]) & lecturas_originales)]
+    faltantes.sort(key=lambda h: (h["linea"], h["columna"]))
+    agregadas.sort(key=lambda h: (h["linea"], h["columna"]))
+    return faltantes, agregadas
+
+
+def _extract_all_facts(text, line_starts):
+    """Extrae todas las categorías de hechos de un texto para la
+    comparación con el original. El orden importa: cada categoría más
+    específica consume su propio tramo de texto (``consumidos``) antes de
+    que la categoría más genérica de cifras sueltas la vuelva a encontrar
+    (p. ej. el "20" de "20 %" no debe contarse también como cifra suelta).
+    """
+    base = _mask_for_comparacion(text)
+    urls = _find_urls_comparacion(base, line_starts)
+    sin_urls, _ = _mask_pattern(base, _URL_RE)
+
+    consumidos = []
+    fechas = _find_fechas(sin_urls, line_starts, consumidos)
+    porcentajes = _find_porcentajes(sin_urls, line_starts, consumidos)
+    precios = _find_precios(sin_urls, line_starts, consumidos)
+    duraciones = _find_duraciones_unidades(sin_urls, line_starts, consumidos)
+    codigos = _find_codigos(sin_urls, line_starts, consumidos)
+    cifras = _find_cifras(sin_urls, line_starts, consumidos)
+    return {
+        "cifras": cifras,
+        "porcentajes": porcentajes,
+        "fechas": fechas,
+        "precios": precios,
+        "duraciones_unidades": duraciones,
+        "codigos": codigos,
+        "siglas": _find_siglas(sin_urls, line_starts),
+        "nombres_propios": _find_nombres_propios(sin_urls, line_starts),
+        "url": urls,
+    }
+
+
+def _contar_registro_en_texto(text):
+    masked, _, _ = mask_text(text)
+
+    def contar(marcadores):
+        pattern = re.compile(
+            r"\b(?:{})\b".format("|".join(re.escape(m) for m in marcadores)),
+            re.UNICODE | re.IGNORECASE,
+        )
+        return len(pattern.findall(masked))
+
+    return {
+        "tuteo": contar(_TU_MARCADORES),
+        "usted": contar(_USTED_MARCADORES),
+        "vosotros": contar(_VOSOTROS_MARCADORES),
+        "ustedes": contar(_USTEDES_MARCADORES),
+    }
+
+
+def _comparar_registro(registro_nuevo, original_text):
+    original_conteo = _contar_registro_en_texto(original_text)
+    resultado = {}
+    for clave in ("tuteo", "usted", "vosotros", "ustedes"):
+        n_original = original_conteo[clave]
+        n_nuevo = registro_nuevo[clave]["ocurrencias"]
+        resultado[clave] = {
+            "original": n_original,
+            "nuevo": n_nuevo,
+            "diferencia": n_nuevo - n_original,
+        }
+    return resultado
+
+
+def _build_comparacion(ctx, original_text, registro_nuevo):
+    original_line_starts = _build_line_index(original_text)
+    hechos_originales = _extract_all_facts(original_text, original_line_starts)
+    hechos_nuevos = _extract_all_facts(ctx.original_text, ctx.line_starts)
+
+    resultado = {}
+    for clave in hechos_originales:
+        faltantes, nuevas = _diff_by_any_reading(hechos_originales[clave], hechos_nuevos[clave])
+        resultado[clave] = {"faltantes": faltantes, "nuevas": nuevas}
+
+    claims_originales = _find_claims_marcados(original_text)
+    claims_nuevos = _find_claims_marcados(ctx.original_text)
+    faltantes, nuevas = _diff_by_any_reading(claims_originales, claims_nuevos)
+    resultado["claims_marcados"] = {"faltantes": faltantes, "nuevas": nuevas}
+
+    base_original = _mask_for_comparacion(original_text)
+    base_nuevo = _mask_for_comparacion(ctx.original_text)
+    citas_originales = _find_citas_literales(base_original, original_line_starts)
+    citas_nuevas = _find_citas_literales(base_nuevo, ctx.line_starts)
+    faltantes, nuevas = _diff_by_any_reading(citas_originales, citas_nuevas)
+    resultado["citas"] = {"faltantes": faltantes, "nuevas": nuevas}
+
+    resultado["registro"] = _comparar_registro(registro_nuevo, original_text)
+    return resultado
+
+
+_CATEGORIAS_BLOQUEANTES = (
+    "cifras", "porcentajes", "fechas", "precios", "duraciones_unidades",
+    "codigos", "nombres_propios", "url", "claims_marcados", "citas",
+)
+
+
+def _comparacion_tiene_diferencias_bloqueantes(comparacion):
+    """Siglas y el aviso de registro tú/usted son solo informativos y
+    nunca hacen que el código de salida sea 1 (encargo de esta tarea)."""
+    return any(
+        comparacion[clave]["faltantes"] or comparacion[clave]["nuevas"]
+        for clave in _CATEGORIAS_BLOQUEANTES
+    )
+
+
+# ---------------------------------------------------------------------------
+# Analizador: candidatos_claim. Señala frases con marcadores de eficacia,
+# salud o seguridad para que el modelo o quien revisa decida si son un
+# claim; el script nunca decide por su cuenta (estudio.md §10.5;
+# auditoria.md §7.4). El texto ya marcado con
+# ``[[claim]]…[[/claim]]`` queda en blanco en ``masked_text``, así que
+# nunca se cuenta aquí como candidato: se informa aparte, en ``marcados``.
+# ---------------------------------------------------------------------------
+
+_ORACION_RE = re.compile(r"[^.!?]*[.!?]+|[^.!?]+$")
+
+
+def _iter_oraciones(ctx):
+    text = ctx.masked_text
+    for p_start, p_end in ctx.paragraphs:
+        parrafo = text[p_start:p_end]
+        for m in _ORACION_RE.finditer(parrafo):
+            if m.group(0).strip():
+                yield p_start + m.start(), p_start + m.end(), m.group(0)
+
+
+_CLAIM_VERBOS_EFICACIA_RE = re.compile(
+    r"\b(reduce|elimina|combate|previene|repara|regenera|calma|alivia)\b", re.IGNORECASE
+)
+_CLAIM_NATURAL_RE = re.compile(r"\bnatural(?:es)?\b", re.IGNORECASE)
+
+_CLAIM_MARKER_RULES = (
+    (
+        "verbo_eficacia",
+        _CLAIM_VERBOS_EFICACIA_RE,
+        "verbo de eficacia (reduce, elimina, combate, previene, repara, regenera, calma, alivia)",
+    ),
+    (
+        "hidrata_durante_horas",
+        re.compile(
+            r"\bhidrata(?:ci[oó]n)?\b.{0,40}\bdurante\b.{0,20}\bhoras?\b",
+            re.IGNORECASE | re.DOTALL,
+        ),
+        "fórmula \"hidrata durante X horas\"",
+    ),
+    (
+        "clinicamente_probado",
+        re.compile(r"\bcl[ií]nicamente\s+prob(?:ado|ada)\b", re.IGNORECASE),
+        "\"clínicamente probado\"",
+    ),
+    (
+        "dermatologicamente",
+        re.compile(r"\bdermatol[oó]gicamente\s+(?:prob|test)ad[oa]\b", re.IGNORECASE),
+        "\"dermatológicamente probado/testado\"",
+    ),
+    (
+        "hipoalergenico",
+        re.compile(r"\bhipoalerg[eé]nic[oa]\b", re.IGNORECASE),
+        "\"hipoalergénico\"",
+    ),
+    (
+        "sin_x",
+        re.compile(
+            r"\bsin\s+(parabenos|sulfatos|siliconas|alcohol|perfume|conservantes|t[oó]xicos|crueldad)\b",
+            re.IGNORECASE,
+        ),
+        "\"sin X\" (p. ej. \"sin parabenos\")",
+    ),
+    (
+        "no_testado_en_animales",
+        re.compile(r"\bno\s+testado\s+en\s+animales\b", re.IGNORECASE),
+        "\"no testado en animales\"",
+    ),
+    (
+        "referencia_estudio",
+        re.compile(
+            r"\bseg[uú]n\s+(?:un\s+)?estudios?\b"
+            r"|\bestudios?\s+(?:demuestran?|confirman?|revelan?)\b",
+            re.IGNORECASE,
+        ),
+        "referencia a estudios",
+    ),
+    (
+        "autoevaluacion",
+        re.compile(
+            r"\b(?:el|la)\s+(?:mejor|m[aá]s\s+\w+|n[uú]mero\s+uno|l[ií]der)\b", re.IGNORECASE
+        ),
+        "autoevaluación de calidad (P30)",
+    ),
+)
+
+
+def analyze_candidatos_claim(ctx):
+    candidatos = []
+    for start, _end, frag in _iter_oraciones(ctx):
+        reglas = []
+        marcadores = []
+        for id_regla, pattern, _descripcion in _CLAIM_MARKER_RULES:
+            m = pattern.search(frag)
+            if m:
+                reglas.append(id_regla)
+                marcadores.append(_clip_texto(m.group(0)))
+        m = _PORCENTAJE_RE.search(frag)
+        if m:
+            reglas.append("porcentaje")
+            marcadores.append(_clip_texto(m.group(0)))
+        m = _DURACION_UNIDAD_RE.search(frag)
+        if m:
+            reglas.append("duracion_unidad")
+            marcadores.append(_clip_texto(m.group(0)))
+        if _CLAIM_NATURAL_RE.search(frag) and _CLAIM_VERBOS_EFICACIA_RE.search(frag):
+            reglas.append("natural_mas_efecto")
+            marcadores.append("natural + verbo de eficacia")
+        if reglas:
+            line_no, col = _line_col(ctx.line_starts, start)
+            candidatos.append(
+                {
+                    "linea": line_no,
+                    "columna": col,
+                    "texto": _clip_texto(frag),
+                    "reglas": sorted(set(reglas)),
+                    "marcadores": marcadores,
+                }
+            )
+    candidatos.sort(key=lambda h: (h["linea"], h["columna"]))
+    return {
+        "candidatos": candidatos,
+        "marcados": ctx.mask_counts.get("claim", 0),
+        "nota": (
+            "El script solo señala candidatos a claim: decidir si lo son y "
+            "cómo tratarlos es responsabilidad de quien revisa o del "
+            "modelo, nunca de este escáner."
+        ),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Analizador: privacidad. Detecta DNI/NIE, IBAN, teléfono y correo, local y
+# efímero: informa solo la categoría y la línea, nunca el valor, y nunca lo
+# guarda ni lo registra (auditoria.md :308-312). La ausencia de hallazgos
+# no certifica que el texto esté libre de datos personales.
+# ---------------------------------------------------------------------------
+
+_DNI_LETRAS = "TRWAGMYFPDXBNJZSQVHLCKE"
+_DNI_RE = re.compile(r"\b(\d{8})([A-Za-z])\b")
+_NIE_RE = re.compile(r"\b([XYZxyz])(\d{7})([A-Za-z])\b")
+_IBAN_RE = re.compile(r"\bES\d{2}(?:[ ]?\d{4}){5}\b")
+_TELEFONO_RE = re.compile(r"\b(?:\+34[ .-]?)?[6789]\d{2}(?:[ .-]?\d{3}){2}\b")
+_EMAIL_RE = re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b")
+
+
+def _dni_valido(numero_str, letra):
+    return _DNI_LETRAS[int(numero_str) % 23] == letra.upper()
+
+
+def _nie_valido(m):
+    mapa = {"X": "0", "Y": "1", "Z": "2"}
+    numero_completo = mapa[m.group(1).upper()] + m.group(2)
+    return _dni_valido(numero_completo, m.group(3))
+
+
+def _iban_valido(iban):
+    compacto = re.sub(r"\s", "", iban).upper()
+    reordenado = compacto[4:] + compacto[:4]
+    try:
+        numerico = "".join(str(int(ch, 36)) for ch in reordenado)
+    except ValueError:
+        return False
+    return int(numerico) % 97 == 1
+
+
+_PRIVACY_RULES = (
+    ("dni_nie", _NIE_RE, _nie_valido),
+    ("dni_nie", _DNI_RE, lambda m: _dni_valido(m.group(1), m.group(2))),
+    ("iban", _IBAN_RE, lambda m: _iban_valido(m.group(0))),
+    ("telefono", _TELEFONO_RE, None),
+    ("email", _EMAIL_RE, None),
+)
+
+_AVISO_PRIVACIDAD = (
+    "La ausencia de hallazgos en esta lista NO certifica que el texto esté "
+    "libre de datos personales: son patrones deterministas locales y "
+    "efímeros, no sustituyen una revisión humana. Ningún valor detectado "
+    "se guarda, se registra ni se repite en ningún sitio; solo se informa "
+    "de la categoría y la línea."
+)
+
+
+def analyze_privacidad(ctx):
+    text = ctx.deterministas_text
+    vistos = set()
+    hallazgos = []
+    for categoria, pattern, validador in _PRIVACY_RULES:
+        for m in pattern.finditer(text):
+            if validador is not None and not validador(m):
+                continue
+            line_no, _col = _line_col(ctx.line_starts, m.start())
+            clave = (categoria, line_no)
+            if clave in vistos:
+                continue
+            vistos.add(clave)
+            hallazgos.append({"categoria": categoria, "linea": line_no})
+    hallazgos.sort(key=lambda h: (h["linea"], h["categoria"]))
+    return {"hallazgos": hallazgos, "aviso": _AVISO_PRIVACIDAD}
+
+
+# ---------------------------------------------------------------------------
 # Registro de analizadores (T4-T5 añaden aquí sin tocar lo anterior)
 # ---------------------------------------------------------------------------
 
@@ -1771,17 +2515,23 @@ ANALYZERS = (
     ("estructuras", analyze_estructuras),
     ("deterministas", analyze_deterministas),
     ("registro", analyze_registro),
+    ("candidatos_claim", analyze_candidatos_claim),
+    ("privacidad", analyze_privacidad),
 )
 
 
-def build_report(text, vocab_entries):
+def build_report(text, vocab_entries, original_text=None):
     """Punto de entrada de análisis, independiente de la CLI. Construye el
     contexto una vez y ejecuta cada analizador registrado en ``ANALYZERS``.
+    Si se da ``original_text``, añade además la clave ``comparacion`` con
+    la comparación entre ese texto fuente y ``text`` (el ya analizado).
     """
     ctx = _build_context(text, vocab_entries)
     report = {"version": VERSION}
     for name, analyzer in ANALYZERS:
         report[name] = analyzer(ctx)
+    if original_text is not None:
+        report["comparacion"] = _build_comparacion(ctx, original_text, report["registro"])
     return report
 
 
@@ -1825,6 +2575,23 @@ def _build_arg_parser():
             "(references/vocabulario-es.md, relativo a este script)."
         ),
     )
+    parser.add_argument(
+        "--original",
+        metavar="RUTA",
+        default=None,
+        help=(
+            "Ruta al texto fuente para comparar con la entrada analizada "
+            "(clave 'comparacion' del JSON): cifras, porcentajes, fechas, "
+            "precios, duraciones/unidades, códigos, nombres propios, URL, "
+            "claims marcados [[claim]]…[[/claim]] y citas literales que "
+            "falten en el nuevo texto o que aparezcan de nuevo, en ambas "
+            "direcciones; también compara los recuentos de tú/usted y "
+            "vosotros/ustedes, solo como dato. Con esta opción, el código "
+            "de salida es 1 si hay alguna diferencia en esas categorías "
+            "(las siglas y el recuento de tú/usted son solo informativos y "
+            "nunca cambian el código de salida)."
+        ),
+    )
     # argparse no expone una forma pública de traducir los títulos de
     # sección ("positional arguments"/"options"); se ajustan aquí para que
     # la ayuda quede en español de España, como exige el encargo.
@@ -1858,6 +2625,26 @@ def _read_input(ruta):
         sys.exit(2)
 
 
+def _read_original(ruta):
+    path = Path(ruta)
+    try:
+        data = path.read_bytes()
+    except OSError as exc:
+        print(
+            "scan_tells.py: no se pudo leer '{}' (--original): {}".format(ruta, exc),
+            file=sys.stderr,
+        )
+        sys.exit(2)
+    try:
+        return data.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        print(
+            "scan_tells.py: '{}' no es UTF-8 válido (--original): {}".format(ruta, exc),
+            file=sys.stderr,
+        )
+        sys.exit(2)
+
+
 def main(argv=None):
     parser = _build_arg_parser()
     args = parser.parse_args(argv)
@@ -1870,8 +2657,15 @@ def main(argv=None):
         sys.exit(2)
 
     text = _read_input(args.ruta)
-    report = build_report(text, vocab_entries)
+    original_text = _read_original(args.original) if args.original is not None else None
+
+    report = build_report(text, vocab_entries, original_text=original_text)
     print(json.dumps(report, ensure_ascii=False, sort_keys=True, indent=2))
+
+    if original_text is not None and _comparacion_tiene_diferencias_bloqueantes(
+        report["comparacion"]
+    ):
+        return 1
     return 0
 
 

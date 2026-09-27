@@ -479,11 +479,29 @@ class TestCLI(unittest.TestCase):
                 "estructuras",
                 "deterministas",
                 "registro",
+                "candidatos_claim",
+                "privacidad",
             },
         )
         self.assertEqual(set(data["entrada"].keys()), {"lineas", "palabras", "parrafos"})
         self.assertIn("hallazgos", data["vocabulario"])
         self.assertIn("densidad", data["vocabulario"])
+
+    def test_output_includes_comparacion_key_only_with_original(self):
+        result_sin = run_cli(["-"], input_text="Un texto cualquiera sin nada especial.\n")
+        data_sin = json.loads(result_sin.stdout)
+        self.assertNotIn("comparacion", data_sin)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            original_path = Path(tmp_dir) / "original.txt"
+            original_path.write_text("Un texto cualquiera sin nada especial.\n", encoding="utf-8")
+            result_con = run_cli(
+                ["--original", str(original_path), "-"],
+                input_text="Un texto cualquiera sin nada especial.\n",
+            )
+        self.assertEqual(result_con.returncode, 0)
+        data_con = json.loads(result_con.stdout)
+        self.assertIn("comparacion", data_con)
 
 
 class TestDensity(unittest.TestCase):
@@ -1257,6 +1275,512 @@ class TestRegistro(unittest.TestCase):
         text = "¿Te apetece un té después del reparto de hoy?\n"
         registro = self._registro(text)
         self.assertEqual(registro["tuteo"]["ocurrencias"], 1)
+
+
+# ---------------------------------------------------------------------------
+# T5, parte B: comparación con el original (--original), candidatos a claim
+# y detección de datos personales. Todos los textos son propios, con marcas
+# y personas ficticias; ningún dato personal es real (fase2-mapa.md §4.1).
+# ---------------------------------------------------------------------------
+
+
+def _con_original(module, nuevo_texto, original_texto, entries=None):
+    entries = entries if entries is not None else []
+    return module.build_report(nuevo_texto, entries, original_text=original_texto)
+
+
+class TestComparacionCifras(unittest.TestCase):
+    def setUp(self):
+        self.module = load_module()
+
+    def test_missing_and_new_bare_figure(self):
+        original = "El almacén tiene 1000 cajas guardadas hoy.\n"
+        nuevo = "El almacén tiene 800 cajas guardadas hoy.\n"
+        report = _con_original(self.module, nuevo, original)
+        cifras = report["comparacion"]["cifras"]
+        self.assertEqual([h["texto"] for h in cifras["faltantes"]], ["1000"])
+        self.assertEqual([h["texto"] for h in cifras["nuevas"]], ["800"])
+
+    def test_thousand_separator_space_and_plain_digits_are_equal(self):
+        original = "El pedido incluye 1 000 unidades en total.\n"
+        nuevo = "El pedido incluye 1000 unidades en total.\n"
+        report = _con_original(self.module, nuevo, original)
+        cifras = report["comparacion"]["cifras"]
+        self.assertEqual(cifras["faltantes"], [])
+        self.assertEqual(cifras["nuevas"], [])
+
+    def test_narrow_nbsp_thousand_separator_and_plain_digits_are_equal(self):
+        original = "El pedido incluye 1 000 unidades en total.\n"
+        nuevo = "El pedido incluye 1000 unidades en total.\n"
+        report = _con_original(self.module, nuevo, original)
+        cifras = report["comparacion"]["cifras"]
+        self.assertEqual(cifras["faltantes"], [])
+        self.assertEqual(cifras["nuevas"], [])
+
+    def test_ambiguous_dot_thousand_reading_matches_thousands_form(self):
+        original = "El pedido tiene un valor de 1.500 en el sistema.\n"
+        nuevo = "El pedido tiene un valor de 1500 en el sistema.\n"
+        report = _con_original(self.module, nuevo, original)
+        cifras = report["comparacion"]["cifras"]
+        self.assertEqual(cifras["faltantes"], [])
+        self.assertEqual(cifras["nuevas"], [])
+
+    def test_ambiguous_dot_thousand_reading_matches_decimal_form(self):
+        original = "El pedido tiene un valor de 1.500 en el sistema.\n"
+        nuevo = "El pedido tiene un valor de 1.5 en el sistema.\n"
+        report = _con_original(self.module, nuevo, original)
+        cifras = report["comparacion"]["cifras"]
+        self.assertEqual(cifras["faltantes"], [])
+        self.assertEqual(cifras["nuevas"], [])
+
+    def test_comma_decimal_missing_and_new(self):
+        original = "La densidad es de 3,5 en la prueba de hoy.\n"
+        nuevo = "La densidad es de 3,8 en la prueba de hoy.\n"
+        report = _con_original(self.module, nuevo, original)
+        cifras = report["comparacion"]["cifras"]
+        self.assertEqual([h["lecturas"] for h in cifras["faltantes"]], [["3.5"]])
+        self.assertEqual([h["lecturas"] for h in cifras["nuevas"]], [["3.8"]])
+
+    def test_identical_dot_decimal_yields_no_difference(self):
+        original = "La densidad es de 3.5 en la prueba de hoy.\n"
+        nuevo = "La densidad es de 3.5 en la prueba de hoy.\n"
+        report = _con_original(self.module, nuevo, original)
+        cifras = report["comparacion"]["cifras"]
+        self.assertEqual(cifras["faltantes"], [])
+        self.assertEqual(cifras["nuevas"], [])
+
+
+class TestComparacionPorcentajes(unittest.TestCase):
+    def setUp(self):
+        self.module = load_module()
+
+    def test_missing_and_new_percentage(self):
+        original = "El descuento es del 20 % esta semana.\n"
+        nuevo = "El descuento es del 15 % esta semana.\n"
+        report = _con_original(self.module, nuevo, original)
+        porcentajes = report["comparacion"]["porcentajes"]
+        self.assertEqual([h["lecturas"] for h in porcentajes["faltantes"]], [["20"]])
+        self.assertEqual([h["lecturas"] for h in porcentajes["nuevas"]], [["15"]])
+
+    def test_percent_sign_and_por_ciento_are_equal(self):
+        original = "El producto elimina el 99 % de las bacterias.\n"
+        nuevo = "El producto elimina el 99 por ciento de las bacterias.\n"
+        report = _con_original(self.module, nuevo, original)
+        porcentajes = report["comparacion"]["porcentajes"]
+        self.assertEqual(porcentajes["faltantes"], [])
+        self.assertEqual(porcentajes["nuevas"], [])
+
+
+class TestComparacionFechas(unittest.TestCase):
+    def setUp(self):
+        self.module = load_module()
+
+    def test_textual_and_numeric_forms_of_same_date_are_equal(self):
+        original = "La entrega es el 3 de marzo de 2026.\n"
+        nuevo = "La entrega es el 03/03/2026.\n"
+        report = _con_original(self.module, nuevo, original)
+        fechas = report["comparacion"]["fechas"]
+        self.assertEqual(fechas["faltantes"], [])
+        self.assertEqual(fechas["nuevas"], [])
+
+    def test_different_date_is_missing_and_new(self):
+        original = "La entrega es el 3 de marzo de 2026.\n"
+        nuevo = "La entrega es el 10 de marzo de 2026.\n"
+        report = _con_original(self.module, nuevo, original)
+        fechas = report["comparacion"]["fechas"]
+        self.assertEqual(fechas["faltantes"][0]["lecturas"], ["2026-03-03"])
+        self.assertEqual(fechas["nuevas"][0]["lecturas"], ["2026-03-10"])
+
+
+class TestComparacionPrecios(unittest.TestCase):
+    def setUp(self):
+        self.module = load_module()
+
+    def test_missing_and_new_price(self):
+        original = "El producto cuesta 10 € en la tienda.\n"
+        nuevo = "El producto cuesta 12 € en la tienda.\n"
+        report = _con_original(self.module, nuevo, original)
+        precios = report["comparacion"]["precios"]
+        self.assertEqual([h["lecturas"] for h in precios["faltantes"]], [["10"]])
+        self.assertEqual([h["lecturas"] for h in precios["nuevas"]], [["12"]])
+
+    def test_euro_sign_eur_and_euros_word_are_equal(self):
+        original = "El producto cuesta 10 € en la tienda.\n"
+        nuevo = "El producto cuesta 10 euros en la tienda.\n"
+        report = _con_original(self.module, nuevo, original)
+        precios = report["comparacion"]["precios"]
+        self.assertEqual(precios["faltantes"], [])
+        self.assertEqual(precios["nuevas"], [])
+
+
+class TestComparacionDuracionesUnidades(unittest.TestCase):
+    def setUp(self):
+        self.module = load_module()
+
+    def test_missing_and_new_duration(self):
+        original = "Hidrata la piel durante 48 h de forma continua.\n"
+        nuevo = "Hidrata la piel durante 24 h de forma continua.\n"
+        report = _con_original(self.module, nuevo, original)
+        duraciones = report["comparacion"]["duraciones_unidades"]
+        self.assertEqual(len(duraciones["faltantes"]), 1)
+        self.assertEqual(len(duraciones["nuevas"]), 1)
+        self.assertNotEqual(
+            duraciones["faltantes"][0]["lecturas"], duraciones["nuevas"][0]["lecturas"]
+        )
+
+    def test_missing_and_new_weight_unit(self):
+        original = "El envase contiene 200 g de producto.\n"
+        nuevo = "El envase contiene 50 g de producto.\n"
+        report = _con_original(self.module, nuevo, original)
+        duraciones = report["comparacion"]["duraciones_unidades"]
+        self.assertEqual(len(duraciones["faltantes"]), 1)
+        self.assertEqual(len(duraciones["nuevas"]), 1)
+
+
+class TestComparacionCodigos(unittest.TestCase):
+    def setUp(self):
+        self.module = load_module()
+
+    def test_missing_and_new_lot_code(self):
+        original = "El lote es AB-1234 según el albarán.\n"
+        nuevo = "El lote es AB-5678 según el albarán.\n"
+        report = _con_original(self.module, nuevo, original)
+        codigos = report["comparacion"]["codigos"]
+        self.assertEqual([h["texto"] for h in codigos["faltantes"]], ["AB-1234"])
+        self.assertEqual([h["texto"] for h in codigos["nuevas"]], ["AB-5678"])
+
+    def test_case_difference_alone_is_not_flagged(self):
+        original = "El lote es AB-1234 según el albarán.\n"
+        nuevo = "El lote es ab-1234 según el albarán.\n"
+        report = _con_original(self.module, nuevo, original)
+        codigos = report["comparacion"]["codigos"]
+        self.assertEqual(codigos["faltantes"], [])
+        self.assertEqual(codigos["nuevas"], [])
+
+
+class TestComparacionNombresPropios(unittest.TestCase):
+    def setUp(self):
+        self.module = load_module()
+
+    def test_missing_and_new_proper_noun_mid_sentence(self):
+        original = "El pedido lo confirmó Marta ayer por la tarde.\n"
+        nuevo = "El pedido lo confirmó Laura ayer por la tarde.\n"
+        report = _con_original(self.module, nuevo, original)
+        nombres = report["comparacion"]["nombres_propios"]
+        self.assertIn("Marta", [h["texto"] for h in nombres["faltantes"]])
+        self.assertIn("Laura", [h["texto"] for h in nombres["nuevas"]])
+
+    def test_sentence_initial_capital_is_never_flagged(self):
+        original = "Marta llegó temprano a la oficina.\n"
+        nuevo = "Laura llegó temprano a la oficina.\n"
+        report = _con_original(self.module, nuevo, original)
+        nombres = report["comparacion"]["nombres_propios"]
+        self.assertEqual(nombres["faltantes"], [])
+        self.assertEqual(nombres["nuevas"], [])
+
+
+class TestComparacionUrl(unittest.TestCase):
+    def setUp(self):
+        self.module = load_module()
+
+    def test_identical_url_yields_no_difference(self):
+        texto = "Más información en https://tienda-robledo.example.com/ofertas.\n"
+        report = _con_original(self.module, texto, texto)
+        url = report["comparacion"]["url"]
+        self.assertEqual(url["faltantes"], [])
+        self.assertEqual(url["nuevas"], [])
+
+    def test_different_url_is_missing_and_new(self):
+        original = "Más información en https://tienda-robledo.example.com/ofertas.\n"
+        nuevo = "Más información en https://tienda-robledo.example.com/catalogo.\n"
+        report = _con_original(self.module, nuevo, original)
+        url = report["comparacion"]["url"]
+        self.assertEqual(len(url["faltantes"]), 1)
+        self.assertEqual(len(url["nuevas"]), 1)
+
+
+class TestComparacionClaims(unittest.TestCase):
+    def setUp(self):
+        self.module = load_module()
+
+    def test_identical_claim_yields_no_difference(self):
+        texto = "[[claim]]Reduce las arrugas visibles en 30 días[[/claim]] siempre.\n"
+        report = _con_original(self.module, texto, texto)
+        claims = report["comparacion"]["claims_marcados"]
+        self.assertEqual(claims["faltantes"], [])
+        self.assertEqual(claims["nuevas"], [])
+
+    def test_claim_changed_by_one_word_is_missing_and_new(self):
+        original = "[[claim]]Reduce las arrugas visibles en 30 días[[/claim]] siempre.\n"
+        nuevo = "[[claim]]Reduce las arrugas visibles en 60 días[[/claim]] siempre.\n"
+        report = _con_original(self.module, nuevo, original)
+        claims = report["comparacion"]["claims_marcados"]
+        self.assertEqual(len(claims["faltantes"]), 1)
+        self.assertEqual(len(claims["nuevas"]), 1)
+
+    def test_claim_that_disappears_is_reported_as_missing(self):
+        original = "[[claim]]Reduce las arrugas visibles en 30 días[[/claim]] siempre.\n"
+        nuevo = "El producto es muy agradable de usar siempre.\n"
+        report = _con_original(self.module, nuevo, original)
+        claims = report["comparacion"]["claims_marcados"]
+        self.assertEqual(len(claims["faltantes"]), 1)
+        self.assertEqual(claims["nuevas"], [])
+
+
+class TestComparacionCitas(unittest.TestCase):
+    def setUp(self):
+        self.module = load_module()
+
+    def test_identical_quote_yields_no_difference(self):
+        texto = "Ella dijo «el envío es gratuito siempre» y se despidió.\n"
+        report = _con_original(self.module, texto, texto)
+        citas = report["comparacion"]["citas"]
+        self.assertEqual(citas["faltantes"], [])
+        self.assertEqual(citas["nuevas"], [])
+
+    def test_changed_quote_is_missing_and_new(self):
+        original = "Ella dijo «el envío es gratuito siempre» y se despidió.\n"
+        nuevo = "Ella dijo «el envío tarda una semana» y se despidió.\n"
+        report = _con_original(self.module, nuevo, original)
+        citas = report["comparacion"]["citas"]
+        self.assertEqual(len(citas["faltantes"]), 1)
+        self.assertEqual(len(citas["nuevas"]), 1)
+
+
+class TestComparacionRegistro(unittest.TestCase):
+    def setUp(self):
+        self.module = load_module()
+
+    def test_tu_to_usted_switch_is_reported_as_data_not_error(self):
+        original = "Tú puedes recoger tu pedido cuando quieras.\n"
+        nuevo = "Usted puede recoger su pedido cuando quiera.\n"
+        report = _con_original(self.module, nuevo, original)
+        registro = report["comparacion"]["registro"]
+        self.assertGreater(registro["tuteo"]["original"], 0)
+        self.assertEqual(registro["tuteo"]["nuevo"], 0)
+        self.assertEqual(registro["usted"]["original"], 0)
+        self.assertGreater(registro["usted"]["nuevo"], 0)
+        for clave in ("tuteo", "usted", "vosotros", "ustedes"):
+            self.assertNotIn("error", registro[clave])
+
+
+class TestComparacionExitCodes(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+
+    def _run(self, nuevo_texto, original_texto):
+        original_path = Path(self.tmp.name) / "original.txt"
+        original_path.write_text(original_texto, encoding="utf-8")
+        return run_cli(["--original", str(original_path), "-"], input_text=nuevo_texto)
+
+    def test_identical_texts_exit_0_with_empty_differences(self):
+        texto = (
+            "El pedido llega el 3 de marzo de 2026 y cuesta 10 €. "
+            "Marta lo confirmó por la tarde de ayer mismo.\n"
+        )
+        result = self._run(texto, texto)
+        self.assertEqual(result.returncode, 0)
+        data = json.loads(result.stdout)
+        comparacion = data["comparacion"]
+        for clave in (
+            "cifras", "porcentajes", "fechas", "precios", "duraciones_unidades",
+            "codigos", "nombres_propios", "url", "claims_marcados", "citas",
+        ):
+            self.assertEqual(comparacion[clave]["faltantes"], [], clave)
+            self.assertEqual(comparacion[clave]["nuevas"], [], clave)
+
+    def test_claim_changed_by_one_word_exits_1(self):
+        original = "[[claim]]Reduce las arrugas visibles en 30 días[[/claim]] siempre.\n"
+        nuevo = "[[claim]]Reduce las arrugas visibles en 60 días[[/claim]] siempre.\n"
+        result = self._run(nuevo, original)
+        self.assertEqual(result.returncode, 1)
+
+    def test_rewrite_removing_only_filler_vocabulary_exits_0(self):
+        original = (
+            "Cabe destacar que el pedido llega el 3 de marzo de 2026 y cuesta 10 €, "
+            "según nos confirmó Marta ayer por la tarde.\n"
+        )
+        nuevo = (
+            "El pedido llega el 3 de marzo de 2026 y cuesta 10 €, "
+            "según nos confirmó Marta ayer por la tarde.\n"
+        )
+        result = self._run(nuevo, original)
+        self.assertEqual(result.returncode, 0)
+
+    def test_missing_figure_exits_1(self):
+        original = "El almacén tiene 1000 cajas guardadas hoy.\n"
+        nuevo = "El almacén tiene algunas cajas guardadas hoy.\n"
+        result = self._run(nuevo, original)
+        self.assertEqual(result.returncode, 1)
+
+
+class TestCandidatosClaim(unittest.TestCase):
+    """Ficha de producto cosmético propia y ficticia (marca "CremaViva",
+    inventada para estas pruebas): percentages, duraciones, "sin parabenos"
+    y "dermatológicamente testado" deben marcarse como candidatos, nunca
+    como claims ya decididos; un descuento porcentual también se marca,
+    por diseño (auditoria.md §7.4, resuelto: no se restringe el porcentaje a
+    contextos de eficacia)."""
+
+    def setUp(self):
+        self.module = load_module()
+
+    def _candidatos(self, text):
+        report = self.module.build_report(text, [])
+        return report["candidatos_claim"]
+
+    def test_percentage_duration_sin_x_and_dermatologically_tested_are_candidates(self):
+        text = (
+            "CremaViva hidrata la piel durante 24 horas seguidas. "
+            "Es sin parabenos y sin sulfatos. "
+            "Está dermatológicamente testado en un laboratorio independiente. "
+            "Aprovecha el 20 % de descuento esta semana.\n"
+        )
+        candidatos = self._candidatos(text)["candidatos"]
+        reglas_encontradas = set()
+        for c in candidatos:
+            reglas_encontradas.update(c["reglas"])
+        self.assertIn("duracion_unidad", reglas_encontradas)
+        self.assertIn("sin_x", reglas_encontradas)
+        self.assertIn("dermatologicamente", reglas_encontradas)
+        self.assertIn("porcentaje", reglas_encontradas)
+
+    def test_discount_percentage_alone_is_flagged_by_design(self):
+        text = "Llévate un 20 % de descuento en tu próxima compra.\n"
+        candidatos = self._candidatos(text)["candidatos"]
+        self.assertEqual(len(candidatos), 1)
+        self.assertIn("porcentaje", candidatos[0]["reglas"])
+
+    def test_hipoalergenico_and_no_testado_en_animales_are_candidates(self):
+        text = "CremaViva es hipoalergénico y no testado en animales.\n"
+        candidatos = self._candidatos(text)["candidatos"]
+        reglas = {r for c in candidatos for r in c["reglas"]}
+        self.assertIn("hipoalergenico", reglas)
+        self.assertIn("no_testado_en_animales", reglas)
+
+    def test_natural_plus_effect_is_a_candidate(self):
+        text = "CremaViva, con ingredientes naturales, reduce las rojeces visibles.\n"
+        candidatos = self._candidatos(text)["candidatos"]
+        reglas = {r for c in candidatos for r in c["reglas"]}
+        self.assertIn("natural_mas_efecto", reglas)
+
+    def test_marked_claim_is_not_reported_as_candidate(self):
+        text = (
+            "[[claim]]Reduce las arrugas visibles en un 30 % en cuatro semanas[[/claim]] "
+            "Nadie más lo dice.\n"
+        )
+        resultado = self._candidatos(text)
+        self.assertEqual(resultado["candidatos"], [])
+        self.assertEqual(resultado["marcados"], 1)
+
+    def test_clean_spain_spanish_prose_yields_no_candidates(self):
+        text = (
+            "Marta llegó a la oficina de Ferretería Robledo a las nueve. "
+            "Revisó el correo y contestó dos llamadas de proveedores.\n"
+        )
+        candidatos = self._candidatos(text)["candidatos"]
+        self.assertEqual(candidatos, [])
+
+
+class TestPrivacidad(unittest.TestCase):
+    """Identificadores sintéticos y evidentemente ficticios que cumplen el
+    formato (DNI/IBAN calculados, no reales) para comprobar categoría y
+    línea sin que el valor aparezca nunca en la salida."""
+
+    DNI_FICTICIO = "11223344B"
+    IBAN_FICTICIO = "ES25 0111 1022 2200 0333 4444"
+    TELEFONO_FICTICIO = "611223344"
+    EMAIL_FICTICIO = "contacto@tienda-robledo.example"
+
+    def setUp(self):
+        self.module = load_module()
+
+    def _privacidad(self, text):
+        report = self.module.build_report(text, [])
+        return report, report["privacidad"]
+
+    def test_dni_is_detected_by_category_and_line_only(self):
+        text = "Datos del cliente:\nDNI {}\n".format(self.DNI_FICTICIO)
+        report, privacidad = self._privacidad(text)
+        categorias = [h["categoria"] for h in privacidad["hallazgos"]]
+        self.assertIn("dni_nie", categorias)
+        hallazgo = [h for h in privacidad["hallazgos"] if h["categoria"] == "dni_nie"][0]
+        self.assertEqual(set(hallazgo.keys()), {"categoria", "linea"})
+        self.assertEqual(hallazgo["linea"], 2)
+        self.assertNotIn(self.DNI_FICTICIO, json.dumps(report, ensure_ascii=False))
+
+    def test_iban_is_detected_by_category_and_line_only(self):
+        text = "Cuenta para el reembolso:\nIBAN {}\n".format(self.IBAN_FICTICIO)
+        report, privacidad = self._privacidad(text)
+        categorias = [h["categoria"] for h in privacidad["hallazgos"]]
+        self.assertIn("iban", categorias)
+        self.assertNotIn(
+            self.IBAN_FICTICIO.replace(" ", ""), json.dumps(report, ensure_ascii=False)
+        )
+
+    def test_phone_is_detected_by_category_and_line_only(self):
+        text = "Puedes llamarnos al {} en horario de oficina.\n".format(self.TELEFONO_FICTICIO)
+        report, privacidad = self._privacidad(text)
+        categorias = [h["categoria"] for h in privacidad["hallazgos"]]
+        self.assertIn("telefono", categorias)
+        self.assertNotIn(self.TELEFONO_FICTICIO, json.dumps(report, ensure_ascii=False))
+
+    def test_email_is_detected_by_category_and_line_only(self):
+        text = "Escríbenos a {} si tienes dudas.\n".format(self.EMAIL_FICTICIO)
+        report, privacidad = self._privacidad(text)
+        categorias = [h["categoria"] for h in privacidad["hallazgos"]]
+        self.assertIn("email", categorias)
+        self.assertNotIn(self.EMAIL_FICTICIO, json.dumps(report, ensure_ascii=False))
+
+    def test_notice_field_is_always_present(self):
+        _, privacidad = self._privacidad("Un texto cualquiera sin datos personales.\n")
+        self.assertIn("aviso", privacidad)
+        self.assertTrue(privacidad["aviso"])
+
+    def test_clean_spain_spanish_prose_yields_no_privacy_findings(self):
+        text = (
+            "Marta llegó a la oficina de Ferretería Robledo a las nueve. "
+            "Revisó el correo y contestó dos llamadas de proveedores.\n"
+        )
+        _, privacidad = self._privacidad(text)
+        self.assertEqual(privacidad["hallazgos"], [])
+
+    def test_random_alphanumeric_code_is_not_a_false_positive_dni(self):
+        # Un código de lote de 8 dígitos y una letra que NO cumple el
+        # control del DNI no debe contarse como DNI/NIE.
+        text = "El lote de fabricación es 12345678A.\n"
+        _, privacidad = self._privacidad(text)
+        self.assertEqual(
+            [h for h in privacidad["hallazgos"] if h["categoria"] == "dni_nie"], []
+        )
+
+
+class TestControlProseOriginalComparison(unittest.TestCase):
+    """Prosa de control en español de España comparada contra sí misma: no
+    debe producir ninguna diferencia en 'comparacion' ni hallazgos de
+    privacidad."""
+
+    def setUp(self):
+        self.module = load_module()
+
+    def test_control_prose_against_itself_has_no_differences(self):
+        text = (
+            "Marta llegó a la oficina de Ferretería Robledo a las nueve de la "
+            "mañana el 3 de marzo de 2026. Revisó el correo, contestó dos "
+            "llamadas de proveedores y preparó un pedido de 200 g de tornillos "
+            "que cuesta 10 € y tarda 48 h en llegar. El código del lote es "
+            "AB-1234, según confirmó Luis por la tarde.\n"
+        )
+        report = self.module.build_report(text, [], original_text=text)
+        comparacion = report["comparacion"]
+        for clave in (
+            "cifras", "porcentajes", "fechas", "precios", "duraciones_unidades",
+            "codigos", "nombres_propios", "url", "claims_marcados", "citas",
+        ):
+            self.assertEqual(comparacion[clave]["faltantes"], [], clave)
+            self.assertEqual(comparacion[clave]["nuevas"], [], clave)
+        self.assertEqual(report["privacidad"]["hallazgos"], [])
 
 
 if __name__ == "__main__":
