@@ -1975,8 +1975,11 @@ def _find_fechas(text, line_starts, consumidos):
 # importe (misma lógica de lectura que las cifras), no la forma de
 # escribir la moneda.
 _PRECIO_RE = re.compile(
-    r"(\d{1,3}(?:[.   ]\d{3})*(?:[.,]\d+)?)[   ]?(?:€|EUR\b|euros?\b)"
-    r"|€[   ]?(\d{1,3}(?:[.   ]\d{3})*(?:[.,]\d+)?)",
+    # Límite inicial y final: «1500 €» se lee entero, nunca como «500 €»,
+    # y «€1500» tampoco se corta en «€150».
+    r"(?<![\w.,])(\d{1,3}(?:[.\u0020\u00a0\u202f]\d{3})+(?:[.,]\d+)?|\d+(?:[.,]\d+)?)"
+    r"[\u0020\u00a0\u202f]?(?:€|EUR\b|euros?\b)"
+    r"|€[\u0020\u00a0\u202f]?(\d{1,3}(?:[.\u0020\u00a0\u202f]\d{3})+(?:[.,]\d+)?|\d+(?:[.,]\d+)?)(?!\d)",
     re.IGNORECASE,
 )
 

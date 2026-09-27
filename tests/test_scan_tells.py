@@ -1412,6 +1412,28 @@ class TestComparacionPrecios(unittest.TestCase):
         self.assertEqual(precios["faltantes"], [])
         self.assertEqual(precios["nuevas"], [])
 
+    def test_amount_without_thousands_separator_is_read_whole(self):
+        # «1500 €» no puede leerse como «500 €»: si no, un cambio de
+        # 1500 a 2500 pasaría sin aviso.
+        for moneda in ("€", "euros", "EUR"):
+            with self.subTest(moneda=moneda):
+                original = f"El sofá Arcilla cuesta 1500 {moneda} en la tienda.\n"
+                nuevo = f"El sofá Arcilla cuesta 2500 {moneda} en la tienda.\n"
+                report = _con_original(self.module, nuevo, original)
+                precios = report["comparacion"]["precios"]
+                self.assertEqual(
+                    [h["lecturas"] for h in precios["faltantes"]], [["1500"]]
+                )
+                self.assertEqual([h["lecturas"] for h in precios["nuevas"]], [["2500"]])
+
+    def test_prefixed_euro_sign_reads_whole_amount(self):
+        original = "Precio de lanzamiento: €1500 en la tienda.\n"
+        nuevo = "Precio de lanzamiento: €2500 en la tienda.\n"
+        report = _con_original(self.module, nuevo, original)
+        precios = report["comparacion"]["precios"]
+        self.assertEqual([h["lecturas"] for h in precios["faltantes"]], [["1500"]])
+        self.assertEqual([h["lecturas"] for h in precios["nuevas"]], [["2500"]])
+
 
 class TestComparacionDuracionesUnidades(unittest.TestCase):
     def setUp(self):
@@ -1589,6 +1611,12 @@ class TestComparacionExitCodes(unittest.TestCase):
         ):
             self.assertEqual(comparacion[clave]["faltantes"], [], clave)
             self.assertEqual(comparacion[clave]["nuevas"], [], clave)
+
+    def test_changed_four_digit_price_exits_1(self):
+        original = "El sofá Arcilla cuesta 1500 € en la tienda.\n"
+        nuevo = "El sofá Arcilla cuesta 2500 € en la tienda.\n"
+        result = self._run(nuevo, original)
+        self.assertEqual(result.returncode, 1)
 
     def test_claim_changed_by_one_word_exits_1(self):
         original = "[[claim]]Reduce las arrugas visibles en 30 días[[/claim]] siempre.\n"
