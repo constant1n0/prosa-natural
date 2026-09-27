@@ -37,8 +37,9 @@ archivo (ver su sección "Formato"):
 - Cada línea de contenido no vacía que no empiece por ``#`` ni por ``> `` es
   una entrada: ``expresión | AAAA-MM-DD | origen``, con un cuarto campo
   opcional ``pendiente``. Los campos van separados exactamente por
-  ``" | "`` (espacio, barra vertical, espacio). Una línea que no cumpla este
-  formato, con fecha inválida, con un cuarto campo distinto de
+  ``" | "`` (espacio, barra vertical, espacio). La fecha se valida como
+  fecha de calendario real (no solo por forma). Una línea que no cumpla
+  este formato, con fecha inválida, con un cuarto campo distinto de
   ``pendiente``, o con una entrada fuera de toda familia activa, es
   malformada: el script aborta con código de salida 2 y un mensaje en
   stderr con el archivo y el número de línea exactos.
@@ -50,11 +51,39 @@ archivo (ver su sección "Formato"):
   combinación, y solo se buscan coincidencias en límites de palabra
   (``\\w`` con soporte Unicode). Esto afecta a cómo busca el script, nunca a
   cómo se escribe la entrada en el archivo de vocabulario.
+- Un archivo que no se puede leer, que no es UTF-8 válido, o que no
+  contiene ninguna entrada válida (por no tener las regiones ``## Fuerte``
+  / ``## Débil``, o por tenerlas vacías) también aborta con código de
+  salida 2; en estos casos el error es del archivo completo, no de una
+  línea concreta, así que el mensaje no incluye ningún número de línea.
 
 El campo ``pendiente`` marca que la base normativa de esa entrada está sin
 verificar en fuente primaria; mientras lo esté, el script se limita a
 reportarla igual que cualquier otra entrada débil, nunca la trata como una
 regla ya establecida ni la usa para corregir nada automáticamente.
+
+Hallazgos que se solapan en el mismo tramo de texto (por ejemplo, la
+colocación "pilar fundamental" y la palabra suelta "fundamental" dentro de
+ella) se reducen a uno solo: gana el tramo más largo: empate por nivel
+(Fuerte sobre Débil); empate por orden alfabético de la expresión. La
+densidad de vocabulario solo cuenta los hallazgos que sobreviven a esta
+resolución.
+
+Claves del informe JSON y qué vista del texto usa cada una
+------------------------------------------------------------
+``entrada`` y ``enmascarado`` describen el texto de entrada y el
+enmascarado aplicado. ``vocabulario`` busca sobre el texto con el
+frontmatter, el código, las URL, los ``[[claim]]…[[/claim]]`` Y las citas
+entre comillas enmascarados (para no marcar como propia una palabra que en
+realidad está dentro de una cita textual). ``rayas``, ``comillas``,
+``encabezados`` y ``tipografia`` son los detectores de forma: buscan sobre
+una vista distinta, con el frontmatter, el código, las URL y los
+``[[claim]]…[[/claim]]`` enmascarados pero las comillas SIN enmascarar,
+porque necesitan ver los propios caracteres de puntuación (comillas,
+rayas, mayúsculas) para poder analizarlos. Ninguno de los cuatro aplica un
+umbral ni emite un veredicto: solo reportan hechos (tipo, ubicación y,
+donde corresponde, densidad por mil palabras), igual que el resto del
+script.
 """
 
 import argparse
@@ -390,8 +419,15 @@ def mask_text(text):
     """Enmascara frontmatter, bloques de código, código en línea, URL,
     spans ``[[claim]]…[[/claim]]`` y comillas emparejadas dentro de un
     párrafo, sustituyendo cada carácter (salvo saltos de línea) por un
-    espacio para conservar línea y columna exactas. Devuelve el texto
-    enmascarado y un recuento de regiones enmascaradas por tipo.
+    espacio para conservar línea y columna exactas.
+
+    Devuelve tres valores: ``masked_text`` (con las comillas también
+    enmascaradas; es el texto sobre el que busca el analizador de
+    vocabulario, para no marcar una cita textual como si fuera prosa
+    propia), ``surface_text`` (igual pero SIN enmascarar las comillas, para
+    los detectores de forma —rayas, comillas, encabezados, tipografía— que
+    necesitan ver los caracteres de puntuación tal cual están escritos) y
+    ``counts`` (recuento de regiones enmascaradas por tipo).
     """
     counts = {}
     text, counts["frontmatter"] = _mask_pattern(text, _FRONTMATTER_RE)
@@ -399,8 +435,9 @@ def mask_text(text):
     text, counts["codigo_en_linea"] = _mask_pattern(text, _INLINE_CODE_RE)
     text, counts["url"] = _mask_pattern(text, _URL_RE)
     text, counts["claim"] = _mask_pattern(text, _CLAIM_RE)
+    surface_text = text
     text, counts["comillas"] = _mask_quotes(text)
-    return text, counts
+    return text, surface_text, counts
 
 
 # ---------------------------------------------------------------------------
@@ -473,9 +510,11 @@ def _count_words(text):
 class AnalysisContext:
     original_text: str
     masked_text: str
+    surface_text: str
     mask_counts: Dict[str, int]
     vocab_entries: List[VocabEntry]
     paragraphs: List[Tuple[int, int]]
+    surface_paragraphs: List[Tuple[int, int]]
     line_starts: List[int]
     normalized_text: str
     orig_index_for_normpos: List[int]
@@ -484,8 +523,9 @@ class AnalysisContext:
 
 
 def _build_context(text, vocab_entries):
-    masked_text, mask_counts = mask_text(text)
+    masked_text, surface_text, mask_counts = mask_text(text)
     paragraphs = find_paragraphs(masked_text)
+    surface_paragraphs = find_paragraphs(surface_text)
     line_starts = _build_line_index(text)
     normalized_text, orig_index_for_normpos, norm_start_for_orig = _build_normalized_index(
         masked_text
@@ -494,9 +534,11 @@ def _build_context(text, vocab_entries):
     return AnalysisContext(
         original_text=text,
         masked_text=masked_text,
+        surface_text=surface_text,
         mask_counts=mask_counts,
         vocab_entries=vocab_entries,
         paragraphs=paragraphs,
+        surface_paragraphs=surface_paragraphs,
         line_starts=line_starts,
         normalized_text=normalized_text,
         orig_index_for_normpos=orig_index_for_normpos,
@@ -673,13 +715,413 @@ def _compute_density(ctx, hits):
 
 
 # ---------------------------------------------------------------------------
-# Registro de analizadores (T3-T5 añaden aquí sin tocar lo anterior)
+# Analizador: encabezados Markdown (usado también por el de rayas, para
+# saber qué líneas son encabezados y tratar sus rayas aparte)
+# ---------------------------------------------------------------------------
+
+_HEADING_RE = re.compile(r"^(#{1,6})(?:[ \t]+(.*?))?[ \t]*$")
+_HR_RE = re.compile(r"^-{3,}[ \t]*\r?$", re.MULTILINE)
+
+_PALABRAS_FUNCIONALES = {
+    "a", "ante", "bajo", "cabe", "con", "contra", "de", "desde", "durante",
+    "en", "entre", "hacia", "hasta", "mediante", "para", "por", "según",
+    "sin", "so", "sobre", "tras", "el", "la", "los", "las", "un", "una",
+    "unos", "unas", "y", "e", "o", "u", "que", "pero", "sino", "aunque",
+    "si", "del", "al", "ni",
+}
+
+_PALABRA_RE = re.compile(r"[^\W\d_]+(?:['’][^\W\d_]+)?", re.UNICODE)
+
+
+def _iter_headings(ctx):
+    """Encabezados ATX (``#`` a ``######``) de ``surface_text``, ignorando
+    el frontmatter y los bloques de código (ya enmascarados a espacios, así
+    que un ``#`` de un comentario de código ya no puede coincidir).
+    Devuelve cada encabezado con su nivel, su texto y el offset de carácter
+    de inicio de línea, tolerando un ``\\r`` final de línea (CRLF).
+    """
+    headings = []
+    offset = 0
+    for raw_line in ctx.surface_text.split("\n"):
+        line = raw_line[:-1] if raw_line.endswith("\r") else raw_line
+        m = _HEADING_RE.match(line)
+        if m:
+            headings.append(
+                {
+                    "nivel": len(m.group(1)),
+                    "texto": (m.group(2) or "").strip(),
+                    "offset": offset,
+                }
+            )
+        offset += len(raw_line) + 1
+    return headings
+
+
+def _is_eligible_word(word):
+    if word.isupper() and len(word) > 1:
+        return False  # sigla o acrónimo: nunca cuenta como Title Case
+    return word.lower() not in _PALABRAS_FUNCIONALES
+
+
+def _title_case_ratio(heading_text):
+    """Proporción de palabras con mayúscula no inicial sobre las palabras
+    elegibles (se excluyen la primera palabra del encabezado, las palabras
+    funcionales y las siglas/acrónimos en mayúsculas). Es solo un dato
+    (razón entre 0 y 1); este script no aplica ningún corte.
+
+    Limitación conocida: no se excluyen nombres propios ni marcas
+    (detectarlos exigiría un diccionario o NER, fuera del alcance de un
+    escáner determinista basado en expresiones regulares); el propio
+    modelo debe descartarlos al revisar cada hallazgo.
+    """
+    palabras = _PALABRA_RE.findall(heading_text)
+    if len(palabras) <= 1:
+        return {"elegibles": 0, "con_mayuscula_no_inicial": 0, "ratio": 0.0}
+    resto = palabras[1:]
+    elegibles = [w for w in resto if _is_eligible_word(w)]
+    con_mayuscula = [w for w in elegibles if w[:1].isupper()]
+    ratio = round(len(con_mayuscula) / len(elegibles), 3) if elegibles else 0.0
+    return {
+        "elegibles": len(elegibles),
+        "con_mayuscula_no_inicial": len(con_mayuscula),
+        "ratio": ratio,
+    }
+
+
+def analyze_encabezados(ctx):
+    headings = _iter_headings(ctx)
+    hallazgos = []
+    resumen = {
+        "total": len(headings),
+        "vacios": 0,
+        "preguntas": 0,
+        "saltos_de_nivel": 0,
+        "secciones_sin_separador": 0,
+    }
+    anterior = None
+    for h in headings:
+        line_no, column = _line_col(ctx.line_starts, h["offset"])
+        vacio = h["texto"] == ""
+        es_pregunta = h["texto"].endswith("?")
+        salto = anterior is not None and h["nivel"] > anterior["nivel"] + 1
+        entrada = {
+            "nivel": h["nivel"],
+            "texto": h["texto"],
+            "linea": line_no,
+            "columna": column,
+            "vacio": vacio,
+            "es_pregunta": es_pregunta,
+            "title_case": _title_case_ratio(h["texto"]),
+            "salto_de_nivel": salto,
+        }
+        hallazgos.append(entrada)
+        if vacio:
+            resumen["vacios"] += 1
+        if es_pregunta:
+            resumen["preguntas"] += 1
+        if salto:
+            resumen["saltos_de_nivel"] += 1
+        if anterior is not None:
+            entre = ctx.surface_text[anterior["offset"]:h["offset"]]
+            if not _HR_RE.search(entre):
+                resumen["secciones_sin_separador"] += 1
+        anterior = h
+    return {"hallazgos": hallazgos, "resumen": resumen}
+
+
+# ---------------------------------------------------------------------------
+# Analizador: rayas (—). Clasifica diálogo, inciso cerrado, raya a la
+# inglesa y raya en encabezado; ignora guion y semirraya en intervalos
+# numéricos porque solo busca el carácter — (U+2014), nunca "-" ni "–".
+# ---------------------------------------------------------------------------
+
+_EM_DASH = "—"
+
+
+def _dash_word_adjacency(linea, idx):
+    """Si la raya está pegada (sin separación) a una palabra antes/después.
+
+    Se usa "es carácter de palabra", no "es un espacio", porque una raya de
+    cierre española correcta puede ir seguida de una coma o un punto sin
+    espacio (``—dijo—, entonces…``) y eso es normativo, no un calco inglés.
+    """
+    antes = linea[idx - 1] if idx > 0 else None
+    despues = linea[idx + 1] if idx + 1 < len(linea) else None
+    sin_palabra_antes = antes is None or not _is_word_char(antes)
+    sin_palabra_despues = despues is None or not _is_word_char(despues)
+    return sin_palabra_antes, sin_palabra_despues
+
+
+def _raya_inglesa_subtipo(d):
+    if not d["sin_palabra_antes"] and not d["sin_palabra_despues"]:
+        return "pegada"
+    if d["sin_palabra_antes"] and d["sin_palabra_despues"]:
+        return "espaciada"
+    return "conector_universal"
+
+
+def analyze_rayas(ctx):
+    heading_lines = {
+        _line_col(ctx.line_starts, h["offset"])[0] for h in _iter_headings(ctx)
+    }
+    text = ctx.surface_text
+    hallazgos = []
+    for p_start, p_end in ctx.surface_paragraphs:
+        pendientes = []
+        line_no_inicio, _col = _line_col(ctx.line_starts, p_start)
+        for offset_en_parrafo, linea in enumerate(text[p_start:p_end].split("\n")):
+            line_no = line_no_inicio + offset_en_parrafo
+            if line_no in heading_lines:
+                for idx, ch in enumerate(linea):
+                    if ch == _EM_DASH:
+                        hallazgos.append(
+                            {"tipo": "en_encabezado", "linea": line_no, "columna": idx + 1}
+                        )
+                continue
+            for idx, ch in enumerate(linea):
+                if ch != _EM_DASH:
+                    continue
+                columna = idx + 1
+                if linea[:idx].strip() == "":
+                    hallazgos.append({"tipo": "dialogo", "linea": line_no, "columna": columna})
+                    continue
+                sin_antes, sin_despues = _dash_word_adjacency(linea, idx)
+                pendientes.append(
+                    {
+                        "linea": line_no,
+                        "columna": columna,
+                        "sin_palabra_antes": sin_antes,
+                        "sin_palabra_despues": sin_despues,
+                    }
+                )
+        i = 0
+        while i < len(pendientes):
+            if i + 1 < len(pendientes):
+                d1, d2 = pendientes[i], pendientes[i + 1]
+                apertura_ok = d1["sin_palabra_antes"] and not d1["sin_palabra_despues"]
+                cierre_ok = not d2["sin_palabra_antes"] and d2["sin_palabra_despues"]
+                if apertura_ok and cierre_ok:
+                    hallazgos.append({"tipo": "inciso_cerrado", "linea": d1["linea"], "columna": d1["columna"]})
+                    hallazgos.append({"tipo": "inciso_cerrado", "linea": d2["linea"], "columna": d2["columna"]})
+                else:
+                    for d in (d1, d2):
+                        hallazgos.append(
+                            {
+                                "tipo": "raya_inglesa",
+                                "subtipo": _raya_inglesa_subtipo(d),
+                                "linea": d["linea"],
+                                "columna": d["columna"],
+                            }
+                        )
+                i += 2
+            else:
+                d = pendientes[i]
+                hallazgos.append(
+                    {
+                        "tipo": "raya_inglesa",
+                        "subtipo": "sin_cierre",
+                        "linea": d["linea"],
+                        "columna": d["columna"],
+                    }
+                )
+                i += 1
+
+    hallazgos.sort(key=lambda h: (h["linea"], h["columna"]))
+    conteo = {}
+    for tipo in ("dialogo", "inciso_cerrado", "raya_inglesa", "en_encabezado"):
+        n = sum(1 for h in hallazgos if h["tipo"] == tipo)
+        conteo[tipo] = {
+            "ocurrencias": n,
+            "por_mil_palabras": round(n / ctx.total_words * 1000, 3) if ctx.total_words else 0.0,
+        }
+    return {"hallazgos": hallazgos, "conteo": conteo}
+
+
+# ---------------------------------------------------------------------------
+# Analizador: comillas. Mezcla de tipos en el mismo nivel de anidamiento y
+# anidamiento invertido (el orden español es « " ' ' " »). Usa
+# ``surface_text`` (comillas sin enmascarar), no ``masked_text``.
+# ---------------------------------------------------------------------------
+
+_QUOTE_TYPES = (
+    ("angular", re.compile(r"«[^»]*»")),
+    ("curly_doble", re.compile(r"“[^”]*”")),
+    ("recta_doble", re.compile(r'"[^"]*"')),
+    ("curly_simple", re.compile(r"‘[^’]*’")),
+)
+_QUOTE_RANK = {"angular": 1, "curly_doble": 2, "recta_doble": 2, "curly_simple": 3}
+_QUOTE_LABEL = {"angular": "«»", "curly_doble": "“”", "recta_doble": '""', "curly_simple": "‘’"}
+
+
+def _find_quote_spans(ctx):
+    spans = []
+    for p_start, p_end in ctx.surface_paragraphs:
+        sub = ctx.surface_text[p_start:p_end]
+        for tipo, pattern in _QUOTE_TYPES:
+            for m in pattern.finditer(sub):
+                spans.append({"tipo": tipo, "inicio": p_start + m.start(), "fin": p_start + m.end()})
+
+    for span in spans:
+        nivel = 1
+        padre = None
+        for otro in spans:
+            if otro is span:
+                continue
+            contiene = otro["inicio"] <= span["inicio"] and span["fin"] <= otro["fin"]
+            si_estricto = otro["inicio"] < span["inicio"] or span["fin"] < otro["fin"]
+            if contiene and si_estricto:
+                nivel += 1
+                if padre is None or (otro["fin"] - otro["inicio"]) < (padre["fin"] - padre["inicio"]):
+                    padre = otro
+        span["nivel"] = nivel
+        span["padre"] = padre
+    return spans
+
+
+def _quotes_mixing(ctx, spans):
+    por_nivel = {}
+    for s in spans:
+        por_nivel.setdefault(s["nivel"], {}).setdefault(s["tipo"], []).append(s)
+    hallazgos = []
+    for nivel in sorted(por_nivel):
+        tipos_presentes = por_nivel[nivel]
+        if len(tipos_presentes) <= 1:
+            continue
+        ubicaciones = []
+        for tipo, items in tipos_presentes.items():
+            for it in items:
+                line_no, col = _line_col(ctx.line_starts, it["inicio"])
+                ubicaciones.append({"tipo": _QUOTE_LABEL[tipo], "linea": line_no, "columna": col})
+        ubicaciones.sort(key=lambda u: (u["linea"], u["columna"]))
+        hallazgos.append(
+            {
+                "nivel": nivel,
+                "tipos": sorted(_QUOTE_LABEL[t] for t in tipos_presentes),
+                "ubicaciones": ubicaciones,
+            }
+        )
+    return hallazgos
+
+
+def _quotes_inverted(ctx, spans):
+    hallazgos = []
+    for s in spans:
+        padre = s["padre"]
+        if padre is None:
+            continue
+        if _QUOTE_RANK[s["tipo"]] < _QUOTE_RANK[padre["tipo"]]:
+            line_no, col = _line_col(ctx.line_starts, s["inicio"])
+            p_line, p_col = _line_col(ctx.line_starts, padre["inicio"])
+            hallazgos.append(
+                {
+                    "tipo_interior": _QUOTE_LABEL[s["tipo"]],
+                    "tipo_exterior": _QUOTE_LABEL[padre["tipo"]],
+                    "linea": line_no,
+                    "columna": col,
+                    "linea_exterior": p_line,
+                    "columna_exterior": p_col,
+                }
+            )
+    hallazgos.sort(key=lambda h: (h["linea"], h["columna"]))
+    return hallazgos
+
+
+def analyze_comillas(ctx):
+    spans = _find_quote_spans(ctx)
+    return {
+        "mezcla_de_tipos": _quotes_mixing(ctx, spans),
+        "anidamiento_invertido": _quotes_inverted(ctx, spans),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Analizador: tipografía. ¿/¡ sin su apertura, mayúscula tras dos puntos en
+# prosa corrida y exclamaciones por mil palabras. Usa ``surface_text``.
+# ---------------------------------------------------------------------------
+
+
+def _tipografia_signos(ctx):
+    hallazgos = []
+    for p_start, p_end in ctx.surface_paragraphs:
+        sub = ctx.surface_text[p_start:p_end]
+        abre_interrogacion = False
+        abre_exclamacion = False
+        for i, ch in enumerate(sub):
+            if ch == "¿":
+                abre_interrogacion = True
+            elif ch == "¡":
+                abre_exclamacion = True
+            elif ch == "?":
+                if abre_interrogacion:
+                    abre_interrogacion = False
+                else:
+                    line_no, col = _line_col(ctx.line_starts, p_start + i)
+                    hallazgos.append({"signo": "?", "linea": line_no, "columna": col})
+            elif ch == "!":
+                if abre_exclamacion:
+                    abre_exclamacion = False
+                else:
+                    line_no, col = _line_col(ctx.line_starts, p_start + i)
+                    hallazgos.append({"signo": "!", "linea": line_no, "columna": col})
+            elif ch == ".":
+                abre_interrogacion = False
+                abre_exclamacion = False
+    hallazgos.sort(key=lambda h: (h["linea"], h["columna"]))
+    return hallazgos
+
+
+def _tipografia_mayuscula_tras_dos_puntos(ctx):
+    """Mayúscula tras dos puntos en prosa corrida.
+
+    Salvaguardas (auditoria.md, P57): no se informa si los dos puntos
+    introducen una cita textual (les sigue directamente una comilla de
+    apertura) ni si introducen un elemento de lista o un bloque en la línea
+    siguiente (hay un salto de línea entre los dos puntos y el siguiente
+    carácter no en blanco).
+    """
+    text = ctx.surface_text
+    hallazgos = []
+    for m in re.finditer(":", text):
+        idx = m.start()
+        j = idx + 1
+        while j < len(text) and text[j] in (" ", "\t"):
+            j += 1
+        if j >= len(text):
+            continue
+        siguiente = text[j]
+        if siguiente in "«\"“'":
+            continue
+        if "\n" in text[idx + 1 : j]:
+            continue
+        if siguiente.isalpha() and siguiente.isupper():
+            line_no, col = _line_col(ctx.line_starts, j)
+            hallazgos.append({"linea": line_no, "columna": col})
+    hallazgos.sort(key=lambda h: (h["linea"], h["columna"]))
+    return hallazgos
+
+
+def analyze_tipografia(ctx):
+    total_excl = ctx.surface_text.count("!")
+    por_mil = round(total_excl / ctx.total_words * 1000, 3) if ctx.total_words else 0.0
+    return {
+        "signos_sin_apertura": _tipografia_signos(ctx),
+        "mayuscula_tras_dos_puntos": _tipografia_mayuscula_tras_dos_puntos(ctx),
+        "exclamaciones": {"ocurrencias": total_excl, "por_mil_palabras": por_mil},
+    }
+
+
+# ---------------------------------------------------------------------------
+# Registro de analizadores (T4-T5 añaden aquí sin tocar lo anterior)
 # ---------------------------------------------------------------------------
 
 ANALYZERS = (
     ("entrada", analyze_entrada),
     ("enmascarado", analyze_enmascarado),
     ("vocabulario", analyze_vocabulario),
+    ("rayas", analyze_rayas),
+    ("comillas", analyze_comillas),
+    ("encabezados", analyze_encabezados),
+    ("tipografia", analyze_tipografia),
 )
 
 

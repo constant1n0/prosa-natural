@@ -465,7 +465,17 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(result.returncode, 0)
         data = json.loads(result.stdout)
         self.assertEqual(
-            set(data.keys()), {"version", "entrada", "enmascarado", "vocabulario"}
+            set(data.keys()),
+            {
+                "version",
+                "entrada",
+                "enmascarado",
+                "vocabulario",
+                "rayas",
+                "comillas",
+                "encabezados",
+                "tipografia",
+            },
         )
         self.assertEqual(set(data["entrada"].keys()), {"lineas", "palabras", "parrafos"})
         self.assertIn("hallazgos", data["vocabulario"])
@@ -553,6 +563,256 @@ class TestStaticImports(unittest.TestCase):
                     found.add(node.module.split(".")[0])
         offending = found & self.FORBIDDEN
         self.assertEqual(offending, set())
+
+
+# ---------------------------------------------------------------------------
+# T3, parte B: detectores de forma (rayas, comillas, encabezados, tipografía)
+# ---------------------------------------------------------------------------
+
+
+class TestRayas(unittest.TestCase):
+    def setUp(self):
+        self.module = load_module()
+        self.entries = []  # estos tests no necesitan vocabulario
+
+    def _rayas(self, text):
+        report = self.module.build_report(text, self.entries)
+        return report["rayas"]
+
+    def test_dialogue_dash_at_line_start(self):
+        text = "—Buenos días, ¿ya llegó el pedido?\n"
+        rayas = self._rayas(text)
+        tipos = [h["tipo"] for h in rayas["hallazgos"]]
+        self.assertEqual(tipos, ["dialogo"])
+        self.assertEqual(rayas["conteo"]["dialogo"]["ocurrencias"], 1)
+
+    def test_closed_inciso_pair_within_paragraph(self):
+        text = "El pedido —según nos dijo Marta— llegó tarde hoy.\n"
+        rayas = self._rayas(text)
+        tipos = [h["tipo"] for h in rayas["hallazgos"]]
+        self.assertEqual(tipos, ["inciso_cerrado", "inciso_cerrado"])
+        self.assertEqual(rayas["conteo"]["raya_inglesa"]["ocurrencias"], 0)
+
+    def test_closed_inciso_followed_by_comma_is_still_valid(self):
+        text = "—Sí —contestó Luis—, está en el almacén desde ayer.\n"
+        rayas = self._rayas(text)
+        tipos = [h["tipo"] for h in rayas["hallazgos"]]
+        self.assertEqual(tipos, ["dialogo", "inciso_cerrado", "inciso_cerrado"])
+
+    def test_english_style_glued_dash(self):
+        text = "El gato—cansado—corrió por el jardín.\n"
+        rayas = self._rayas(text)
+        subtipos = [h.get("subtipo") for h in rayas["hallazgos"]]
+        self.assertEqual(rayas["conteo"]["raya_inglesa"]["ocurrencias"], 2)
+        self.assertTrue(all(s == "pegada" for s in subtipos))
+
+    def test_english_style_spaced_dash_without_closing(self):
+        text = "Fue un buen día — al menos eso pensaba Marta.\n"
+        rayas = self._rayas(text)
+        self.assertEqual(len(rayas["hallazgos"]), 1)
+        self.assertEqual(rayas["hallazgos"][0]["tipo"], "raya_inglesa")
+        self.assertEqual(rayas["hallazgos"][0]["subtipo"], "sin_cierre")
+
+    def test_dash_in_heading_is_classified_separately(self):
+        text = "# Un título — con raya\n\nTexto normal sin rayas.\n"
+        rayas = self._rayas(text)
+        self.assertEqual(len(rayas["hallazgos"]), 1)
+        self.assertEqual(rayas["hallazgos"][0]["tipo"], "en_encabezado")
+
+    def test_numeric_ranges_are_never_reported_as_rayas(self):
+        text = "El horario es de 10-20 y también de 10–20 horas.\n"
+        rayas = self._rayas(text)
+        self.assertEqual(rayas["hallazgos"], [])
+
+
+class TestComillas(unittest.TestCase):
+    def setUp(self):
+        self.module = load_module()
+        self.entries = []
+
+    def _comillas(self, text):
+        report = self.module.build_report(text, self.entries)
+        return report["comillas"]
+
+    def test_mixing_of_types_at_level_one(self):
+        text = 'Ella dijo «hola» y luego dijo "adiós" al salir.\n'
+        comillas = self._comillas(text)
+        self.assertEqual(len(comillas["mezcla_de_tipos"]), 1)
+        self.assertEqual(comillas["mezcla_de_tipos"][0]["nivel"], 1)
+        self.assertEqual(comillas["anidamiento_invertido"], [])
+
+    def test_inverted_nesting(self):
+        text = "Dijo: “Recuerda «esto es importante» siempre.”\n"
+        comillas = self._comillas(text)
+        self.assertEqual(len(comillas["anidamiento_invertido"]), 1)
+        hallazgo = comillas["anidamiento_invertido"][0]
+        self.assertEqual(hallazgo["tipo_interior"], "«»")
+        self.assertEqual(hallazgo["tipo_exterior"], "“”")
+
+    def test_angular_alone_is_never_a_finding(self):
+        text = "Ella dijo «hola» y se fue.\n\nDespués volvió y dijo «adiós».\n"
+        comillas = self._comillas(text)
+        self.assertEqual(comillas["mezcla_de_tipos"], [])
+        self.assertEqual(comillas["anidamiento_invertido"], [])
+
+    def test_straight_quotes_alone_are_never_a_finding(self):
+        text = 'Ella dijo "hola" y se fue.\n\nDespués volvió y dijo "adiós".\n'
+        comillas = self._comillas(text)
+        self.assertEqual(comillas["mezcla_de_tipos"], [])
+        self.assertEqual(comillas["anidamiento_invertido"], [])
+
+    def test_correct_nesting_of_angular_and_curly_is_not_inverted(self):
+        text = "Dijo: «Recuerda “esto es importante” siempre.»\n"
+        comillas = self._comillas(text)
+        self.assertEqual(comillas["anidamiento_invertido"], [])
+
+
+class TestEncabezados(unittest.TestCase):
+    def setUp(self):
+        self.module = load_module()
+        self.entries = []
+
+    def _encabezados(self, text):
+        report = self.module.build_report(text, self.entries)
+        return report["encabezados"]
+
+    def test_title_case_ratio_detects_capitalized_words(self):
+        text = "## Un Ejemplo Con Muchas Palabras\n\nTexto normal.\n"
+        encabezados = self._encabezados(text)
+        title_case = encabezados["hallazgos"][0]["title_case"]
+        self.assertGreater(title_case["ratio"], 0.5)
+
+    def test_sentence_case_heading_has_zero_ratio(self):
+        text = "## Un ejemplo con muchas palabras\n\nTexto normal.\n"
+        encabezados = self._encabezados(text)
+        title_case = encabezados["hallazgos"][0]["title_case"]
+        self.assertEqual(title_case["ratio"], 0.0)
+
+    def test_heading_phrased_as_question(self):
+        text = "## ¿Cómo funciona esto?\n\nTexto normal.\n"
+        encabezados = self._encabezados(text)
+        self.assertTrue(encabezados["hallazgos"][0]["es_pregunta"])
+        self.assertEqual(encabezados["resumen"]["preguntas"], 1)
+
+    def test_level_jump_detected(self):
+        text = "# Título\n\n### Subtítulo saltado\n\nTexto.\n"
+        encabezados = self._encabezados(text)
+        self.assertFalse(encabezados["hallazgos"][0]["salto_de_nivel"])
+        self.assertTrue(encabezados["hallazgos"][1]["salto_de_nivel"])
+        self.assertEqual(encabezados["resumen"]["saltos_de_nivel"], 1)
+
+    def test_empty_heading_detected(self):
+        text = "##\n\nTexto.\n"
+        encabezados = self._encabezados(text)
+        self.assertTrue(encabezados["hallazgos"][0]["vacio"])
+        self.assertEqual(encabezados["resumen"]["vacios"], 1)
+
+    def test_missing_separator_between_sections(self):
+        text = "# Primera\n\nTexto de la primera sección.\n\n# Segunda\n\nMás texto.\n"
+        encabezados = self._encabezados(text)
+        self.assertEqual(encabezados["resumen"]["secciones_sin_separador"], 1)
+
+    def test_separator_present_between_sections(self):
+        text = "# Primera\n\nTexto de la primera sección.\n\n---\n\n# Segunda\n\nMás texto.\n"
+        encabezados = self._encabezados(text)
+        self.assertEqual(encabezados["resumen"]["secciones_sin_separador"], 0)
+
+
+class TestTipografia(unittest.TestCase):
+    def setUp(self):
+        self.module = load_module()
+        self.entries = []
+
+    def _tipografia(self, text):
+        report = self.module.build_report(text, self.entries)
+        return report["tipografia"]
+
+    def test_closing_question_mark_without_opening(self):
+        text = "No sabemos si vendrá a la fiesta mañana?\n"
+        tipografia = self._tipografia(text)
+        signos = tipografia["signos_sin_apertura"]
+        self.assertEqual(len(signos), 1)
+        self.assertEqual(signos[0]["signo"], "?")
+
+    def test_closing_exclamation_without_opening(self):
+        text = "Menudo día llevamos hoy!\n"
+        tipografia = self._tipografia(text)
+        signos = tipografia["signos_sin_apertura"]
+        self.assertEqual(len(signos), 1)
+        self.assertEqual(signos[0]["signo"], "!")
+
+    def test_capital_after_colon_in_running_text(self):
+        text = "El problema era claro: Necesitábamos más tiempo para todo.\n"
+        tipografia = self._tipografia(text)
+        self.assertEqual(len(tipografia["mayuscula_tras_dos_puntos"]), 1)
+
+    def test_capital_after_colon_introducing_quote_is_safe(self):
+        text = "Ella explicó: «Necesitábamos más tiempo».\n"
+        tipografia = self._tipografia(text)
+        self.assertEqual(tipografia["mayuscula_tras_dos_puntos"], [])
+
+    def test_capital_after_colon_introducing_list_is_safe(self):
+        text = "Los pasos son los siguientes:\n- Primero\n- Segundo\n"
+        tipografia = self._tipografia(text)
+        self.assertEqual(tipografia["mayuscula_tras_dos_puntos"], [])
+
+    def test_exclamations_per_thousand_words(self):
+        text = "Hola. " * 998 + "Qué bien! Qué suerte!\n"
+        tipografia = self._tipografia(text)
+        self.assertEqual(tipografia["exclamaciones"]["ocurrencias"], 2)
+        self.assertGreater(tipografia["exclamaciones"]["por_mil_palabras"], 0)
+
+
+CONTROL_PROSA_FORMA = (
+    "# Un día cualquiera en la tienda\n"
+    "\n"
+    "Marta llegó temprano y dijo:\n"
+    "\n"
+    "—Buenos días, ¿ya llegó el pedido de Ferretería Robledo?\n"
+    "\n"
+    "—Sí —contestó Luis—, está en el almacén desde ayer.\n"
+    "\n"
+    "Antes de irse añadió: «Recuerda que el cliente pidió "
+    "“el modelo pequeño” para la reforma», y salió con la furgoneta.\n"
+    "\n"
+    "## Qué se hizo por la tarde\n"
+    "\n"
+    "Por la tarde repartieron tres cajas y volvieron antes de las seis. "
+    "¡Menudo día! Nadie preguntó nada más.\n"
+)
+
+
+class TestFormSafeguards(unittest.TestCase):
+    """Prosa de control en español de España, propia y con marcas/nombres
+    ficticios: usa raya de diálogo, inciso cerrado con rayas, «» con “”
+    anidadas en el orden correcto, encabezados en minúscula sentence-case y
+    ¿…?/¡…! bien emparejados. Ninguno de los cuatro detectores de forma debe
+    dar un hallazgo bloqueante sobre este texto.
+    """
+
+    def setUp(self):
+        self.module = load_module()
+        self.report = self.module.build_report(CONTROL_PROSA_FORMA, [])
+
+    def test_no_english_style_dash_findings(self):
+        rayas = self.report["rayas"]
+        self.assertEqual(rayas["conteo"]["raya_inglesa"]["ocurrencias"], 0)
+
+    def test_no_quote_mixing_or_inversion_findings(self):
+        comillas = self.report["comillas"]
+        self.assertEqual(comillas["mezcla_de_tipos"], [])
+        self.assertEqual(comillas["anidamiento_invertido"], [])
+
+    def test_sentence_case_headings_yield_zero_ratio_and_no_jumps(self):
+        encabezados = self.report["encabezados"]
+        for h in encabezados["hallazgos"]:
+            self.assertEqual(h["title_case"]["ratio"], 0.0)
+            self.assertFalse(h["salto_de_nivel"])
+            self.assertFalse(h["vacio"])
+
+    def test_no_missing_opening_marks(self):
+        tipografia = self.report["tipografia"]
+        self.assertEqual(tipografia["signos_sin_apertura"], [])
 
 
 if __name__ == "__main__":
