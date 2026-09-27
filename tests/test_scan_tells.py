@@ -475,6 +475,9 @@ class TestCLI(unittest.TestCase):
                 "comillas",
                 "encabezados",
                 "tipografia",
+                "estructuras",
+                "deterministas",
+                "registro",
             },
         )
         self.assertEqual(set(data["entrada"].keys()), {"lineas", "palabras", "parrafos"})
@@ -925,6 +928,256 @@ class TestPerformance(unittest.TestCase):
         suelto = [h for h in hallazgos if h["expresion"] == "fundamental"]
         self.assertEqual(len(colocacion), 1)
         self.assertEqual(len(suelto), 0)
+
+
+class TestEstructuras(unittest.TestCase):
+    """T4 parte B: regex de estructura sobre ``masked_text``. Solo datos: sin
+    umbral, sin veredicto, sin reescritura."""
+
+    def setUp(self):
+        self.module = load_module()
+        self.entries = []
+
+    def _estructuras(self, text):
+        report = self.module.build_report(text, self.entries)
+        return report["estructuras"]
+
+    def test_no_solo_sino_is_reported_as_data(self):
+        text = "El proyecto no solo cumplió el plazo, sino que además redujo costes.\n"
+        estructuras = self._estructuras(text)
+        self.assertEqual(len(estructuras["no_solo_sino"]), 1)
+
+    def test_no_solo_sino_inside_code_block_is_masked(self):
+        text = "```python\n# no solo esto, sino aquello también\n```\n\nTexto normal.\n"
+        estructuras = self._estructuras(text)
+        self.assertEqual(estructuras["no_solo_sino"], [])
+
+    def test_no_se_trata_de_sino(self):
+        text = "No se trata de vender más, sino de fidelizar a quien ya compra.\n"
+        estructuras = self._estructuras(text)
+        self.assertEqual(len(estructuras["no_se_trata_de"]), 1)
+
+    def test_no_es_es_contrast(self):
+        text = "Esto no es un lujo, es una necesidad para cualquier taller.\n"
+        estructuras = self._estructuras(text)
+        self.assertEqual(len(estructuras["no_es_es"]), 1)
+
+    def test_tanto_si_como_si(self):
+        text = "Tanto si llueve como si hace sol, la furgoneta sale a repartir.\n"
+        estructuras = self._estructuras(text)
+        self.assertEqual(len(estructuras["tanto_si_como_si"]), 1)
+
+    def test_ya_seas_o(self):
+        text = "Ya seas cliente nuevo o de toda la vida, el precio es el mismo.\n"
+        estructuras = self._estructuras(text)
+        self.assertEqual(len(estructuras["ya_seas_o"]), 1)
+
+    def test_enumeracion_mecanica_en_secuencia(self):
+        text = (
+            "En primer lugar, revisamos el pedido.\n\n"
+            "En segundo lugar, lo empaquetamos.\n\n"
+            "Por último, lo enviamos a Ferretería Robledo.\n"
+        )
+        estructuras = self._estructuras(text)
+        self.assertEqual(len(estructuras["enumeracion_mecanica"]), 1)
+        marcadores = [m.lower() for m in estructuras["enumeracion_mecanica"][0]["marcadores"]]
+        self.assertEqual(
+            marcadores, ["en primer lugar", "en segundo lugar", "por último"]
+        )
+
+    def test_enumeracion_sin_secuencia_completa_no_se_reporta(self):
+        text = "En primer lugar, revisamos el pedido y lo enviamos hoy mismo.\n"
+        estructuras = self._estructuras(text)
+        self.assertEqual(estructuras["enumeracion_mecanica"], [])
+
+    def test_conectores_al_inicio_de_parrafo_se_cuentan_por_conector(self):
+        text = (
+            "Además, el pedido llegó a tiempo.\n\n"
+            "Además, nadie se quejó del retraso anterior.\n\n"
+            "Asimismo, el cliente renovó el contrato.\n"
+        )
+        estructuras = self._estructuras(text)
+        conectores = estructuras["conectores_parrafo"]
+        self.assertEqual(conectores["además"]["ocurrencias"], 2)
+        self.assertEqual(conectores["asimismo"]["ocurrencias"], 1)
+        self.assertEqual(conectores["por otro lado"]["ocurrencias"], 0)
+
+    def test_triada_de_ingredientes_reales_se_reporta_como_probable(self):
+        # Salvaguarda (auditoria.md P06): una lista real de tres elementos
+        # (aquí, ingredientes) no puede distinguirse por regex de una tríada
+        # de adjetivos forzada; se reporta igual, siempre como "probable",
+        # sin ninguna etiqueta más fuerte.
+        text = "La fórmula lleva agua, glicerina y aloe en su composición habitual.\n"
+        estructuras = self._estructuras(text)
+        triadas = estructuras["triadas_adjetivos"]
+        self.assertEqual(len(triadas), 1)
+        self.assertEqual(triadas[0]["certeza"], "probable")
+
+    def test_triada_con_epiteto_antepuesto(self):
+        text = "Ofrecemos una increíble experiencia única, natural y eficaz.\n"
+        estructuras = self._estructuras(text)
+        triadas = estructuras["triadas_adjetivos"]
+        self.assertEqual(len(triadas), 1)
+        self.assertEqual(triadas[0]["certeza"], "probable")
+
+    def test_no_estructuras_findings_have_a_verdict_field(self):
+        text = (
+            "El proyecto no solo cumplió el plazo, sino que además redujo costes. "
+            "La fórmula lleva agua, glicerina y aloe.\n"
+        )
+        estructuras = self._estructuras(text)
+        for lista in (
+            estructuras["no_solo_sino"],
+            estructuras["triadas_adjetivos"],
+        ):
+            for hallazgo in lista:
+                self.assertNotIn("veredicto", hallazgo)
+                self.assertNotIn("probabilidad_ia", hallazgo)
+
+
+class TestDeterministas(unittest.TestCase):
+    """T4 parte B: marcas deterministas fuera de bloques de código y
+    frontmatter."""
+
+    def setUp(self):
+        self.module = load_module()
+        self.entries = []
+
+    def _deterministas(self, text):
+        report = self.module.build_report(text, self.entries)
+        return report["deterministas"]
+
+    def test_clean_spain_spanish_prose_yields_no_findings(self):
+        text = (
+            "Marta llegó a la oficina de Ferretería Robledo a las nueve. "
+            "Revisó el correo y contestó dos llamadas de proveedores.\n"
+        )
+        deterministas = self._deterministas(text)
+        self.assertEqual(deterministas["marcado_filtrado"], [])
+        self.assertEqual(deterministas["utm_ia"], [])
+        self.assertEqual(deterministas["marcadores_de_posicion"], [])
+        self.assertEqual(deterministas["invisibles"], [])
+        self.assertEqual(deterministas["homoglifos"], [])
+
+    def test_oaicite_marker_is_detected(self):
+        text = "Esto es un dato citado :contentReference[oaicite:0]{index=0} en el texto.\n"
+        deterministas = self._deterministas(text)
+        tipos = [h["tipo"] for h in deterministas["marcado_filtrado"]]
+        self.assertIn("oaicite", tipos)
+        self.assertIn("content_reference", tipos)
+
+    def test_turn_search_token_is_detected(self):
+        text = "Un dato de referencia turn0search3 apareció en el texto pegado.\n"
+        deterministas = self._deterministas(text)
+        tipos = [h["tipo"] for h in deterministas["marcado_filtrado"]]
+        self.assertIn("turn_search_token", tipos)
+
+    def test_bracket_dagger_citation_is_detected(self):
+        text = "Un dato con cita filtrada 【3†fuente】 en medio de la frase.\n"
+        deterministas = self._deterministas(text)
+        tipos = [h["tipo"] for h in deterministas["marcado_filtrado"]]
+        self.assertIn("cita_corchete_angular", tipos)
+
+    def test_marcado_filtrado_inside_code_block_is_masked(self):
+        text = "```text\noaicite turn0search1 【3†fuente】 contentReference\n```\n\nTexto normal.\n"
+        deterministas = self._deterministas(text)
+        self.assertEqual(deterministas["marcado_filtrado"], [])
+
+    def test_ai_utm_source_is_flagged_as_notice(self):
+        text = "Visita https://ejemplo-tienda.example.com/oferta?utm_source=chatgpt.com para más.\n"
+        deterministas = self._deterministas(text)
+        self.assertEqual(len(deterministas["utm_ia"]), 1)
+        self.assertEqual(deterministas["utm_ia"][0]["utm_source"], "chatgpt.com")
+
+    def test_ordinary_utm_source_is_not_flagged(self):
+        text = "Visita https://ejemplo-tienda.example.com/oferta?utm_source=newsletter para más.\n"
+        deterministas = self._deterministas(text)
+        self.assertEqual(deterministas["utm_ia"], [])
+
+    def test_placeholder_bracket_is_detected(self):
+        text = "Estimado [Nombre], le escribimos desde Ferretería Robledo.\n"
+        deterministas = self._deterministas(text)
+        self.assertEqual(len(deterministas["marcadores_de_posicion"]), 1)
+
+    def test_double_brace_placeholder_is_detected(self):
+        text = "Hola {{nombre_cliente}}, aquí tienes tu pedido.\n"
+        deterministas = self._deterministas(text)
+        self.assertEqual(len(deterministas["marcadores_de_posicion"]), 1)
+
+    def test_lorem_ipsum_placeholder_is_detected(self):
+        text = "Lorem ipsum dolor sit amet, texto de relleno sin terminar.\n"
+        deterministas = self._deterministas(text)
+        self.assertEqual(len(deterministas["marcadores_de_posicion"]), 1)
+
+    def test_invisible_character_is_reported_by_codepoint_name(self):
+        text = "Esto tiene un​espacio invisible en medio de la frase.\n"
+        deterministas = self._deterministas(text)
+        self.assertEqual(len(deterministas["invisibles"]), 1)
+        self.assertEqual(deterministas["invisibles"][0]["codepoint"], "U+200B")
+        self.assertNotIn("​", json.dumps(deterministas["invisibles"]))
+
+    def test_bom_at_very_start_of_text_is_not_flagged(self):
+        text = "﻿Texto normal que empieza con marca de orden de bytes.\n"
+        deterministas = self._deterministas(text)
+        self.assertEqual(deterministas["invisibles"], [])
+
+    def test_nbsp_and_narrow_nbsp_are_never_flagged(self):
+        text = "Son las 9 h en punto y cuestan 10 € el kilo.\n"
+        deterministas = self._deterministas(text)
+        self.assertEqual(deterministas["invisibles"], [])
+
+    def test_homoglyph_cyrillic_letter_in_latin_word_is_detected(self):
+        # La "а" de "аpple" es cirílica (U+0430), no latina.
+        text = "Escribió аpple en vez de apple por error de teclado.\n"
+        deterministas = self._deterministas(text)
+        self.assertEqual(len(deterministas["homoglifos"]), 1)
+        self.assertIn("latin", deterministas["homoglifos"][0]["escrituras"])
+        self.assertIn("cirilico", deterministas["homoglifos"][0]["escrituras"])
+
+
+class TestRegistro(unittest.TestCase):
+    """T4 parte B: recuento de tú/usted, vosotros/ustedes y léxico
+    americano. Solo aviso, nunca corrección."""
+
+    def setUp(self):
+        self.module = load_module()
+        self.entries = []
+
+    def _registro(self, text):
+        report = self.module.build_report(text, self.entries)
+        return report["registro"]
+
+    def test_tuteo_is_counted(self):
+        text = "Tú ya sabes que tu pedido llegará mañana, te lo confirmo hoy.\n"
+        registro = self._registro(text)
+        self.assertGreater(registro["tuteo"]["ocurrencias"], 0)
+        self.assertEqual(registro["usted"]["ocurrencias"], 0)
+
+    def test_usted_alone_in_spain_text_is_not_labelled_as_error(self):
+        text = "Usted puede recoger su pedido cuando quiera, ustedes ya lo saben.\n"
+        registro = self._registro(text)
+        self.assertGreater(registro["usted"]["ocurrencias"], 0)
+        self.assertGreater(registro["ustedes"]["ocurrencias"], 0)
+        self.assertFalse(registro["mezcla_vosotros_ustedes"])
+        for h in [registro["usted"], registro["ustedes"]]:
+            self.assertNotIn("error", h)
+            self.assertNotIn("veredicto", h)
+
+    def test_vosotros_and_ustedes_coexisting_is_flagged_as_mezcla_data(self):
+        text = "Vosotros ya lo sabéis, y ustedes también lo saben desde ayer.\n"
+        registro = self._registro(text)
+        self.assertTrue(registro["mezcla_vosotros_ustedes"])
+
+    def test_lexico_americano_computadora_is_reported(self):
+        text = "Guardó el archivo en la computadora de la oficina.\n"
+        registro = self._registro(text)
+        expresiones = [h["expresion"] for h in registro["lexico_americano"]]
+        self.assertIn("computadora", expresiones)
+
+    def test_clean_spain_spanish_prose_has_no_lexico_americano(self):
+        text = "Guardó el archivo en el ordenador de la oficina.\n"
+        registro = self._registro(text)
+        self.assertEqual(registro["lexico_americano"], [])
 
 
 if __name__ == "__main__":

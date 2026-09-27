@@ -72,18 +72,31 @@ resolución.
 Claves del informe JSON y qué vista del texto usa cada una
 ------------------------------------------------------------
 ``entrada`` y ``enmascarado`` describen el texto de entrada y el
-enmascarado aplicado. ``vocabulario`` busca sobre el texto con el
-frontmatter, el código, las URL, los ``[[claim]]…[[/claim]]`` Y las citas
-entre comillas enmascarados (para no marcar como propia una palabra que en
-realidad está dentro de una cita textual). ``rayas``, ``comillas``,
+enmascarado aplicado. ``vocabulario`` y ``registro`` buscan sobre el texto
+con el frontmatter, el código, las URL, los ``[[claim]]…[[/claim]]`` Y las
+citas entre comillas enmascarados (para no marcar como propia una palabra
+que en realidad está dentro de una cita textual). ``rayas``, ``comillas``,
 ``encabezados`` y ``tipografia`` son los detectores de forma: buscan sobre
 una vista distinta, con el frontmatter, el código, las URL y los
 ``[[claim]]…[[/claim]]`` enmascarados pero las comillas SIN enmascarar,
 porque necesitan ver los propios caracteres de puntuación (comillas,
-rayas, mayúsculas) para poder analizarlos. Ninguno de los cuatro aplica un
-umbral ni emite un veredicto: solo reportan hechos (tipo, ubicación y,
-donde corresponde, densidad por mil palabras), igual que el resto del
-script.
+rayas, mayúsculas) para poder analizarlos; ``tipografia`` además enmascara
+aparte la sintaxis de imagen Markdown antes de contar exclamaciones.
+Ninguno de estos aplica un umbral ni emite un veredicto: solo reportan
+hechos (tipo, ubicación y, donde corresponde, densidad por mil palabras).
+
+``estructuras`` busca regex de contraste, simetría, enumeración mecánica,
+conectores al inicio de párrafo y tríadas probables de adjetivos sobre la
+misma vista que ``vocabulario`` (frontmatter, código, URL, claims y citas
+enmascarados); toda tríada se etiqueta siempre como "probable" porque un
+escáner determinista no puede confirmar la categoría gramatical.
+``deterministas`` busca marcado de chatbot filtrado, parámetros UTM de IA,
+marcadores de posición, caracteres invisibles y homoglifos sobre una vista
+propia que enmascara frontmatter y código pero deja las URL visibles (para
+poder leer sus parámetros); nunca corre dentro de un bloque de código ni
+del frontmatter. ``registro`` cuenta formas de tú/usted, de vosotros/ustedes
+y un léxico americano corto: es solo aviso, nunca corrige ni reformula
+nada, y "ustedes" en solitario no se trata como error.
 """
 
 import argparse
@@ -511,6 +524,7 @@ class AnalysisContext:
     original_text: str
     masked_text: str
     surface_text: str
+    deterministas_text: str
     mask_counts: Dict[str, int]
     vocab_entries: List[VocabEntry]
     paragraphs: List[Tuple[int, int]]
@@ -522,8 +536,24 @@ class AnalysisContext:
     total_words: int
 
 
+def _mask_for_deterministas(text):
+    """Vista para el analizador ``deterministas``: enmascara frontmatter y
+    código (bloques e inline), pero deja las URL visibles, porque ese
+    analizador necesita leer sus parámetros ``utm_*`` (P62). No enmascara
+    comillas ni ``[[claim]]…[[/claim]]``: las marcas de chatbot filtradas,
+    los marcadores de posición, los caracteres invisibles y los homoglifos
+    pueden aparecer dentro de una cita o de un claim y siguen siendo el
+    mismo dato técnico a reportar.
+    """
+    text, _ = _mask_pattern(text, _FRONTMATTER_RE)
+    text, _ = _mask_pattern(text, _CODE_FENCE_RE)
+    text, _ = _mask_pattern(text, _INLINE_CODE_RE)
+    return text
+
+
 def _build_context(text, vocab_entries):
     masked_text, surface_text, mask_counts = mask_text(text)
+    deterministas_text = _mask_for_deterministas(text)
     paragraphs = find_paragraphs(masked_text)
     surface_paragraphs = find_paragraphs(surface_text)
     line_starts = _build_line_index(text)
@@ -535,6 +565,7 @@ def _build_context(text, vocab_entries):
         original_text=text,
         masked_text=masked_text,
         surface_text=surface_text,
+        deterministas_text=deterministas_text,
         mask_counts=mask_counts,
         vocab_entries=vocab_entries,
         paragraphs=paragraphs,
@@ -1212,6 +1243,471 @@ def analyze_tipografia(ctx):
 
 
 # ---------------------------------------------------------------------------
+# Analizador: estructuras. Regex de contraste y simetría (P01, P39), tríadas
+# probables de adjetivos (P06, P41), enumeración mecánica (P38) y
+# conectores al inicio de párrafo (P37), sobre ``masked_text`` (frontmatter,
+# código, URL, claims y citas textuales ya enmascarados). Solo reporta
+# hechos: ubicación y texto encontrado, nunca un umbral ni un veredicto. Una
+# construcción correcta en español (p. ej. "no solo… sino también") se
+# reporta igual que cualquier otra: el script no decide si es un rasgo de
+# IA, eso es criterio del modelo o de quien revisa (auditoria.md P01, P39).
+# ---------------------------------------------------------------------------
+
+_NO_SOLO_SINO_RE = re.compile(
+    r"\bno\s+solo\b.{0,150}?\bsino\b(?:\s+tambi[ée]n\b)?", re.IGNORECASE | re.DOTALL
+)
+_NO_SE_TRATA_DE_RE = re.compile(
+    r"\bno\s+se\s+trata\s+de\b.{0,150}?\b(?:sino|se\s+trata\s+de)\b",
+    re.IGNORECASE | re.DOTALL,
+)
+_NO_ES_ES_RE = re.compile(
+    r"\bno\s+es\s+[^,.\n]{1,80},\s*es\s+[^,.\n]{1,80}", re.IGNORECASE
+)
+_TANTO_SI_RE = re.compile(
+    r"\btanto\s+si\b.{0,80}?\bcomo\s+si\b", re.IGNORECASE | re.DOTALL
+)
+_YA_SEAS_RE = re.compile(r"\bya\s+se(?:a|as)\b.{0,80}?\bo\b", re.IGNORECASE | re.DOTALL)
+
+_ENUM_INICIO_RE = re.compile(
+    r"\ben\s+primer\s+lugar\b|\bprimeramente\b|(?<=[.\n])\s*primero,",
+    re.IGNORECASE,
+)
+_ENUM_MEDIO_RE = re.compile(
+    r"\ben\s+segundo\s+lugar\b|\ben\s+tercer\s+lugar\b"
+    r"|(?<=[.\n])\s*segundo,|(?<=[.\n])\s*tercero,",
+    re.IGNORECASE,
+)
+_ENUM_FINAL_RE = re.compile(
+    r"\bpor\s+último\b|\ben\s+último\s+lugar\b|\bfinalmente\b", re.IGNORECASE
+)
+
+# Conectores al inicio de párrafo (P37, "conectores apilados"): un conector
+# suelto no es un rasgo (auditoria.md :199, "un 'sin embargo' no es un
+# tic"), así que aquí solo se cuenta, nunca se juzga la cadena.
+# Lista derivada de auditoria.md P37/P43 (:55,:157,:167,:196,:199,:208) y de
+# los ejemplos del encargo de esta tarea.
+_CONECTORES_PARRAFO = (
+    "además",
+    "asimismo",
+    "por otro lado",
+    "en conclusión",
+    "sin embargo",
+    "no obstante",
+    "por último",
+    "en definitiva",
+    "dicho esto",
+)
+
+# Adjetivos antepuestos corrientes en el ejemplo de referencia de P06
+# («una increíble experiencia única, natural y eficaz», fase2-mapa.md §2.7).
+_EPITETOS_ANTEPUESTOS = (
+    "increíble",
+    "increíbles",
+    "extraordinario",
+    "extraordinaria",
+    "magnífico",
+    "magnífica",
+    "maravilloso",
+    "maravillosa",
+    "asombroso",
+    "asombrosa",
+    "impresionante",
+    "excepcional",
+)
+
+_TRIADA_RE = re.compile(r"\b(\w+),\s*(\w+)\s+(?:y|e)\s+(\w+)\b", re.IGNORECASE | re.UNICODE)
+_TRIADA_EPITETO_RE = re.compile(
+    r"\b(?:{})\s+\w+\s+(\w+),\s*(\w+)\s+(?:y|e)\s+(\w+)\b".format(
+        "|".join(_EPITETOS_ANTEPUESTOS)
+    ),
+    re.IGNORECASE | re.UNICODE,
+)
+
+
+def _clip_texto(texto):
+    """Recorta un fragmento encontrado a una sola línea legible para el
+    JSON: colapsa saltos de línea y espacios repetidos, y acorta si es muy
+    largo. Es solo para identificar el hallazgo, nunca material reescrito.
+    """
+    colapsado = re.sub(r"\s+", " ", texto).strip()
+    if len(colapsado) > 120:
+        colapsado = colapsado[:117] + "..."
+    return colapsado
+
+
+def _find_regex_hits(text, pattern, line_starts):
+    hallazgos = []
+    for m in pattern.finditer(text):
+        line_no, col = _line_col(line_starts, m.start())
+        hallazgos.append({"linea": line_no, "columna": col, "texto": _clip_texto(m.group(0))})
+    hallazgos.sort(key=lambda h: (h["linea"], h["columna"]))
+    return hallazgos
+
+
+def _find_enumeracion_mecanica(text, line_starts):
+    """Secuencia "en primer lugar… en segundo lugar… por último" (P38).
+
+    Es una construcción legítima en procedimientos y textos jurídicos
+    (auditoria.md P38, "puerta de registro"): se reporta como dato, nunca
+    como error. Solo se informa si aparecen, en ese orden, un marcador de
+    inicio, uno intermedio y uno final.
+    """
+    inicios = list(_ENUM_INICIO_RE.finditer(text))
+    medios = list(_ENUM_MEDIO_RE.finditer(text))
+    finales = list(_ENUM_FINAL_RE.finditer(text))
+    hallazgos = []
+    usados_medio = set()
+    usados_final = set()
+    for mi in inicios:
+        medio = next(
+            (mm for mm in medios if mm.start() > mi.start() and id(mm) not in usados_medio),
+            None,
+        )
+        if medio is None:
+            continue
+        final = next(
+            (mf for mf in finales if mf.start() > medio.start() and id(mf) not in usados_final),
+            None,
+        )
+        if final is None:
+            continue
+        usados_medio.add(id(medio))
+        usados_final.add(id(final))
+        line_no, col = _line_col(line_starts, mi.start())
+        hallazgos.append(
+            {
+                "linea": line_no,
+                "columna": col,
+                "marcadores": [
+                    _clip_texto(mi.group(0)),
+                    _clip_texto(medio.group(0)),
+                    _clip_texto(final.group(0)),
+                ],
+            }
+        )
+    hallazgos.sort(key=lambda h: (h["linea"], h["columna"]))
+    return hallazgos
+
+
+def _find_conectores_parrafo(ctx):
+    """Cuenta, por conector, cuántos párrafos empiezan con él (P37). Solo
+    dato: ni un conector suelto ni varios repartidos por el texto son un
+    veredicto, es la acumulación lo que el modelo debe valorar.
+    """
+    conteo = {c: 0 for c in _CONECTORES_PARRAFO}
+    ubicaciones = {c: [] for c in _CONECTORES_PARRAFO}
+    for p_start, p_end in ctx.paragraphs:
+        parrafo = ctx.masked_text[p_start:p_end]
+        sin_espacio_inicial = parrafo.lstrip()
+        offset_inicial = p_start + (len(parrafo) - len(sin_espacio_inicial))
+        normalizado = _normalize_for_matching(sin_espacio_inicial)
+        for conector in _CONECTORES_PARRAFO:
+            conector_norm = _normalize_for_matching(conector)
+            if normalizado.startswith(conector_norm + ","):
+                conteo[conector] += 1
+                line_no, col = _line_col(ctx.line_starts, offset_inicial)
+                ubicaciones[conector].append({"linea": line_no, "columna": col})
+                break
+    total_words = ctx.total_words
+    resultado = {}
+    for conector in _CONECTORES_PARRAFO:
+        n = conteo[conector]
+        resultado[conector] = {
+            "ocurrencias": n,
+            "por_mil_palabras": round(n / total_words * 1000, 3) if total_words else 0.0,
+            "ubicaciones": ubicaciones[conector],
+        }
+    return resultado
+
+
+def _find_triadas_probables(text, line_starts):
+    """Tríadas de adjetivos probables: "X, Y y Z" tras un sustantivo, o un
+    epíteto antepuesto seguido de tríada (P06, P41).
+
+    Un escáner determinista basado en expresiones regulares no puede
+    confirmar la categoría gramatical de "X", "Y" ni "Z" (no distingue un
+    adjetivo de un sustantivo): por eso toda coincidencia se etiqueta
+    siempre como "probable", nunca como un hallazgo confirmado. Una lista
+    real de tres sustantivos (por ejemplo, tres ingredientes) coincide con
+    el mismo patrón y se reporta igual, como dato; es el modelo o quien
+    revisa quien debe descartarla (auditoria.md P06, salvaguarda de listas
+    reales).
+    """
+    hallazgos = []
+    ocupados = []  # tramos ya reportados como epíteto antepuesto
+    for m in _TRIADA_EPITETO_RE.finditer(text):
+        ocupados.append((m.start(), m.end()))
+        line_no, col = _line_col(line_starts, m.start())
+        hallazgos.append(
+            {
+                "linea": line_no,
+                "columna": col,
+                "texto": _clip_texto(m.group(0)),
+                "variante": "epiteto_antepuesto",
+                "certeza": "probable",
+            }
+        )
+    for m in _TRIADA_RE.finditer(text):
+        inicio, fin = m.start(), m.end()
+        # La tríada final del epíteto antepuesto ("única, natural y eficaz")
+        # también encaja en el patrón genérico "X, Y y Z"; si su tramo ya
+        # quedó cubierto por un hallazgo de epíteto, no se duplica.
+        if any(inicio < o_fin and o_inicio < fin for o_inicio, o_fin in ocupados):
+            continue
+        line_no, col = _line_col(line_starts, inicio)
+        hallazgos.append(
+            {
+                "linea": line_no,
+                "columna": col,
+                "texto": _clip_texto(m.group(0)),
+                "variante": "enumeracion",
+                "certeza": "probable",
+            }
+        )
+    hallazgos.sort(key=lambda h: (h["linea"], h["columna"]))
+    return hallazgos
+
+
+def analyze_estructuras(ctx):
+    text = ctx.masked_text
+    return {
+        "no_solo_sino": _find_regex_hits(text, _NO_SOLO_SINO_RE, ctx.line_starts),
+        "no_se_trata_de": _find_regex_hits(text, _NO_SE_TRATA_DE_RE, ctx.line_starts),
+        "no_es_es": _find_regex_hits(text, _NO_ES_ES_RE, ctx.line_starts),
+        "tanto_si_como_si": _find_regex_hits(text, _TANTO_SI_RE, ctx.line_starts),
+        "ya_seas_o": _find_regex_hits(text, _YA_SEAS_RE, ctx.line_starts),
+        "enumeracion_mecanica": _find_enumeracion_mecanica(text, ctx.line_starts),
+        "conectores_parrafo": _find_conectores_parrafo(ctx),
+        "triadas_adjetivos": _find_triadas_probables(text, ctx.line_starts),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Analizador: deterministas. Marcado de chatbot filtrado (P61), UTM de IA
+# (P62, solo aviso), marcadores de posición (P60), caracteres invisibles y
+# homoglifos (P59), sobre ``deterministas_text`` (frontmatter y código
+# enmascarados, pero con las URL visibles para poder leer sus parámetros).
+# ---------------------------------------------------------------------------
+
+_MARCADO_FILTRADO = (
+    ("oaicite", re.compile(r"oaicite")),
+    ("turn_search_token", re.compile(r"\bturn\d+[a-z]+\d+\b")),
+    ("cita_corchete_angular", re.compile(r"【[^】\n]*†[^】\n]*】")),
+    ("content_reference", re.compile(r"contentReference")),
+)
+
+_UTM_IA_TOKENS = (
+    "chatgpt",
+    "openai",
+    "gpt",
+    "perplexity",
+    "copilot",
+    "gemini",
+    "claude",
+    "anthropic",
+)
+_UTM_SOURCE_RE = re.compile(r"utm_source=([^&\s]+)", re.IGNORECASE)
+
+_PLACEHOLDER_PATTERNS = (
+    ("corchete_marcador", re.compile(
+        r"\[(?:nombre|apellido|ciudad|empresa|fecha|insertar[^\]\n]*|placeholder|TODO|pendiente)\]",
+        re.IGNORECASE,
+    )),
+    ("doble_llave", re.compile(r"\{\{[^}\n]*\}\}")),
+    ("xxx", re.compile(r"\bXXX\b")),
+    ("lorem_ipsum", re.compile(r"\blorem\s+ipsum\b", re.IGNORECASE)),
+)
+
+# U+00A0 (espacio de no separación) y U+202F (espacio fino de no
+# separación) son legítimos en la tipografía española (p. ej. antes de "%",
+# "€" o una unidad) y nunca se incluyen aquí (auditoria.md P59).
+_INVISIBLES_A_VIGILAR = (
+    "​",
+    "‌",
+    "‍",
+    "⁠",
+    "­",
+    "﻿",
+)
+
+
+def _find_marcado_filtrado(ctx):
+    hallazgos = []
+    for tipo, pattern in _MARCADO_FILTRADO:
+        for m in pattern.finditer(ctx.deterministas_text):
+            line_no, col = _line_col(ctx.line_starts, m.start())
+            hallazgos.append(
+                {"tipo": tipo, "linea": line_no, "columna": col, "texto": _clip_texto(m.group(0))}
+            )
+    hallazgos.sort(key=lambda h: (h["linea"], h["columna"]))
+    return hallazgos
+
+
+def _find_utm_ia(ctx):
+    """UTM de herramientas de IA en una URL (P62): solo aviso, nunca
+    bloquea; la URL en sí es intocable y nunca se modifica aquí.
+    """
+    hallazgos = []
+    for m in _URL_RE.finditer(ctx.deterministas_text):
+        url = m.group(0)
+        for um in _UTM_SOURCE_RE.finditer(url):
+            valor = um.group(1)
+            if any(tok in valor.lower() for tok in _UTM_IA_TOKENS):
+                line_no, col = _line_col(ctx.line_starts, m.start())
+                hallazgos.append(
+                    {"linea": line_no, "columna": col, "url": url, "utm_source": valor}
+                )
+    hallazgos.sort(key=lambda h: (h["linea"], h["columna"]))
+    return hallazgos
+
+
+def _find_placeholders(ctx):
+    hallazgos = []
+    for tipo, pattern in _PLACEHOLDER_PATTERNS:
+        for m in pattern.finditer(ctx.deterministas_text):
+            line_no, col = _line_col(ctx.line_starts, m.start())
+            hallazgos.append(
+                {"tipo": tipo, "linea": line_no, "columna": col, "texto": _clip_texto(m.group(0))}
+            )
+    hallazgos.sort(key=lambda h: (h["linea"], h["columna"]))
+    return hallazgos
+
+
+def _find_invisibles(ctx):
+    """Caracteres invisibles sospechosos (P59). Se informa del nombre
+    Unicode del carácter (p. ej. "ZERO WIDTH SPACE"), nunca del carácter en
+    sí, para que el JSON no repita un carácter pensado para no verse.
+    U+FEFF (u otro de esta lista) al principio mismo del texto no se
+    reporta: ahí es una marca de orden de bytes legítima, no una inserción
+    en mitad del texto.
+    """
+    hallazgos = []
+    text = ctx.deterministas_text
+    for idx, ch in enumerate(text):
+        if ch in _INVISIBLES_A_VIGILAR and idx != 0:
+            line_no, col = _line_col(ctx.line_starts, idx)
+            nombre = unicodedata.name(ch, "DESCONOCIDO")
+            hallazgos.append(
+                {
+                    "caracter": nombre,
+                    "codepoint": "U+{:04X}".format(ord(ch)),
+                    "linea": line_no,
+                    "columna": col,
+                }
+            )
+    return hallazgos
+
+
+def _script_de(ch):
+    if not ch.isalpha():
+        return None
+    try:
+        nombre = unicodedata.name(ch)
+    except ValueError:
+        return None
+    if nombre.startswith("LATIN"):
+        return "latin"
+    if nombre.startswith("CYRILLIC"):
+        return "cirilico"
+    if nombre.startswith("GREEK"):
+        return "griego"
+    return None
+
+
+def _find_homoglifos(ctx):
+    """Letras cirílicas o griegas mezcladas dentro de una palabra latina
+    (P59). Compara los alfabetos (script Unicode) de cada letra de la
+    palabra; si conviven letras latinas con cirílicas o griegas, se reporta
+    la palabra completa.
+    """
+    hallazgos = []
+    for m in _WORD_RE.finditer(ctx.deterministas_text):
+        palabra = m.group(0)
+        escrituras = {s for s in (_script_de(ch) for ch in palabra) if s}
+        if "latin" in escrituras and ("cirilico" in escrituras or "griego" in escrituras):
+            line_no, col = _line_col(ctx.line_starts, m.start())
+            hallazgos.append(
+                {
+                    "palabra": palabra,
+                    "escrituras": sorted(escrituras),
+                    "linea": line_no,
+                    "columna": col,
+                }
+            )
+    hallazgos.sort(key=lambda h: (h["linea"], h["columna"]))
+    return hallazgos
+
+
+def analyze_deterministas(ctx):
+    return {
+        "marcado_filtrado": _find_marcado_filtrado(ctx),
+        "utm_ia": _find_utm_ia(ctx),
+        "marcadores_de_posicion": _find_placeholders(ctx),
+        "invisibles": _find_invisibles(ctx),
+        "homoglifos": _find_homoglifos(ctx),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Analizador: registro. Recuento tú/usted y vosotros/ustedes, y léxico
+# americano corto (P64), sobre ``masked_text``. Solo aviso: nunca cambia
+# nada ni etiqueta una forma como error (auditoria.md :218, "ustedes"
+# formal es correcto en ES-ES). Lista conservadora y documentada
+# de pronombres y formas inequívocas; ante la duda, se prefiere no contar
+# antes que arriesgar un falso positivo (p. ej. no se cuentan "su"/"le", que
+# son iguales para "usted" y para "él/ella").
+# ---------------------------------------------------------------------------
+
+_TU_MARCADORES = ("tú", "tu", "tus", "te", "contigo")
+_USTED_MARCADORES = ("usted",)
+_VOSOTROS_MARCADORES = ("vosotros", "vosotras", "vuestro", "vuestra", "vuestros", "vuestras", "os")
+_USTEDES_MARCADORES = ("ustedes",)
+
+# Léxico americano corto y explícitamente citado (fase2-mapa.md §3.2,
+# auditoria.md :272, P64): solo se lista lo que las fuentes leídas nombran,
+# nunca se amplía por criterio propio.
+_LEXICO_AMERICANO = (("computadora", "ordenador"),)
+
+
+def _count_marcadores(ctx, marcadores):
+    pattern = re.compile(
+        r"\b(?:{})\b".format("|".join(re.escape(_normalize_for_matching(m)) for m in marcadores)),
+        re.UNICODE,
+    )
+    ocurrencias = len(pattern.findall(ctx.normalized_text))
+    por_mil = round(ocurrencias / ctx.total_words * 1000, 3) if ctx.total_words else 0.0
+    return {"ocurrencias": ocurrencias, "por_mil_palabras": por_mil}
+
+
+def _find_lexico_americano(ctx):
+    hallazgos = []
+    for expresion, _equivalente_es in _LEXICO_AMERICANO:
+        pattern = re.compile(r"\b" + re.escape(_normalize_for_matching(expresion)) + r"\b")
+        for m in pattern.finditer(ctx.normalized_text):
+            orig_inicio = ctx.orig_index_for_normpos[m.start()]
+            line_no, col = _line_col(ctx.line_starts, orig_inicio)
+            hallazgos.append({"expresion": expresion, "linea": line_no, "columna": col})
+    hallazgos.sort(key=lambda h: (h["linea"], h["columna"]))
+    return hallazgos
+
+
+def analyze_registro(ctx):
+    tuteo = _count_marcadores(ctx, _TU_MARCADORES)
+    usted = _count_marcadores(ctx, _USTED_MARCADORES)
+    vosotros = _count_marcadores(ctx, _VOSOTROS_MARCADORES)
+    ustedes = _count_marcadores(ctx, _USTEDES_MARCADORES)
+    return {
+        "tuteo": tuteo,
+        "usted": usted,
+        "vosotros": vosotros,
+        "ustedes": ustedes,
+        "mezcla_tu_usted": tuteo["ocurrencias"] > 0 and usted["ocurrencias"] > 0,
+        "mezcla_vosotros_ustedes": vosotros["ocurrencias"] > 0 and ustedes["ocurrencias"] > 0,
+        "lexico_americano": _find_lexico_americano(ctx),
+    }
+
+
+# ---------------------------------------------------------------------------
 # Registro de analizadores (T4-T5 añaden aquí sin tocar lo anterior)
 # ---------------------------------------------------------------------------
 
@@ -1223,6 +1719,9 @@ ANALYZERS = (
     ("comillas", analyze_comillas),
     ("encabezados", analyze_encabezados),
     ("tipografia", analyze_tipografia),
+    ("estructuras", analyze_estructuras),
+    ("deterministas", analyze_deterministas),
+    ("registro", analyze_registro),
 )
 
 
