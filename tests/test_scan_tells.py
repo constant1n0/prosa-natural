@@ -12,6 +12,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SCRIPT_PATH = REPO_ROOT / "skill" / "prosa-natural" / "scripts" / "scan_tells.py"
@@ -568,6 +569,32 @@ class TestStaticImports(unittest.TestCase):
         self.assertEqual(offending, set())
 
 
+class TestSourceHygiene(unittest.TestCase):
+    """Revisión de la slice 04 (A5): los puntos de código invisibles que el
+    script vigila deben escribirse siempre como escapes ``\\uXXXX`` en el
+    propio código fuente, nunca como el carácter invisible en crudo (que es
+    ilegible en un editor y fácil de borrar por accidente)."""
+
+    INVISIBLES_VIGILADOS = (
+        "​",  # ZERO WIDTH SPACE
+        "‌",  # ZERO WIDTH NON-JOINER
+        "‍",  # ZERO WIDTH JOINER
+        "⁠",  # WORD JOINER
+        "­",  # SOFT HYPHEN
+        "﻿",  # ZERO WIDTH NO-BREAK SPACE / BOM
+    )
+
+    def test_source_file_has_no_raw_invisible_characters(self):
+        source = SCRIPT_PATH.read_text(encoding="utf-8")
+        encontrados = [ch for ch in self.INVISIBLES_VIGILADOS if ch in source]
+        self.assertEqual(
+            encontrados,
+            [],
+            "el código fuente debe escribir estos puntos de código como "
+            "escapes \\uXXXX, nunca como el carácter en crudo",
+        )
+
+
 # ---------------------------------------------------------------------------
 # T3, parte B: detectores de forma (rayas, comillas, encabezados, tipografía)
 # ---------------------------------------------------------------------------
@@ -814,6 +841,16 @@ class TestTipografia(unittest.TestCase):
         tipografia = self._tipografia(text)
         self.assertEqual(tipografia["exclamaciones"]["ocurrencias"], 0)
 
+    def test_bare_bracket_after_exclamation_is_not_masked_as_markdown_image(self):
+        # Revisión de la slice 04 (A3): "![alt]" sin destino (ni "(...)" ni
+        # "[ref]") no es una imagen Markdown real; un "!" seguido de una
+        # nota a pie de página entre corchetes (p. ej. "¡Por fin![1]") debe
+        # seguir contando como cierre de exclamación normal.
+        text = "¡Por fin![1] llegó el pedido de Ferretería Robledo.\n"
+        tipografia = self._tipografia(text)
+        self.assertEqual(tipografia["exclamaciones"]["ocurrencias"], 1)
+        self.assertEqual(tipografia["signos_sin_apertura"], [])
+
     def test_capital_after_colon_is_skipped_inside_heading(self):
         text = "## El plan: Una Guía Rápida\n\nTexto normal sin dos puntos raros.\n"
         tipografia = self._tipografia(text)
@@ -883,40 +920,69 @@ class TestFormSafeguards(unittest.TestCase):
 class TestPerformance(unittest.TestCase):
     """Revisión review-faf981a2b76764c9 (R4-001, R4-002): el anidamiento de
     comillas y la resolución de solapamientos deben comparar solo dentro de
-    un mismo párrafo (o con un barrido ordenado), no todo contra todo."""
+    un mismo párrafo, no todo contra todo.
+
+    Revisión de la slice 04 (A1): el test anterior medía un límite de
+    tiempo de reloj sobre todo ``build_report``, lo que es un test no
+    determinista (depende de la máquina y de la carga del sistema). Se
+    sustituye por una comprobación determinista de la propia corrección
+    algorítmica: se cuenta, con un contador inyectado sobre las funciones
+    de comparación de tramos (``_span_strictly_contains`` y
+    ``_ranges_overlap``), cuántas comparaciones se ejecutan realmente, y
+    se compara con el número exacto que predice una resolución acotada
+    por párrafo. Si la resolución comparase párrafos entre sí (el defecto
+    original), el número de comparaciones crecería de forma cuadrática en
+    vez de ser exactamente proporcional al número de párrafos.
+    """
 
     def setUp(self):
         self.module = load_module()
 
-    def test_many_quotes_and_vocabulary_hits_complete_quickly_and_correctly(self):
-        import time
-
-        vocab_content = (
-            "## Débil\n\n### Familia de prueba\n\n"
-            "clave | 2026-09-27 | PXX · prueba\n"
-        )
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            vocab_path = write_vocab(tmp_dir, vocab_content)
-            entries = self.module.parse_vocabulary(vocab_path)
-
+    def test_quote_nesting_and_overlap_resolution_scale_per_paragraph_not_globally(self):
+        entries = self.module.parse_vocabulary(VOCAB_PATH)
+        n_parrafos = 300
         parrafos = [
-            "Marta dijo «una frase de prueba número {}» y anotó la clave del caso.".format(i)
-            for i in range(10000)
+            "Marta dijo «uno» y «dos» sobre un pilar fundamental hoy."
+            for _ in range(n_parrafos)
         ]
         text = "\n\n".join(parrafos) + "\n"
 
-        inicio = time.perf_counter()
-        report = self.module.build_report(text, entries)
-        duracion = time.perf_counter() - inicio
+        contains_calls = []
+        overlap_calls = []
+        original_contains = self.module._span_strictly_contains
+        original_overlap = self.module._ranges_overlap
 
-        # Con la comparación global O(N²) previa a la revisión
-        # review-faf981a2b76764c9 (R4-001/R4-002), 10 000 párrafos tardaban
-        # cerca de 19 s; acotado a un tramo por párrafo, debe bajar de 8 s.
-        self.assertLess(duracion, 8.0)
+        def contando_contains(*args):
+            contains_calls.append(args)
+            return original_contains(*args)
+
+        def contando_overlap(*args):
+            overlap_calls.append(args)
+            return original_overlap(*args)
+
+        with mock.patch.object(
+            self.module, "_span_strictly_contains", side_effect=contando_contains
+        ), mock.patch.object(
+            self.module, "_ranges_overlap", side_effect=contando_overlap
+        ):
+            report = self.module.build_report(text, entries)
+
+        # Dos comillas por párrafo (no anidadas entre sí) -> exactamente
+        # 2 comparaciones por párrafo (cada tramo se compara con el otro,
+        # k*(k-1) con k=2). Un anidamiento que comparase párrafos entre sí
+        # daría un total muy superior y creciente en O(n²).
+        self.assertEqual(len(contains_calls), 2 * n_parrafos)
+        # Dos hallazgos de vocabulario solapados por párrafo ("pilar
+        # fundamental" y "fundamental"): el primero (más largo) no compara
+        # contra nada; el segundo compara una vez contra el primero y se
+        # descarta. Exactamente 1 comparación por párrafo.
+        self.assertEqual(len(overlap_calls), n_parrafos)
+
         self.assertEqual(report["comillas"]["mezcla_de_tipos"], [])
         self.assertEqual(report["comillas"]["anidamiento_invertido"], [])
         self.assertEqual(
-            report["vocabulario"]["densidad"]["por_nivel"]["Débil"]["ocurrencias"], 10000
+            report["vocabulario"]["densidad"]["por_nivel"]["Débil"]["ocurrencias"],
+            n_parrafos,
         )
 
     def test_overlap_resolution_unchanged_on_known_fixture(self):
@@ -1178,6 +1244,19 @@ class TestRegistro(unittest.TestCase):
         text = "Guardó el archivo en el ordenador de la oficina.\n"
         registro = self._registro(text)
         self.assertEqual(registro["lexico_americano"], [])
+
+    def test_te_infusion_with_accent_is_not_counted_as_tuteo(self):
+        # Revisión de la slice 04 (A2): antes de esta revisión la
+        # comparación plegaba tildes, así que "té" (la infusión) contaba
+        # como el pronombre "te".
+        text = "Tomamos un té mientras hablábamos del pedido de hoy.\n"
+        registro = self._registro(text)
+        self.assertEqual(registro["tuteo"]["ocurrencias"], 0)
+
+    def test_te_pronoun_is_counted_even_next_to_te_with_accent(self):
+        text = "¿Te apetece un té después del reparto de hoy?\n"
+        registro = self._registro(text)
+        self.assertEqual(registro["tuteo"]["ocurrencias"], 1)
 
 
 if __name__ == "__main__":

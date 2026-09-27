@@ -608,6 +608,20 @@ def analyze_enmascarado(ctx):
 # ---------------------------------------------------------------------------
 
 
+def _ranges_overlap(a_inicio, a_fin, b_inicio, b_fin):
+    """True si los tramos ``[a_inicio, a_fin)`` y ``[b_inicio, b_fin)``
+    comparten al menos una posición.
+
+    Aislada como función propia (revisión de la slice 04, A1) para que un
+    test determinista pueda contar cuántas veces se invoca esta
+    comparación, en vez de medir un límite de tiempo de reloj: si la
+    resolución de solapamientos comparase párrafos entre sí en lugar de
+    acotarse a cada párrafo, el número de llamadas crecería de forma
+    cuadrática y el test lo detectaría sin depender del reloj.
+    """
+    return a_inicio < b_fin and b_inicio < a_fin
+
+
 def _resolve_overlapping_hits(raw_hits):
     """Descarta hallazgos solapados, quedándose con uno solo por tramo.
 
@@ -644,7 +658,7 @@ def _resolve_overlapping_hits(raw_hits):
         covered = []
         for h in ordered:
             inicio, fin = h["_inicio"], h["_fin"]
-            if any(inicio < c_fin and c_inicio < fin for c_inicio, c_fin in covered):
+            if any(_ranges_overlap(inicio, fin, c_inicio, c_fin) for c_inicio, c_fin in covered):
                 continue
             covered.append((inicio, fin))
             kept.append(h)
@@ -897,14 +911,6 @@ def _dash_word_adjacency(linea, idx):
     return sin_palabra_antes, sin_palabra_despues
 
 
-def _raya_inglesa_subtipo(d):
-    if not d["sin_palabra_antes"] and not d["sin_palabra_despues"]:
-        return "pegada"
-    if d["sin_palabra_antes"] and d["sin_palabra_despues"]:
-        return "espaciada"
-    return "conector_universal"
-
-
 def _raya_estructura(d):
     """Clasifica una raya suelta por su estructura (revisión
     review-faf981a2b76764c9): "apertura" abre un inciso (separada de lo
@@ -1045,6 +1051,20 @@ _QUOTE_RANK = {"angular": 1, "curly_doble": 2, "recta_doble": 2, "curly_simple":
 _QUOTE_LABEL = {"angular": "«»", "curly_doble": "“”", "recta_doble": '""', "curly_simple": "‘’"}
 
 
+def _span_strictly_contains(outer_inicio, outer_fin, inner_inicio, inner_fin):
+    """True si el tramo exterior cubre por completo al interior y, además,
+    es estrictamente más grande en al menos un extremo (para no tratar dos
+    tramos idénticos como si uno anidara al otro).
+
+    Aislada como función propia (revisión de la slice 04, A1) por el mismo
+    motivo que ``_ranges_overlap``: permite un test determinista que cuenta
+    invocaciones en vez de medir tiempo de reloj.
+    """
+    contiene = outer_inicio <= inner_inicio and inner_fin <= outer_fin
+    contencion_estricta = outer_inicio < inner_inicio or inner_fin < outer_fin
+    return contiene and contencion_estricta
+
+
 def _find_quote_spans(ctx):
     """Encuentra los tramos de comillas y calcula su anidamiento.
 
@@ -1068,9 +1088,7 @@ def _find_quote_spans(ctx):
             for otro in spans:
                 if otro is span:
                     continue
-                contiene = otro["inicio"] <= span["inicio"] and span["fin"] <= otro["fin"]
-                contencion_estricta = otro["inicio"] < span["inicio"] or span["fin"] < otro["fin"]
-                if contiene and contencion_estricta:
+                if _span_strictly_contains(otro["inicio"], otro["fin"], span["inicio"], span["fin"]):
                     nivel += 1
                     if padre is None or (otro["fin"] - otro["inicio"]) < (padre["fin"] - padre["inicio"]):
                         padre = otro
@@ -1145,7 +1163,12 @@ def analyze_comillas(ctx):
 # review-faf981a2b76764c9).
 # ---------------------------------------------------------------------------
 
-_MD_IMAGE_RE = re.compile(r"!\[[^\]\n]*\](?:\([^)\n]*\)|\[[^\]\n]*\])?")
+# El destino ("(ruta)" o "[ref]") es obligatorio: "![alt]" sin destino no es
+# una imagen Markdown real, así que ese destino nunca es opcional (revisión
+# de la slice 04, A3). Con el destino opcional, un "!" real seguido de una
+# nota a pie de página entre corchetes (p. ej. "¡Por fin![1]") se enmascaraba
+# como si fuera una imagen y su "!" de cierre dejaba de contarse.
+_MD_IMAGE_RE = re.compile(r"!\[[^\]\n]*\](?:\([^)\n]*\)|\[[^\]\n]*\])")
 
 
 def _mask_markdown_images(text):
@@ -1521,13 +1544,18 @@ _PLACEHOLDER_PATTERNS = (
 # U+00A0 (espacio de no separación) y U+202F (espacio fino de no
 # separación) son legítimos en la tipografía española (p. ej. antes de "%",
 # "€" o una unidad) y nunca se incluyen aquí (auditoria.md P59).
+#
+# Cada punto de código se escribe como escape "\uXXXX", nunca como el
+# carácter invisible en crudo (revisión de la slice 04, A5): un carácter
+# invisible pegado en el código fuente es ilegible en un editor normal y muy
+# fácil de borrar o corromper por accidente sin que se note en un diff.
 _INVISIBLES_A_VIGILAR = (
-    "​",
-    "‌",
-    "‍",
-    "⁠",
-    "­",
-    "﻿",
+    "\u200B",  # ZERO WIDTH SPACE
+    "\u200C",  # ZERO WIDTH NON-JOINER
+    "\u200D",  # ZERO WIDTH JOINER
+    "\u2060",  # WORD JOINER
+    "\u00AD",  # SOFT HYPHEN
+    "\uFEFF",  # ZERO WIDTH NO-BREAK SPACE (también usado como BOM)
 )
 
 
@@ -1658,7 +1686,20 @@ def analyze_deterministas(ctx):
 # son iguales para "usted" y para "él/ella").
 # ---------------------------------------------------------------------------
 
-_TU_MARCADORES = ("tú", "tu", "tus", "te", "contigo")
+# "tú" (pronombre sujeto), "tu"/"tus" (posesivo), "te" (pronombre objeto),
+# "ti" (término de preposición) y "contigo" son marcadores inequívocos de
+# tuteo. Revisión de la slice 04 (A2): antes de esta revisión la
+# comparación plegaba tildes (vía ``_normalize_for_matching``), así que
+# "té" (la infusión) contaba como el pronombre "te", y "tú" y "tu"
+# resultaban indistinguibles entre sí (ambos se normalizaban a "tu"). La
+# comparación ahora es sensible a tildes (solo se pliegan mayúsculas y
+# minúsculas, nunca los diacríticos), así que cada forma cuenta solo la
+# suya: "tú" ya no coincide con "tu", y "té" ya no coincide con "te".
+# Ambigüedad conocida y aceptada: "tu"/"tus" no tienen ninguna otra palabra
+# española corriente que se les parezca sin la tilde que los distinga de
+# "tú" (ya no aplica, al no plegar tildes), así que no queda ninguna
+# colisión pendiente de resolver para este conjunto de marcadores.
+_TU_MARCADORES = ("tú", "tu", "tus", "te", "ti", "contigo")
 _USTED_MARCADORES = ("usted",)
 _VOSOTROS_MARCADORES = ("vosotros", "vosotras", "vuestro", "vuestra", "vuestros", "vuestras", "os")
 _USTEDES_MARCADORES = ("ustedes",)
@@ -1670,11 +1711,19 @@ _LEXICO_AMERICANO = (("computadora", "ordenador"),)
 
 
 def _count_marcadores(ctx, marcadores):
+    """Cuenta ocurrencias de ``marcadores`` en ``ctx.masked_text``.
+
+    A diferencia de la búsqueda de vocabulario, esta comparación pliega
+    mayúsculas y minúsculas (``re.IGNORECASE``) pero NUNCA tildes: dos
+    formas que solo se distinguen por un diacrítico (p. ej. "tú"/"tu" o
+    "te"/"té") son palabras distintas en español, y plegar tildes las
+    confundiría (revisión de la slice 04, A2).
+    """
     pattern = re.compile(
-        r"\b(?:{})\b".format("|".join(re.escape(_normalize_for_matching(m)) for m in marcadores)),
-        re.UNICODE,
+        r"\b(?:{})\b".format("|".join(re.escape(m) for m in marcadores)),
+        re.UNICODE | re.IGNORECASE,
     )
-    ocurrencias = len(pattern.findall(ctx.normalized_text))
+    ocurrencias = len(pattern.findall(ctx.masked_text))
     por_mil = round(ocurrencias / ctx.total_words * 1000, 3) if ctx.total_words else 0.0
     return {"ocurrencias": ocurrencias, "por_mil_palabras": por_mil}
 
