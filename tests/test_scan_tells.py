@@ -624,6 +624,38 @@ class TestRayas(unittest.TestCase):
         rayas = self._rayas(text)
         self.assertEqual(rayas["hallazgos"], [])
 
+    def test_dialogue_closing_dash_omitted_before_narrator_period_is_valid(self):
+        # Revisión review-faf981a2b76764c9: "—Ya voy —dijo Marta." es correcto
+        # en español (el comentario del narrador cierra la frase, así que la
+        # raya de cierre se omite); nunca debe salir como raya_inglesa/sin_cierre.
+        text = "—Ya voy —dijo Marta.\n"
+        rayas = self._rayas(text)
+        tipos = [h["tipo"] for h in rayas["hallazgos"]]
+        self.assertEqual(tipos, ["dialogo", "inciso_sin_cierre"])
+        self.assertEqual(rayas["conteo"]["raya_inglesa"]["ocurrencias"], 0)
+
+    def test_dialogue_inciso_that_continues_the_speech_pairs_correctly(self):
+        text = "—No sé —dijo—. Mañana lo miro.\n"
+        rayas = self._rayas(text)
+        tipos = [h["tipo"] for h in rayas["hallazgos"]]
+        self.assertEqual(tipos, ["dialogo", "inciso_cerrado", "inciso_cerrado"])
+        self.assertEqual(rayas["conteo"]["raya_inglesa"]["ocurrencias"], 0)
+
+    def test_unclosed_english_dash_does_not_split_a_correct_inciso_pair(self):
+        # La raya espaciada sin cierre no debe "robar" la raya de apertura del
+        # inciso correcto que viene después en el mismo párrafo (emparejado
+        # voraz de la revisión review-faf981a2b76764c9).
+        text = (
+            "Fue un buen día — al menos eso pensaba Marta. "
+            "El pedido —según nos dijo Marta— llegó tarde hoy.\n"
+        )
+        rayas = self._rayas(text)
+        tipos = [h["tipo"] for h in rayas["hallazgos"]]
+        self.assertEqual(tipos, ["raya_inglesa", "inciso_cerrado", "inciso_cerrado"])
+        self.assertEqual(rayas["hallazgos"][0]["subtipo"], "sin_cierre")
+        self.assertEqual(rayas["conteo"]["raya_inglesa"]["ocurrencias"], 1)
+        self.assertEqual(rayas["conteo"]["inciso_cerrado"]["ocurrencias"], 2)
+
 
 class TestComillas(unittest.TestCase):
     def setUp(self):
@@ -762,6 +794,36 @@ class TestTipografia(unittest.TestCase):
         self.assertEqual(tipografia["exclamaciones"]["ocurrencias"], 2)
         self.assertGreater(tipografia["exclamaciones"]["por_mil_palabras"], 0)
 
+    def test_markdown_image_exclamation_is_not_counted(self):
+        text = "![Foto de la tienda](imagenes/tienda.jpg)\n\nTexto normal sin exclamaciones.\n"
+        tipografia = self._tipografia(text)
+        self.assertEqual(tipografia["exclamaciones"]["ocurrencias"], 0)
+        self.assertEqual(tipografia["signos_sin_apertura"], [])
+
+    def test_markdown_image_does_not_hide_a_real_exclamation_next_to_it(self):
+        text = "![Foto de la tienda](imagenes/tienda.jpg)\n\nMenudo día llevamos hoy!\n"
+        tipografia = self._tipografia(text)
+        self.assertEqual(tipografia["exclamaciones"]["ocurrencias"], 1)
+        self.assertEqual(len(tipografia["signos_sin_apertura"]), 1)
+
+    def test_markdown_reference_style_image_exclamation_is_not_counted(self):
+        text = "Mira este ![logo][logo-ref] con atención.\n\n[logo-ref]: imagenes/logo.png\n"
+        tipografia = self._tipografia(text)
+        self.assertEqual(tipografia["exclamaciones"]["ocurrencias"], 0)
+
+    def test_capital_after_colon_is_skipped_inside_heading(self):
+        text = "## El plan: Una Guía Rápida\n\nTexto normal sin dos puntos raros.\n"
+        tipografia = self._tipografia(text)
+        self.assertEqual(tipografia["mayuscula_tras_dos_puntos"], [])
+
+    def test_capital_after_colon_stops_at_masked_region_instead_of_skipping_it(self):
+        # El código enmascarado no cuenta como "espacio real": la mayúscula
+        # de después de "Necesitamos" no está pegada a los dos puntos, así
+        # que no debe reportarse (revisión review-faf981a2b76764c9, R2-002).
+        text = "Usa esto: `Config` Necesitamos revisar el resto.\n"
+        tipografia = self._tipografia(text)
+        self.assertEqual(tipografia["mayuscula_tras_dos_puntos"], [])
+
 
 CONTROL_PROSA_FORMA = (
     "# Un día cualquiera en la tienda\n"
@@ -813,6 +875,56 @@ class TestFormSafeguards(unittest.TestCase):
     def test_no_missing_opening_marks(self):
         tipografia = self.report["tipografia"]
         self.assertEqual(tipografia["signos_sin_apertura"], [])
+
+
+class TestPerformance(unittest.TestCase):
+    """Revisión review-faf981a2b76764c9 (R4-001, R4-002): el anidamiento de
+    comillas y la resolución de solapamientos deben comparar solo dentro de
+    un mismo párrafo (o con un barrido ordenado), no todo contra todo."""
+
+    def setUp(self):
+        self.module = load_module()
+
+    def test_many_quotes_and_vocabulary_hits_complete_quickly_and_correctly(self):
+        import time
+
+        vocab_content = (
+            "## Débil\n\n### Familia de prueba\n\n"
+            "clave | 2026-09-27 | PXX · prueba\n"
+        )
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            vocab_path = write_vocab(tmp_dir, vocab_content)
+            entries = self.module.parse_vocabulary(vocab_path)
+
+        parrafos = [
+            "Marta dijo «una frase de prueba número {}» y anotó la clave del caso.".format(i)
+            for i in range(10000)
+        ]
+        text = "\n\n".join(parrafos) + "\n"
+
+        inicio = time.perf_counter()
+        report = self.module.build_report(text, entries)
+        duracion = time.perf_counter() - inicio
+
+        # Con la comparación global O(N²) previa a la revisión
+        # review-faf981a2b76764c9 (R4-001/R4-002), 10 000 párrafos tardaban
+        # cerca de 19 s; acotado a un tramo por párrafo, debe bajar de 8 s.
+        self.assertLess(duracion, 8.0)
+        self.assertEqual(report["comillas"]["mezcla_de_tipos"], [])
+        self.assertEqual(report["comillas"]["anidamiento_invertido"], [])
+        self.assertEqual(
+            report["vocabulario"]["densidad"]["por_nivel"]["Débil"]["ocurrencias"], 10000
+        )
+
+    def test_overlap_resolution_unchanged_on_known_fixture(self):
+        entries = self.module.parse_vocabulary(VOCAB_PATH)
+        text = "Este proyecto es un pilar fundamental para la empresa.\n"
+        report = self.module.build_report(text, entries)
+        hallazgos = report["vocabulario"]["hallazgos"]
+        colocacion = [h for h in hallazgos if h["expresion"] == "pilar fundamental"]
+        suelto = [h for h in hallazgos if h["expresion"] == "fundamental"]
+        self.assertEqual(len(colocacion), 1)
+        self.assertEqual(len(suelto), 0)
 
 
 if __name__ == "__main__":

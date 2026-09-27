@@ -588,23 +588,35 @@ def _resolve_overlapping_hits(raw_hits):
     Débil); si también empatan, la expresión por orden alfabético (revisión
     R3-005). La densidad se calcula después, solo sobre los hallazgos que
     sobreviven a esta resolución.
+
+    Revisión review-faf981a2b76764c9 (R4-002): dos hallazgos solo pueden
+    solapar si están en el mismo párrafo (cada uno se busca ya acotado a su
+    propio párrafo en ``_find_vocabulary_hits``), así que la resolución se
+    hace párrafo a párrafo en vez de comparar cada hallazgo contra todos los
+    ya aceptados en el documento entero; el resultado no cambia, solo el
+    coste.
     """
-    ordered = sorted(
-        raw_hits,
-        key=lambda h: (
-            -(h["_fin"] - h["_inicio"]),
-            NIVELES_VALIDOS.index(h["nivel"]),
-            h["expresion"],
-        ),
-    )
+    hits_by_parrafo = {}
+    for h in raw_hits:
+        hits_by_parrafo.setdefault(h["_parrafo"], []).append(h)
+
     kept = []
-    covered = []
-    for h in ordered:
-        inicio, fin = h["_inicio"], h["_fin"]
-        if any(inicio < c_fin and c_inicio < fin for c_inicio, c_fin in covered):
-            continue
-        covered.append((inicio, fin))
-        kept.append(h)
+    for grupo in hits_by_parrafo.values():
+        ordered = sorted(
+            grupo,
+            key=lambda h: (
+                -(h["_fin"] - h["_inicio"]),
+                NIVELES_VALIDOS.index(h["nivel"]),
+                h["expresion"],
+            ),
+        )
+        covered = []
+        for h in ordered:
+            inicio, fin = h["_inicio"], h["_fin"]
+            if any(inicio < c_fin and c_inicio < fin for c_inicio, c_fin in covered):
+                continue
+            covered.append((inicio, fin))
+            kept.append(h)
     return kept
 
 
@@ -631,6 +643,7 @@ def _find_vocabulary_hits(ctx):
                         "columna": column,
                         "_inicio": orig_inicio,
                         "_fin": orig_fin,
+                        "_parrafo": p_start,
                     }
                 )
 
@@ -638,6 +651,7 @@ def _find_vocabulary_hits(ctx):
     for h in hits:
         del h["_inicio"]
         del h["_fin"]
+        del h["_parrafo"]
     hits.sort(key=lambda h: (h["linea"], h["columna"], h["expresion"]))
     return hits
 
@@ -860,6 +874,83 @@ def _raya_inglesa_subtipo(d):
     return "conector_universal"
 
 
+def _raya_estructura(d):
+    """Clasifica una raya suelta por su estructura (revisión
+    review-faf981a2b76764c9): "apertura" abre un inciso (separada de lo
+    anterior por espacio o inicio de línea, pegada a la palabra siguiente);
+    "cierre" lo cierra (pegada a la palabra anterior, separada de lo
+    siguiente por espacio, puntuación o fin de línea); "pegada" y
+    "espaciada" no encajan en ninguna de las dos.
+    """
+    if d["sin_palabra_antes"] and not d["sin_palabra_despues"]:
+        return "apertura"
+    if not d["sin_palabra_antes"] and d["sin_palabra_despues"]:
+        return "cierre"
+    if not d["sin_palabra_antes"] and not d["sin_palabra_despues"]:
+        return "pegada"
+    return "espaciada"
+
+
+def _pair_rayas_pendientes(pendientes):
+    """Empareja las rayas de un párrafo (que no están al inicio de línea)
+    por estructura, no por posición secuencial (revisión
+    review-faf981a2b76764c9: el emparejado por índice era voraz y una raya
+    espaciada sin cierre podía "robarse" la apertura del inciso correcto
+    que venía después en el mismo párrafo).
+
+    Se mantiene como mucho una apertura pendiente: al llegar una raya de
+    cierre, se empareja con ella como ``inciso_cerrado``; al llegar
+    cualquier otra raya (o al acabar el párrafo) sin haber encontrado
+    cierre, la apertura pendiente se reclasifica como ``inciso_sin_cierre``,
+    porque en español la raya de cierre se omite cuando el comentario del
+    narrador termina la frase o el párrafo (p. ej. "—Ya voy —dijo Marta.");
+    esto nunca es una raya a la inglesa. Las rayas "pegada" y "espaciada" se
+    reportan siempre sueltas, con su propio subtipo.
+    """
+    hallazgos = []
+    abierta = None
+    for d in pendientes:
+        estructura = _raya_estructura(d)
+        if estructura == "cierre" and abierta is not None:
+            hallazgos.append(
+                {"tipo": "inciso_cerrado", "linea": abierta["linea"], "columna": abierta["columna"]}
+            )
+            hallazgos.append(
+                {"tipo": "inciso_cerrado", "linea": d["linea"], "columna": d["columna"]}
+            )
+            abierta = None
+            continue
+        if abierta is not None:
+            hallazgos.append(
+                {"tipo": "inciso_sin_cierre", "linea": abierta["linea"], "columna": abierta["columna"]}
+            )
+            abierta = None
+        if estructura == "apertura":
+            abierta = d
+        elif estructura == "espaciada":
+            hallazgos.append(
+                {"tipo": "raya_inglesa", "subtipo": "sin_cierre", "linea": d["linea"], "columna": d["columna"]}
+            )
+        elif estructura == "pegada":
+            hallazgos.append(
+                {"tipo": "raya_inglesa", "subtipo": "pegada", "linea": d["linea"], "columna": d["columna"]}
+            )
+        else:  # "cierre" sin ninguna apertura pendiente antes
+            hallazgos.append(
+                {
+                    "tipo": "raya_inglesa",
+                    "subtipo": "conector_universal",
+                    "linea": d["linea"],
+                    "columna": d["columna"],
+                }
+            )
+    if abierta is not None:
+        hallazgos.append(
+            {"tipo": "inciso_sin_cierre", "linea": abierta["linea"], "columna": abierta["columna"]}
+        )
+    return hallazgos
+
+
 def analyze_rayas(ctx):
     heading_lines = {
         _line_col(ctx.line_starts, h["offset"])[0] for h in _iter_headings(ctx)
@@ -894,41 +985,11 @@ def analyze_rayas(ctx):
                         "sin_palabra_despues": sin_despues,
                     }
                 )
-        i = 0
-        while i < len(pendientes):
-            if i + 1 < len(pendientes):
-                d1, d2 = pendientes[i], pendientes[i + 1]
-                apertura_ok = d1["sin_palabra_antes"] and not d1["sin_palabra_despues"]
-                cierre_ok = not d2["sin_palabra_antes"] and d2["sin_palabra_despues"]
-                if apertura_ok and cierre_ok:
-                    hallazgos.append({"tipo": "inciso_cerrado", "linea": d1["linea"], "columna": d1["columna"]})
-                    hallazgos.append({"tipo": "inciso_cerrado", "linea": d2["linea"], "columna": d2["columna"]})
-                else:
-                    for d in (d1, d2):
-                        hallazgos.append(
-                            {
-                                "tipo": "raya_inglesa",
-                                "subtipo": _raya_inglesa_subtipo(d),
-                                "linea": d["linea"],
-                                "columna": d["columna"],
-                            }
-                        )
-                i += 2
-            else:
-                d = pendientes[i]
-                hallazgos.append(
-                    {
-                        "tipo": "raya_inglesa",
-                        "subtipo": "sin_cierre",
-                        "linea": d["linea"],
-                        "columna": d["columna"],
-                    }
-                )
-                i += 1
+        hallazgos.extend(_pair_rayas_pendientes(pendientes))
 
     hallazgos.sort(key=lambda h: (h["linea"], h["columna"]))
     conteo = {}
-    for tipo in ("dialogo", "inciso_cerrado", "raya_inglesa", "en_encabezado"):
+    for tipo in ("dialogo", "inciso_cerrado", "inciso_sin_cierre", "raya_inglesa", "en_encabezado"):
         n = sum(1 for h in hallazgos if h["tipo"] == tipo)
         conteo[tipo] = {
             "ocurrencias": n,
@@ -954,28 +1015,38 @@ _QUOTE_LABEL = {"angular": "«»", "curly_doble": "“”", "recta_doble": '""',
 
 
 def _find_quote_spans(ctx):
-    spans = []
+    """Encuentra los tramos de comillas y calcula su anidamiento.
+
+    Revisión review-faf981a2b76764c9 (R4-001): dos comillas solo pueden
+    anidarse si están en el mismo párrafo (cada tramo se busca ya acotado a
+    ``sub = texto[p_start:p_end]``), así que el anidamiento se calcula
+    párrafo a párrafo en vez de comparar cada tramo contra todos los del
+    documento; el resultado no cambia, solo el coste.
+    """
+    all_spans = []
     for p_start, p_end in ctx.surface_paragraphs:
         sub = ctx.surface_text[p_start:p_end]
+        spans = []
         for tipo, pattern in _QUOTE_TYPES:
             for m in pattern.finditer(sub):
                 spans.append({"tipo": tipo, "inicio": p_start + m.start(), "fin": p_start + m.end()})
 
-    for span in spans:
-        nivel = 1
-        padre = None
-        for otro in spans:
-            if otro is span:
-                continue
-            contiene = otro["inicio"] <= span["inicio"] and span["fin"] <= otro["fin"]
-            si_estricto = otro["inicio"] < span["inicio"] or span["fin"] < otro["fin"]
-            if contiene and si_estricto:
-                nivel += 1
-                if padre is None or (otro["fin"] - otro["inicio"]) < (padre["fin"] - padre["inicio"]):
-                    padre = otro
-        span["nivel"] = nivel
-        span["padre"] = padre
-    return spans
+        for span in spans:
+            nivel = 1
+            padre = None
+            for otro in spans:
+                if otro is span:
+                    continue
+                contiene = otro["inicio"] <= span["inicio"] and span["fin"] <= otro["fin"]
+                contencion_estricta = otro["inicio"] < span["inicio"] or span["fin"] < otro["fin"]
+                if contiene and contencion_estricta:
+                    nivel += 1
+                    if padre is None or (otro["fin"] - otro["inicio"]) < (padre["fin"] - padre["inicio"]):
+                        padre = otro
+            span["nivel"] = nivel
+            span["padre"] = padre
+        all_spans.extend(spans)
+    return all_spans
 
 
 def _quotes_mixing(ctx, spans):
@@ -1036,14 +1107,24 @@ def analyze_comillas(ctx):
 
 # ---------------------------------------------------------------------------
 # Analizador: tipografía. ¿/¡ sin su apertura, mayúscula tras dos puntos en
-# prosa corrida y exclamaciones por mil palabras. Usa ``surface_text``.
+# prosa corrida y exclamaciones por mil palabras. Usa ``surface_text``, pero
+# con la sintaxis de imagen Markdown (``![alt](ruta)``, incluida la forma de
+# referencia ``![alt][ref]``) enmascarada aparte: su "!" no es una
+# exclamación y no debe contar como "!" sin "¡" (revisión
+# review-faf981a2b76764c9).
 # ---------------------------------------------------------------------------
 
+_MD_IMAGE_RE = re.compile(r"!\[[^\]\n]*\](?:\([^)\n]*\)|\[[^\]\n]*\])?")
 
-def _tipografia_signos(ctx):
+
+def _mask_markdown_images(text):
+    return _mask_pattern(text, _MD_IMAGE_RE)[0]
+
+
+def _tipografia_signos(ctx, text):
     hallazgos = []
     for p_start, p_end in ctx.surface_paragraphs:
-        sub = ctx.surface_text[p_start:p_end]
+        sub = text[p_start:p_end]
         abre_interrogacion = False
         abre_exclamacion = False
         for i, ch in enumerate(sub):
@@ -1073,25 +1154,44 @@ def _tipografia_signos(ctx):
 def _tipografia_mayuscula_tras_dos_puntos(ctx):
     """Mayúscula tras dos puntos en prosa corrida.
 
-    Salvaguardas (auditoria.md, P57): no se informa si los dos puntos
-    introducen una cita textual (les sigue directamente una comilla de
-    apertura) ni si introducen un elemento de lista o un bloque en la línea
-    siguiente (hay un salto de línea entre los dos puntos y el siguiente
-    carácter no en blanco).
+    Salvaguardas (auditoria.md, P57; revisión review-faf981a2b76764c9,
+    R2-001): no se informa si los dos puntos introducen una cita textual
+    (les sigue directamente una comilla de apertura); no se informa si los
+    dos puntos introducen un elemento de lista o un bloque en la línea
+    siguiente, de forma explícita: si tras saltarse solo espacios y
+    tabulaciones (nunca un salto de línea) no queda ningún carácter en esa
+    misma línea, los dos puntos cierran la línea y no hay nada que
+    comprobar. La mayúscula debe ser el carácter que sigue a los dos puntos
+    y a sus espacios reales; si en ese tramo aparece una región ya
+    enmascarada (código, URL, frontmatter, claim), la comprobación se
+    detiene ahí en vez de saltársela como si fuera un espacio normal, para
+    no comparar contra un carácter que en realidad no está pegado a los dos
+    puntos. Tampoco se informa dentro de un encabezado.
     """
+    heading_lines = {
+        _line_col(ctx.line_starts, h["offset"])[0] for h in _iter_headings(ctx)
+    }
     text = ctx.surface_text
+    original = ctx.original_text
     hallazgos = []
     for m in re.finditer(":", text):
         idx = m.start()
+        line_no_dos_puntos, _col = _line_col(ctx.line_starts, idx)
+        if line_no_dos_puntos in heading_lines:
+            continue
         j = idx + 1
+        region_enmascarada = False
         while j < len(text) and text[j] in (" ", "\t"):
+            if original[j] not in (" ", "\t"):
+                region_enmascarada = True
+                break
             j += 1
-        if j >= len(text):
+        if region_enmascarada:
+            continue
+        if j >= len(text) or text[j] == "\n":
             continue
         siguiente = text[j]
         if siguiente in "«\"“'":
-            continue
-        if "\n" in text[idx + 1 : j]:
             continue
         if siguiente.isalpha() and siguiente.isupper():
             line_no, col = _line_col(ctx.line_starts, j)
@@ -1101,10 +1201,11 @@ def _tipografia_mayuscula_tras_dos_puntos(ctx):
 
 
 def analyze_tipografia(ctx):
-    total_excl = ctx.surface_text.count("!")
+    sin_imagenes = _mask_markdown_images(ctx.surface_text)
+    total_excl = sin_imagenes.count("!")
     por_mil = round(total_excl / ctx.total_words * 1000, 3) if ctx.total_words else 0.0
     return {
-        "signos_sin_apertura": _tipografia_signos(ctx),
+        "signos_sin_apertura": _tipografia_signos(ctx, sin_imagenes),
         "mayuscula_tras_dos_puntos": _tipografia_mayuscula_tras_dos_puntos(ctx),
         "exclamaciones": {"ocurrencias": total_excl, "por_mil_palabras": por_mil},
     }
