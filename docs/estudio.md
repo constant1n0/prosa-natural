@@ -18,7 +18,7 @@ Cómo leer las citas:
 3. Varias instrucciones de los upstream cambian el alcance de una afirmación ("is designed to" → "will", "weaken the claim", cortar la autoridad sin fuente). En la UE se regula la redacción de los claims, incluido lo implícito (Reglamento 655/2013, art. 1 y 2; Reglamento 1924/2006, "mismo significado para el consumidor"). La skill no puede reformularlos (§10).
 4. Humanamente P14 protege los incisos y el diálogo y distingue el espaciado inglés; la RAE admite la raya en incisos, diálogo y listas. El rasgo es la raya a la inglesa: espaciada por ambos lados, sin cierre o en lugar de dos puntos (§4.1). La evidencia empírica no respalda tratar la raya como rasgo por sí sola (Russell et al. 2025; Wikipedia).
 5. No existe ningún estudio revisado por pares que liste vocabulario sobrerrepresentado en textos de IA en español. Lo más cercano es un preprint (Juzek 2026) con la familia "enfatizar, destacar, subrayar, realzar". La lista de prosa-natural será criterio propio documentado, por niveles y no como lista negra (§5).
-6. La norma actual corrige varias entradas de la semilla de `contexto.md` §6.6: "en base a" es admisible aunque menos recomendable (DPD, 2.ª ed.) y "jugar un papel" no es incorrecto. "A nivel de" sin idea de jerarquía, "hacer sentido" y el gerundio de posterioridad sí están censurados o desaconsejados (§4.5).
+6. La norma actual corrige varias entradas de la semilla del proyecto (hoy en `vocabulario-es.md`): "en base a" es admisible aunque menos recomendable (DPD, 2.ª ed.) y "jugar un papel" no es incorrecto. "A nivel de" sin idea de jerarquía, "hacer sentido" y el gerundio de posterioridad sí están censurados o desaconsejados (§4.5).
 7. Los rasgos tipográficos con respaldo normativo más firme son la mayúscula en cada palabra de los títulos y la omisión de los signos de apertura ¿ ¡. Las comillas inglesas no son error; solo se señala la incoherencia dentro de un mismo texto (§4.2, §4.3, §4.9).
 8. La evaluación no puede apoyarse en detectores: sesgan contra quien escribe en segunda lengua (Liang et al. 2023), caen con la paráfrasis (Sadasivan et al.) y en español rinden poco por encima de la línea base (AuTexTification). Funcionan mejor los jueces expertos con voto mayoritario (Russell et al. 2025: 1 error en 300 artículos), las aserciones deterministas y los casos adversariales (§7).
 9. El método más riguroso del corpus es el de adewale/anti-slop-writing (veredicto `ask-author`, `Rewrite check`, casos adversariales, reparto tune/holdout). kjmagnan1s/anti-slop aporta la edición mínima, la prueba de portabilidad y un presupuesto de reglas contra el crecimiento sin freno.
@@ -93,11 +93,11 @@ Patrones deduplicados entre fuentes y agrupados por familias. Solo figuran los q
 |---|---|---|---|---|
 | P12 | Vocabulario de registro IA | Palabras y colocaciones sobrerrepresentadas; pesan por familia y densidad (§5) | «Potenciamos tu bienestar y fomentamos hábitos saludables en el panorama actual.» | blader §12; anti-ai banned-list ES; HUM §6.1; P151 A; NTE; ADS; Juzek 2026 |
 | P18 | Evitar "ser" y "tener" | Perífrasis en lugar de la cópula o de "tener" | «La biblioteca se erige como un punto de encuentro vecinal.» | blader §18; anti-ai (verbos débiles); I92; HUM P08; adewale; Wikipedia |
-| P32 | Modificador hueco | "Verdadero", "auténtico" que contrastan con una alternativa que nadie planteó | «Un verdadero referente del comercio local.» | adewale PR #17 (abierta); semilla §6.6 |
+| P32 | Modificador hueco | "Verdadero", "auténtico" que contrastan con una alternativa que nadie planteó | «Un verdadero referente del comercio local.» | adewale PR #17 (abierta); semilla |
 | P33 | Calco censurado | Construcción que la norma considera impropia (§4.5) | «A nivel de precios, somos competitivos.» | DPD; RAE |
 | P34 | Calco admitido pero menos recomendable | Construcción válida que la norma desaconseja frente a otra (§4.5) | «En base a los resultados, ampliaremos el horario.» | DPD; Fundéu |
 | P35 | Anglicismo admitido | Voz registrada sin censura; solo pesa si se acumula | «Queremos empoderar a los equipos e impactar en las ventas.» | DPD; DLE |
-| P36 | "Tomar lugar" | Calco de *take place* por "tener lugar"; sin pronunciamiento normativo localizado | «La presentación tomará lugar en el salón de actos.» | semilla §6.6 |
+| P36 | "Tomar lugar" | Calco de *take place* por "tener lugar"; sin pronunciamiento normativo localizado | «La presentación tomará lugar en el salón de actos.» | semilla |
 
 ### 3.3 Sintaxis y ritmo
 
@@ -108,11 +108,11 @@ Patrones deduplicados entre fuentes y agrupados por familias. Solo figuran los q
 | P07 | Arranques repetidos | Frases seguidas con el mismo arranque; en español, sujeto explícito innecesario | «Este taller enseña… Este taller ofrece… Este taller cuenta con…» | blader §7; NTE (pro-drop) |
 | P11 | Pasiva perifrástica e impersonal de relleno | "Fue + participio + por" sin motivo; "se hace necesario", "se podría decir que" | «La campaña fue lanzada por el equipo en marzo.» | blader §11; HUM P13; P151 B; stop-slop |
 | P15 | Gerundio ilativo o de posterioridad | Gerundio que cuelga una interpretación o un hecho posterior | «La tienda abrió en 2019, convirtiéndose en un referente del barrio.» | blader §15; HUM P03, P22; P151 B; DPD |
-| P37 | Conectores apilados | "Además", "Asimismo", "Por otro lado" abriendo párrafo tras párrafo | Tres párrafos seguidos que empiezan por «Además,», «Asimismo,» y «Por otro lado,» | anti-ai; HUM P33; P151 A; NTE; ADS; semilla §6.6 |
+| P37 | Conectores apilados | "Además", "Asimismo", "Por otro lado" abriendo párrafo tras párrafo | Tres párrafos seguidos que empiezan por «Además,», «Asimismo,» y «Por otro lado,» | anti-ai; HUM P33; P151 A; NTE; ADS; semilla |
 | P38 | Enumeración mecánica | "En primer lugar… en segundo lugar… por último" fuera de procedimientos | Un post de 150 palabras con esa secuencia | TPE; HUM §6.2 |
 | P39 | Simetría cautelosa | Plantillas que se dirigen a todos los lectores a la vez | «Tanto si eres principiante como si llevas años cocinando, esta receta es para ti.» | adewale (hedged symmetry); jalaalrd; kjm |
 | P40 | Revelación tras dos puntos | Pausa dramática con dos puntos antes de una respuesta breve | «La clave: la constancia.» | kjm (colon reveal) |
-| P41 | Acumulación de epítetos | Epíteto antepuesto más adjetivos pospuestos en serie | «Un exquisito aroma intenso, envolvente y sofisticado.» | NTE; semilla §6.6; NGLE |
+| P41 | Acumulación de epítetos | Epíteto antepuesto más adjetivos pospuestos en serie | «Un exquisito aroma intenso, envolvente y sofisticado.» | NTE; semilla; NGLE |
 | P42 | Aposición explicativa de manual | Aposición que explica lo que el lector ya sabe | «El turrón, ese dulce emblemático de nuestras Navidades, …» | HUM P31 |
 
 ### 3.4 Discurso y estructura
@@ -146,7 +146,7 @@ StoryScope ([arXiv:2604.03136][storyscope], ficción en inglés) respalda P43 en
 | P52 | Markdown fuera de contexto | Asteriscos, almohadillas o listas en canales que no los interpretan | Un WhatsApp con «**Oferta:** 2x1» | Aboudjem P28; jalaalrd; Wikipedia |
 | P53 | Estructura donde bastaba prosa | Viñetas, tablas diminutas, encabezados vacíos, saltos de nivel | Una tabla de dos filas para decir que se abre de 9 a 14 | anti-ai; Wikipedia; P151 B |
 | P54 | Encabezado en forma de pregunta | Títulos de sección formulados como pregunta | «## ¿Por qué elegir nuestra academia?» | Aboudjem P27 |
-| P55 | Comillas incoherentes | Mezcla de «», “” y "" en el mismo nivel, o anidamiento invertido (§4.2) | «calidad», “servicio” y "precio" en el mismo párrafo | semilla §6.6; RAE; Wikilengua |
+| P55 | Comillas incoherentes | Mezcla de «», “” y "" en el mismo nivel, o anidamiento invertido (§4.2) | «calidad», “servicio” y "precio" en el mismo párrafo | semilla; RAE; Wikilengua |
 | P56 | Signos de apertura omitidos | Interrogación o exclamación sin ¿ o ¡ | «Qué te ha parecido?» | DPD; HUM §6.5 |
 | P57 | Mayúscula tras dos puntos | Fuera de saludos, citas y fórmulas administrativas | «Nota: El horario cambia en agosto.» | RAE |
 | P58 | Exceso de exclamaciones | Exclamaciones en serie fuera del diálogo | «¡Te esperamos! ¡No te lo pierdas! ¡Plazas limitadas!» | jalaalrd |
@@ -163,14 +163,14 @@ StoryScope ([arXiv:2604.03136][storyscope], ficción en inglés) respalda P43 en
 | P61 | Marcado de chatbot filtrado | Restos técnicos de la interfaz del modelo | «…según el informe.contentReference[oaicite:0]» | Aboudjem P34; Wikipedia |
 | P62 | UTM de herramientas de IA | Enlaces copiados de un chat con parámetros de origen | «…?utm_source=chatgpt.com» | Aboudjem P35; Wikipedia |
 | P63 | Fórmulas epistolares fuera de lugar | Saludos o despedidas de carta en textos que no lo son | Un post que termina con «Quedo a la espera de sus comentarios. Un cordial saludo.» | slopornot S5; jalaalrd; Wikipedia |
-| P64 | Cambio de registro o de variante | Mezcla de tú y usted, de vosotros y ustedes; léxico americano en texto ES-ES (§4.10) | «Si tienes dudas, contáctenos.» | semilla §6.6; slopornot S8; Aboudjem P36; ADS |
+| P64 | Cambio de registro o de variante | Mezcla de tú y usted, de vosotros y ustedes; léxico americano en texto ES-ES (§4.10) | «Si tienes dudas, contáctenos.» | semilla; slopornot S8; Aboudjem P36; ADS |
 
 ### 3.7 Relleno y evasivas
 
 | Id | Patrón | Qué es | Ejemplo propio | Fuentes |
 |---|---|---|---|---|
 | P09 | Matices apilados | Varias cautelas seguidas; matización en sube y baja | «Podría, en cierta medida, ayudar potencialmente a…» | blader §9; HUM P25; P151 E; NTE |
-| P31 | Fórmula de relevancia vacía | Anunciar que algo importa en vez de decirlo | «Cabe destacar que el horario de verano empieza en julio.» | anti-ai; HUM §6.2; P151 E; I92; TPE; NTE; ADS; semilla §6.6; Juzek 2026 |
+| P31 | Fórmula de relevancia vacía | Anunciar que algo importa en vez de decirlo | «Cabe destacar que el horario de verano empieza en julio.» | anti-ai; HUM §6.2; P151 E; I92; TPE; NTE; ADS; semilla; Juzek 2026 |
 | P65 | Transición de relleno | "Dicho esto", "con esto en mente", "en otras palabras" repetidos | «Dicho esto, pasemos a los precios.» | HUM §6.2; ADS; Aboudjem P43 |
 
 ### 3.8 Autocomprobación: lo que introduce la humanización
@@ -193,7 +193,7 @@ Tampoco pasan, sin identificador propio, varios rasgos de ficción de StoryScope
 - Uso impropio. Wikilengua recoge "Usos impropios de la raya. La mayoría de ellos son calcos del inglés": en lugar de los dos puntos para una conclusión y en lugar del paréntesis para una sigla ([Wikilengua, Raya][wl-raya]). En títulos, Wikilengua considera anglicismo el uso de la raya en lugar de los dos puntos ([Wikilengua, Título][wl-titulo], §1). La RAE no dice nada sobre la frecuencia.
 - Intervalos. En "1990-2000" el signo es el guion; la semirraya aparece "por influencia del inglés" ([Wikilengua, Guion][wl-guion]). No es un rasgo de IA.
 - Evidencia. En Russell et al. (2025) los expertos notaban que los textos de IA evitaban rayas y puntos suspensivos. Wikipedia: el rasgo es útil "in combination with other indicators, not by itself"; cita un estudio de julio de 2026 según el cual, entre los modelos actuales, solo Claude usaba más rayas que los escritores profesionales (referencia primaria no localizada), y observa que las rayas generadas "are usually surrounded by spaces".
-- Consecuencia. Salvaguarda obligatoria (§6.6 de `contexto.md`). Rasgo: raya espaciada por ambos lados, raya suelta sin cierre, raya pegada a las dos palabras, raya en un encabezado. La densidad no tiene umbral normativo: PR #151 propone "máximo una por cada 500 palabras", que es un criterio propio de esa fuente.
+- Consecuencia. Salvaguarda obligatoria ([SKILL.md][skill], «Español frente a inglés»; P08 en `patrones.md`). Rasgo: raya espaciada por ambos lados, raya suelta sin cierre, raya pegada a las dos palabras, raya en un encabezado. La densidad no tiene umbral normativo: PR #151 propone "máximo una por cada 500 palabras", que es un criterio propio de esa fuente.
 
 ### 4.2 Comillas
 
@@ -304,7 +304,7 @@ Reglas de uso, tomadas de blader, adewale y Aboudjem: el uso técnico legítimo 
 |---|---|---|---|
 | No inventar | Datos, nombres, cifras o citas nuevas | blader "Do not add a fact, name, number, date, quote, or citation unless it comes from the source or the user" ([SKILL.md:36][bl]); kjm "Rewrite mode never invents" ([SKILL.md:105][kjm]); Aboudjem "No fabrication" ([SKILL.md:110][abj]) | Regla dura 1, sin la excepción de ficción ni de "opinion or reaction" de blader |
 | Preguntar al autor | Rellenar un hueco con una invención | adewale: veredicto `ask-author` y "a fallback that invents is worse than no fallback" ([ADW:282-300][adw]) | Si una frase mejoraría con un dato que falta, se pregunta o se simplifica |
-| Comprobación de la reescritura | Que la versión final conserve rasgos o pierda datos | blader paso 3 ([SKILL.md:37][bl]); adewale `Rewrite check`; Aboudjem `--check-facts` ([facts.js][abj-facts]) | Paso 4 del flujo (§6.3 de `contexto.md`) y `scan_tells.py --original` |
+| Comprobación de la reescritura | Que la versión final conserve rasgos o pierda datos | blader paso 3 ([SKILL.md:37][bl]); adewale `Rewrite check`; Aboudjem `--check-facts` ([facts.js][abj-facts]) | Paso 4 del flujo ([SKILL.md][skill], «Flujo») y `scan_tells.py --original` |
 | Texto ya bueno | Sobreedición | kjm: "'this text is fine' is a valid verdict. Over-editing human prose is the same failure as slop, pointed the other way" ([SKILL.md:68-69][kjm]); humanamente propone medirlo ([README:63][hum-readme]) | Caso fijo en los evals; salida "sin cambios necesarios" permitida |
 | Racimos, no casos sueltos | Marcar escritura humana normal | blader: "Several tells together are the safeguard" ([SKILL.md:362][bl]); Aboudjem: "One em dash, one 'crucial', one three-item list is how humans write too" ([SKILL.md:80][abj]); Wikipedia (indicadores ineficaces) | Nivel débil y rasgos *weak alone* solo en acumulación |
 | Voz del autor | Aplanar el estilo propio | blader: la muestra "overrides the patterns" ([SKILL.md:42][bl]); kjm: lista de protección y "De-slopped text that lost its author is still a failure" ([SKILL.md:102][kjm]); Aboudjem `humanizer-context.md` ([SKILL.md:72][abj]) | `voz.md` o muestra; manda sobre los patrones salvo las reglas duras; tú/usted no se cambia |
@@ -373,11 +373,11 @@ adewale mantiene casos adversariales de falsos positivos (`robust-engineering-co
 
 | Hueco | Estado en las fuentes | Cómo lo cubre prosa-natural |
 |---|---|---|
-| Claims regulados (cosmética, salud, alimentación) | Ninguna los protege; varias los reformulan (§8) | Detección en tres niveles, literal en reescritura, modo Revisión por defecto (`claims.md`, §6.4 de `contexto.md`) |
+| Claims regulados (cosmética, salud, alimentación) | Ninguna los protege; varias los reformulan (§8) | Detección en tres niveles, literal en reescritura, modo Revisión por defecto (`claims.md`; [SKILL.md][skill], «Modos» y «Claims») |
 | Registro tú/usted | Solo slopornot S8 y Aboudjem P36 señalan la mezcla | No se cambia sin petición; `scan_tells.py` compara el recuento con el original |
 | Vosotros/ustedes y léxico por variante | Solo ADS (code-switching) y slopornot S8, en general | Se señala, no se cambia (P64, §4.10) |
 | Fichas de producto | anti-ai trata marketing y *landings*, no fichas | Casos de eval con claims; P26 (portabilidad) y P16 con puerta de claims |
-| Datos personales o sensibles | Ninguna | Aviso de §4.6 de `contexto.md`; la skill no los pide ni los guarda. La detección heurística se planifica para la Fase 2 como aviso local y efímero; no encontrar patrones no certificará que el texto sea seguro |
+| Datos personales o sensibles | Ninguna | Aviso de la regla dura 6 ([SKILL.md][skill], «Reglas duras»); la skill no los pide ni los guarda. La detección heurística se planifica para la Fase 2 como aviso local y efímero; no encontrar patrones no certificará que el texto sea seguro |
 | Tipografía española (raya, comillas, ¿¡, mayúsculas) | Humanamente §6.5 lo enuncia sin fuentes normativas; el resto la contradice | §4 con respaldo normativo fechado |
 | Cifras con formato español en la comprobación de hechos | Aboudjem solo reconoce formatos ingleses | Normalización de §4.11 |
 | Intocables de comercio (INCI, precios, códigos) | blader protege código y datos; no INCI ni precios | Regla dura 3 y enmascarado en el script |
@@ -406,7 +406,7 @@ El documento técnico de la AEMPS sobre reivindicaciones (traducción del docume
 - La norma regula la redacción, incluida la implícita. Cambios "más naturales" pueden ir más allá de las pruebas o crear una alegación nueva. Ejemplos propios, no del texto legal: "hasta 24 h" → "todo el día"; "ayuda a reducir" → "reduce"; "fórmula con ácido hialurónico" → "hidratación con ácido hialurónico"; "rico en fibra" → "cuida tu digestión".
 - La equivalencia entre redacciones la juzga la autoridad. La skill no tiene la documentación justificativa y no puede decidir que dos frases son equivalentes.
 - Por eso, en reescritura la frase con claim queda literal y se señala; en Revisión se puede avisar de que un claim parece ir más allá del original, sin proponer una redacción "equivalente".
-- Marcadores de detección que añade el estudio a la heurística de §6.4 de `contexto.md`: duraciones ("48 h"), "dermatológicamente probado/testado", "hipoalergénico", "sin X", "no testado en animales", "natural" asociado a un efecto, autoevaluaciones de calidad o cumplimiento (P30).
+- Marcadores de detección que añade el estudio a la heurística de claims (hoy incorporados en `claims.md`): duraciones ("48 h"), "dermatológicamente probado/testado", "hipoalergénico", "sin X", "no testado en animales", "natural" asociado a un efecto, autoevaluaciones de calidad o cumplimiento (P30).
 
 ## 11. Licencias y atribución
 
@@ -426,7 +426,7 @@ Los avisos MIT de `NOTICE.md` corresponden a material de esos proyectos. Wikiped
 
 ## 12. Referencias
 
-Claves usadas en las tablas: "blader" = blader/humanizer; "anti-ai" = avectats7/anti-ai-writing; HUM = humanamente; HES = Humanizer-es; TPE = humanizar-texto-es; NTE = naturalizacion-texto-es; ADS = fork de adelaidasofia; I92 = issue #92 de blader; P151 = PR #151 de blader; HPA = Humanizer-Prompt-Advanced; "semilla §6.6" = `docs/contexto.md` §6.6. "HUM P09", "Aboudjem P41" o "anti-ai H6" usan la numeración de cada fuente, no la de prosa-natural.
+Claves usadas en las tablas: "blader" = blader/humanizer; "anti-ai" = avectats7/anti-ai-writing; HUM = humanamente; HES = Humanizer-es; TPE = humanizar-texto-es; NTE = naturalizacion-texto-es; ADS = fork de adelaidasofia; I92 = issue #92 de blader; P151 = PR #151 de blader; HPA = Humanizer-Prompt-Advanced; "semilla" = semilla de vocabulario del proyecto, la lista de expresiones de partida del diseño, hoy revisada en `vocabulario-es.md` (entradas con origen "semilla"). "HUM P09", "Aboudjem P41" o "anti-ai H6" usan la numeración de cada fuente, no la de prosa-natural.
 
 ### 12.1 Skills y herramientas
 
@@ -620,3 +620,4 @@ Wikilengua (literal): [Raya][wl-raya]; [Guion][wl-guion]; [Comillas][wl-comillas
 [r432]: https://eur-lex.europa.eu/legal-content/ES/TXT/?uri=CELEX:32012R0432
 [aemps]: https://www.aemps.gob.es/cosmeticos-cuidado-personal/docs/doc-tec-reivindicaciones-cosmeticos.pdf
 [rd1907]: https://www.boe.es/buscar/act.php?id=BOE-A-1996-18085
+[skill]: ../skill/prosa-natural/SKILL.md

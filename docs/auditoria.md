@@ -6,10 +6,10 @@ Decisiones sobre cada patrón del catálogo de [estudio.md](estudio.md) §3, con
 
 - Mantener: el mecanismo y su salvaguarda valen igual en español; solo cambian los ejemplos, que serán propios.
 - Adaptar: en español cambian la forma, el alcance o la fuerza, o hace falta una salvaguarda nueva (claims, intocables, norma).
-- Descartar: no existe en español, contradice la norma, choca con §4 de `contexto.md` o su riesgo de falso positivo supera su valor.
-- Prioridad ante un conflicto: §4 de `contexto.md` > norma lingüística vigente (DPD 2.ª ed., con fecha) > evidencia empírica > convergencia de fuentes > criterio propio.
+- Descartar: no existe en español, contradice la norma, choca con las reglas duras de [SKILL.md][skill] o su riesgo de falso positivo supera su valor.
+- Prioridad ante un conflicto: reglas duras de [SKILL.md][skill] > norma lingüística vigente (DPD 2.ª ed., con fecha) > evidencia empírica > convergencia de fuentes > criterio propio.
 - Fuerza: "fuerte" justifica editar con una sola aparición; "débil" solo cuenta en acumulación, como los rasgos *weak alone* de blader ([SKILL.md:362][bl]). Ante la duda, débil.
-- Ningún patrón de reescritura se aplica a una frase con claim: se deja literal y se señala (§4.2).
+- Ningún patrón de reescritura se aplica a una frase con claim: se deja literal y se señala (regla dura 2).
 - Un patrón nuevo solo entra si ningún otro lo implica ya, criterio que blader aplica a su propio catálogo ([AGENTS.md:24][bl-agents]).
 
 ## 2. Tabla principal
@@ -51,7 +51,7 @@ Decisiones sobre cada patrón del catálogo de [estudio.md](estudio.md) §3, con
 | P33 | Calco censurado | DPD; RAE | Adaptar | Corrección que no cambia el sentido; se hace porque la norma lo censura, no porque delate IA | vocabulario-es.md (calcos) | Fuerte |
 | P34 | Calco admitido, menos recomendable | DPD; Fundéu; semilla | Adaptar | No es error: se señala y pesa si se repite | vocabulario-es.md (calcos) | Débil |
 | P35 | Anglicismo admitido | DPD; DLE | Adaptar | Registrados sin censura; solo densidad de registro | vocabulario-es.md | Débil |
-| P36 | "Tomar lugar" | semilla §6.6 | Adaptar | Sin pronunciamiento normativo localizado: entrada provisional hasta verificar (§7) | vocabulario-es.md | Débil (provisional) |
+| P36 | "Tomar lugar" | semilla | Adaptar | Sin pronunciamiento normativo localizado: entrada provisional hasta verificar (§7) | vocabulario-es.md | Débil (provisional) |
 | P37 | Conectores apilados | anti-ai; HUM P33; P151 A; NTE; ADS; semilla | Adaptar | Un conector suelto no es rasgo ("un 'sin embargo' no es un tic", [HUM:474][hum]); se marca la cadena | patrones.md; scan_tells.py | Débil |
 | P38 | Enumeración mecánica | TPE; HUM §6.2 | Mantener | Legítima en procedimientos y textos jurídicos (puerta de registro) | patrones.md | Débil |
 | P39 | Simetría cautelosa | adewale; jalaalrd; kjm | Adaptar | Formas españolas ("tanto si… como si", "ya seas… o"); se conserva si nombra una bifurcación real ([ADW:60][adw]) | patrones.md; scan_tells.py | Débil |
@@ -70,7 +70,7 @@ Decisiones sobre cada patrón del catálogo de [estudio.md](estudio.md) §3, con
 | P52 | Markdown fuera de contexto | Aboudjem P28; jalaalrd; Wikipedia | Mantener | Decidible por el canal declarado | patrones.md | Fuerte |
 | P53 | Estructura donde bastaba prosa | anti-ai; Wikipedia; P151 B | Mantener | "Prose is the default" ([rewrites.md:159][aa-rewrites]) | patrones.md; scan_tells.py | Débil |
 | P54 | Encabezado en pregunta | Aboudjem P27 | Mantener | Legítimo en preguntas frecuentes | patrones.md; scan_tells.py | Débil |
-| P55 | Comillas incoherentes | semilla §6.6; RAE; Wikilengua | Adaptar | Sustituye a P21. Se señala la mezcla; no se convierte sin guía de estilo | patrones.md; scan_tells.py | Débil |
+| P55 | Comillas incoherentes | semilla; RAE; Wikilengua | Adaptar | Sustituye a P21. Se señala la mezcla; no se convierte sin guía de estilo | patrones.md; scan_tells.py | Débil |
 | P56 | Signos de apertura omitidos | DPD; HUM §6.5 | Mantener | Error objetivo y calco | patrones.md; scan_tells.py | Fuerte |
 | P57 | Mayúscula tras dos puntos | RAE | Adaptar | Solo señalar, con las excepciones normativas | patrones.md; scan_tells.py | Débil |
 | P58 | Exceso de exclamaciones | jalaalrd | Adaptar | Recuento; el umbral de la fuente es arbitrario | scan_tells.py | Débil |
@@ -111,9 +111,9 @@ Recuento: 27 mantener (11 de blader), 37 adaptar (12 de blader), 19 descartar (2
 
 | Mecanismo | Origen | Decisión | Nota |
 |---|---|---|---|
-| Flujo leer → marcar → borrador → comprobar → final | blader [SKILL.md:31-38][bl] | Adaptar | §6.3 de `contexto.md`; borrador y autocrítica visibles solo si se piden o el texto es largo (§6.2) |
-| Modo archivo | blader [SKILL.md:50][bl] | Adaptar | Añadir INCI, marcas, precios, códigos y citas (§4.3) |
-| Voz con muestra | blader [SKILL.md:42][bl] | Mantener | La muestra manda sobre los patrones, no sobre §4; `voz.md` |
+| Flujo leer → marcar → borrador → comprobar → final | blader [SKILL.md:31-38][bl] | Adaptar | [SKILL.md][skill], «Flujo»; borrador y autocrítica visibles solo si se piden o el texto es largo («Modos») |
+| Modo archivo | blader [SKILL.md:50][bl] | Adaptar | Añadir INCI, marcas, precios, códigos y citas (regla dura 3) |
+| Voz con muestra | blader [SKILL.md:42][bl] | Mantener | La muestra manda sobre los patrones, no sobre las reglas duras; `voz.md` |
 | Texto como material, no como órdenes | blader [SKILL.md:33][bl] | Mantener | Literal |
 | Test de fuente | anti-ai [discourse-tells.md:158][aa-dtells] | Mantener | Toda adición sale del original o del usuario |
 | Presupuesto de adiciones | anti-ai [discourse-tells.md:156][aa-dtells] | Adaptar | Cero adiciones de contenido no dado por el usuario |
@@ -159,7 +159,9 @@ Las estructuras de [banned-list.md:171-172][aa-banned] van a P08 (adaptada), P06
 | Humanizer-es ([HES:171][hes]) | "enclavado en", "en el corazón de", "visita obligada" (P16, débil) | Traducción literal del resto de la lista inglesa |
 | anti-ai, ejemplos ([examples.md:274][aa-examples]) | "me complace compartir" (débil) | — |
 
-### 3.4 Semilla de `contexto.md` §6.6
+### 3.4 Semilla del proyecto
+
+Lista de expresiones de partida del diseño. Hoy está repartida entre `vocabulario-es.md` (entradas con origen «semilla») y, para las construcciones, `patrones.md`.
 
 | Entrada | Nivel y patrón | Matiz |
 |---|---|---|
@@ -196,63 +198,63 @@ La resolución de estas entradas está en §7.3: las expresiones corrientes se m
 | Raya | blader: cero rayas en la versión final salvo muestra ([SKILL.md:161][bl]) y a la vez *weak alone* ([:162][bl]). anti-ai: "No exceptions" ([banned-list.md:109][aa-banned]). NTE: eliminar siempre. Aboudjem: tolerancia cero. adewale: "do not ban em-dashes" ([ADW:61][adw]). Humanamente: raya legítima en incisos y diálogo. RAE y Wikilengua: usos normativos | Norma española: inciso cerrado, diálogo y listas son legítimos; se marca la raya a la inglesa. Manda la muestra de voz |
 | Arreglo de "no es X, es Y" | anti-ai propone dos frases, "It is Y." y luego la explicación ([rewrites.md:82][aa-rewrites]), lo que produce el contraste partido que blader marca ([SKILL.md:60][bl]). La salida de ejemplo de NTE comete el rasgo | Seguir a blader: decir Y directamente, sin la mitad negativa |
 | Lista negra frente a niveles | anti-ai: "If a word appears below, do not use it" ([banned-list.md:180][aa-banned]). blader: lista corta y "A formal word outside it is not a tell by itself" ([SKILL.md:201][bl]). Aboudjem y kjm: niveles. Wikipedia: los sinónimos no heredan el rasgo | Niveles fuerte, débil y excluida (§3) |
-| "Dicho esto", "en el fondo", "en definitiva" | Tics para humanamente, PR #151 y adelaidasofia; NTE los recomienda como marcadores naturales ([NTE:129-134][nte]) | Débiles. prosa-natural nunca los inserta como "marcador humano" (§4.4) ni los veta sueltos |
+| "Dicho esto", "en el fondo", "en definitiva" | Tics para humanamente, PR #151 y adelaidasofia; NTE los recomienda como marcadores naturales ([NTE:129-134][nte]) | Débiles. prosa-natural nunca los inserta como "marcador humano" (regla dura 4) ni los veta sueltos |
 | Comillas | blader y Humanizer-es: curvas → rectas. NTE: → «» o rectas. El README de humanamente convierte a «» ([README:65][hum-readme]). RAE: angulares recomendadas en impresos. Wikilengua: las inglesas no son error | No se convierten por sistema; se señala la incoherencia (P55); cambio solo con confirmación o guía de estilo |
-| Voz frente a reglas | blader: la muestra manda sobre los patrones ([SKILL.md:42][bl]). anti-ai: voz "within the rules" ([SKILL.md:135][aa-skill]) | La muestra manda (§6.5), salvo las reglas duras |
+| Voz frente a reglas | blader: la muestra manda sobre los patrones ([SKILL.md:42][bl]). anti-ai: voz "within the rules" ([SKILL.md:135][aa-skill]) | La muestra manda ([SKILL.md][skill], «Voz»), salvo las reglas duras |
 | Autoridad sin fuente | blader: "A missing citation alone is not a tell" ([SKILL.md:254][bl]). anti-ai H6: cada párrafo con una afirmación debe nombrar algo real ([discourse-tells.md:130][aa-dtells]) | Seguir a blader; como mucho, preguntar |
 | Matices | blader conserva los matices con apoyo ([SKILL.md:171][bl]). anti-ai: "AI hedges. Humans take a stance." ([anti-ai-writing.md:250][aa-personal]). PR #151: "Moja: postura clara" | Se conservan los matices con apoyo y todos los de un claim |
 | Objeciones | blader §5 quita las que nadie planteó; la señal 5 de anti-ai añade "the case against" ([discourse-tells.md:188-200][aa-dtells]) | No se añaden; se conservan si están en el original |
 | Emoción | kjm marca la emoción declarada; StoryScope halla más etiquetas emocionales explícitas en humanos (29 % frente a 8 %; §4.1, tabla 16); anti-ai H4 propone nombrar la emoción | Ni se añade ni se convierte: P75 descartado, P50 solo se señala |
 | Tríadas | blader: "Keep three real items when the meaning needs three" ([SKILL.md:141][bl]). anti-ai, Fix B: añadir un cuarto elemento ([rewrites.md:128][aa-rewrites]) | Solo quitar o fusionar |
-| Estructura del original | Humanamente: "Si el original tiene cinco párrafos, la reescritura tiene cinco párrafos" ([HUM:32][hum]). blader permite cambiar la estructura ([SKILL.md:36][bl]) | Gana `contexto.md` §6.3: el borrador no trata la estructura como fija; la información se conserva |
+| Estructura del original | Humanamente: "Si el original tiene cinco párrafos, la reescritura tiene cinco párrafos" ([HUM:32][hum]). blader permite cambiar la estructura ([SKILL.md:36][bl]) | Gana [SKILL.md][skill], «Flujo» (paso 3): el borrador no trata la estructura como fija; la información se conserva |
 | "Sin embargo" al abrir párrafo | NTE lo marca siempre (Tier 1); humanamente: "Un 'sin embargo' no es un tic" | Solo cuenta en cadena (P37) |
 | Chat coloquial | anti-ai: "Cut the greeting, cut the sign-off" y un ejemplo en minúsculas ([discourse-rewrites.md:245-251][aa-drew]) | No se imita el descuido; se conserva el registro del original |
 
-### 4.1 Choques del estudio con `contexto.md` (gana `contexto.md`)
+### 4.1 Choques del estudio con `SKILL.md` (gana `SKILL.md`)
 
-| Punto | `contexto.md` | Estudio | Tratamiento |
+| Punto | `SKILL.md` | Estudio | Tratamiento |
 |---|---|---|---|
-| §6.6, "en base a" entre los calcos | Lo lista como calco | La DPD 2.ª ed. lo admite como menos recomendable | Se mantiene en la lista como débil, no como error (§7.3) |
-| §6.4, porcentajes como claim | Ante la duda, claim | La regulación se refiere a eficacia, salud y seguridad; "20 % de descuento" no es claim | Se conserva la detección conservadora de porcentajes y la regla de duda; no se aprueba una restricción general por verbo o sustantivo (§7.4) |
-| §6.2, claims → modo Revisión | Revisión por defecto si hay claims | Con la heurística amplia, casi cualquier ficha con descuento irá a Revisión | Se aplica; medir en la Fase 3 |
-| §6.6, "ustedes por vosotros" se señala | Rasgo americano | "Ustedes" es el plural formal en España | Se señala solo si convive con tuteo o trato de confianza |
-| §6.6, "¡Por supuesto!", "Espero que te sea útil" | Semilla | Legítimos en diálogo y en cartas | Se mantienen con la salvaguarda de contexto |
-| §6.7, "recuento de rayas" | Recuento | Un recuento sin clasificar no separa la raya normativa | Recuento por tipo (§8), compatible con §6.7 |
+| «Español frente a inglés», "en base a" entre los calcos | Lo lista como calco | La DPD 2.ª ed. lo admite como menos recomendable | Se mantiene en la lista como débil, no como error (§7.3) |
+| «Claims», porcentajes como claim | Ante la duda, claim | La regulación se refiere a eficacia, salud y seguridad; "20 % de descuento" no es claim | Se conserva la detección conservadora de porcentajes y la regla de duda; no se aprueba una restricción general por verbo o sustantivo (§7.4) |
+| «Modos», claims → modo Revisión | Revisión por defecto si hay claims | Con la heurística amplia, casi cualquier ficha con descuento irá a Revisión | Se aplica; medir en la Fase 3 |
+| «Español frente a inglés», "ustedes por vosotros" se señala | Rasgo americano | "Ustedes" es el plural formal en España | Se señala solo si convive con tuteo o trato de confianza |
+| «Español frente a inglés», "¡Por supuesto!", "Espero que te sea útil" | Semilla | Legítimos en diálogo y en cartas | Se mantienen con la salvaguarda de contexto |
+| «Escáner (opcional)», "recuento de rayas" | Recuento | Un recuento sin clasificar no separa la raya normativa | Recuento por tipo (§8), compatible con «Escáner (opcional)» |
 
-## 5. Instrucciones de upstream que chocan con §4
+## 5. Instrucciones de upstream que chocan con las reglas duras
 
 | Fuente:línea | Instrucción literal | Regla | Tratamiento en prosa-natural |
 |---|---|---|---|
-| [blader README.md:131-159][u1] | Ejemplo de Lisboa: el "después" añade "By the second day my calves had opinions" o "for about thirty seconds" y cambia "this city completely stole my heart" por "still have mixed feelings about it" | 4.1 | No se reutiliza. Ejemplos propios verificados con `scan_tells.py --original` |
-| [blader SKILL.md:205][u2], [:289][u3], [:302][u4], [:358][u5] | "which is considered a delicacy"; "speeds up load times through optimized algorithms"; "User research showed a preference for simplicity"; "uses a hash map for O(1) lookups" (ausentes del "antes") | 4.1 | Ídem; además, material de Wikipedia (CC BY-SA) |
-| [anti-ai rewrites.md:220][u7]; [examples.md][u6] | "Our software cuts the average workflow from 47 steps to 12…"; casi todos los "después" | 4.1 | Casos negativos para los evals |
-| [anti-ai rewrites.md:209][u8] | "3. Add back specificity (a number, a name, a concrete detail)." | 4.1 | Se pregunta al autor o se simplifica la frase |
-| [anti-ai rewrites.md:236-243][u9] | "Strategy 2: bring back a small specific image" ("Our coffee was on a tree in Ethiopia three weeks ago.") | 4.1 | Descartada |
-| [anti-ai discourse-rewrites.md:148][u10] | "for each claim, add the specific. If the specific is unavailable, weaken the claim to what you can support, or cut it." | 4.1, 4.2 | Ni añadir, ni debilitar, ni cortar un claim: se señala y se pregunta |
-| [anti-ai discourse-tells.md:130][u11] | "every paragraph that makes a claim names something real" | 4.1 | Se señala la vaguedad; no se restaura nada |
-| [anti-ai discourse-rewrites.md:195][u12] | "Tracking was broken for nine days." (dato ausente del "antes") | 4.1 | Descartado |
-| [anti-ai SKILL.md:186][u13] | "Replaced "industry benchmarks suggest" with the actual competitor bid range (verify the figures)" | 4.1 | Solo con cifras que dé el usuario |
-| [anti-ai discourse-rewrites.md:84-94][u14] | "Once I understood that the problem was scope, everything else fell into place." → "The scope was part of it. The rest I still can't explain." | 4.1 | Cambia lo que se afirma: descartado (P68) |
-| [anti-ai banned-list.md:143-144][u15]; [rewrites.md:190-191][u16] | "is designed to" → "will" or rewrite as direct claim; "This tool is designed to help you..." → "This tool helps you..." | 4.2 | Nunca en claims: "formulado para hidratar" → "hidrata" amplía la alegación |
-| [anti-ai rewrites.md:42][u17] | "revolutionary → new, first (if true), or cut" (y el resto de la tabla de sustituciones) | 4.2 | Sustituciones prohibidas dentro de claims |
-| [blader SKILL.md:254][u18] | "Otherwise cut the unsupported claim or the list." | 4.2 | Si la autoridad forma parte de un claim ("clínicamente probado"), se señala; fuera de claims, se pregunta |
-| [blader SKILL.md:245][u19], [:210][u20], [:267][u21], [:171][u22] | "State what the thing is."; "Keep the fact and drop the significance."; "Use *is*, *are*, and *has*."; quitar matices apilados | 4.2 | Solo fuera de frases con claim |
-| [anti-ai anti-ai-writing.md:250][u23] | "Have a point of view. AI hedges. Humans take a stance." | 4.1, 4.2 | No se añade postura ni se quitan matices con apoyo |
-| [anti-ai banned-list.md:109][u24], [:115][u25]; [anti-ai-writing.md:203][u26], [:207][u27] | "All forbidden in copy. No exceptions."; "Hyphens in compound words are also banned. Write around them." | 4.3, §6.6 | Descartado: raya normativa legítima; guion intocable en INCI, códigos y compuestos |
-| [blader SKILL.md:161][u28] | "The final rewrite must not contain em dashes (—) or en dashes (–) unless the writer's sample uses them" | §6.6 | Se descarta la prohibición; se mantiene la prioridad de la muestra |
-| [blader SKILL.md:293][u29] | Encabezados en *sentence case* | 4.3 | Excluir marcas, productos y nombres propios |
-| [blader SKILL.md:50][u30] | "Keep code blocks, inline code, commands, paths, YAML metadata, data, and link targets unchanged." | 4.3 | Incompleto: añadir INCI, marcas, precios, códigos y citas |
-| [blader SKILL.md:38][u31]; [anti-ai rewrites.md:231][u32]; [anti-ai-writing.md:251][u33] | "Vary sentence length; real writing alternates short and long."; "Vary your sentence lengths." | 4.4 | Criterio de calidad solo ante una monotonía concreta; nunca como objetivo |
-| [anti-ai discourse-tells.md:231][u34] | "Let one piece be blunt and one be long." | 4.4 | Se señala la convergencia de lote; no se fuerza variación |
-| [anti-ai discourse-tells.md:174][u35]; [discourse-rewrites.md:208][u36], [:211][u37] | "Anyway. Back in June we tried the opposite..."; "The honest version: I want to run it because I want the case study." | 4.1, 4.4 | Prohibido: muletilla insertada y dato inventado |
-| [anti-ai discourse-rewrites.md:245-251][u38] | "Cut the greeting, cut the sign-off, cut anything that reads as a paragraph." y el ejemplo "landing page is live" | 4.4 | No se imita el descuido para parecer humano |
-| [blader SKILL.md:36][u39], [:44][u40] | "An opinion or reaction is allowed when the voice calls for one"; "you may add a reaction where the writer would"; "Removing tells is half the job; the result must still sound like a person." | 4.1, 4.4 | No se añaden opiniones ni reacciones; la voz sale del original o de la muestra |
-| [blader SKILL.md:36][u39] | "Fiction is exempt because invented detail is the task." | 4.1 | Sin excepción; la ficción queda fuera de alcance en v1 |
-| [Aboudjem SKILL.md:419][u41]; [metrics.js][u42] | "0-20 \| Pristine \| … No detector should flag it." | 4.4 | Sin puntuación de "probabilidad de IA" en la skill ni en el script |
-| [Aboudjem SKILL.md:279][u43], [:293][u44], [:296][u45] | "AI detectors measure "burstiness""; "Choosing the second or third word that comes to mind"; "informal transitions ("Anyway,", "So here's the thing:", "Look,", "Thing is,")" | 4.4 | Descartado |
-| [Aboudjem SKILL.md:310][u46] | "Improves performance" becomes "cuts p99 latency from 900ms to 40ms" | 4.1 | Descartado |
-| [Humanizer-es SKILL.md:441-455][u47]; [humanizar-texto-es SKILL.md:118-140][u48] | Rúbrica /50 y "Puntuación de humanidad" de 0 a 100 | 4.4 | Descartado |
-| [anti-ai plugin.json:14][u49] | Palabras clave "ai-detection" y "chatgpt-detector" | 4.4 | prosa-natural no usará palabras clave de detección |
+| [blader README.md:131-159][u1] | Ejemplo de Lisboa: el "después" añade "By the second day my calves had opinions" o "for about thirty seconds" y cambia "this city completely stole my heart" por "still have mixed feelings about it" | 1 | No se reutiliza. Ejemplos propios verificados con `scan_tells.py --original` |
+| [blader SKILL.md:205][u2], [:289][u3], [:302][u4], [:358][u5] | "which is considered a delicacy"; "speeds up load times through optimized algorithms"; "User research showed a preference for simplicity"; "uses a hash map for O(1) lookups" (ausentes del "antes") | 1 | Ídem; además, material de Wikipedia (CC BY-SA) |
+| [anti-ai rewrites.md:220][u7]; [examples.md][u6] | "Our software cuts the average workflow from 47 steps to 12…"; casi todos los "después" | 1 | Casos negativos para los evals |
+| [anti-ai rewrites.md:209][u8] | "3. Add back specificity (a number, a name, a concrete detail)." | 1 | Se pregunta al autor o se simplifica la frase |
+| [anti-ai rewrites.md:236-243][u9] | "Strategy 2: bring back a small specific image" ("Our coffee was on a tree in Ethiopia three weeks ago.") | 1 | Descartada |
+| [anti-ai discourse-rewrites.md:148][u10] | "for each claim, add the specific. If the specific is unavailable, weaken the claim to what you can support, or cut it." | 1, 2 | Ni añadir, ni debilitar, ni cortar un claim: se señala y se pregunta |
+| [anti-ai discourse-tells.md:130][u11] | "every paragraph that makes a claim names something real" | 1 | Se señala la vaguedad; no se restaura nada |
+| [anti-ai discourse-rewrites.md:195][u12] | "Tracking was broken for nine days." (dato ausente del "antes") | 1 | Descartado |
+| [anti-ai SKILL.md:186][u13] | "Replaced "industry benchmarks suggest" with the actual competitor bid range (verify the figures)" | 1 | Solo con cifras que dé el usuario |
+| [anti-ai discourse-rewrites.md:84-94][u14] | "Once I understood that the problem was scope, everything else fell into place." → "The scope was part of it. The rest I still can't explain." | 1 | Cambia lo que se afirma: descartado (P68) |
+| [anti-ai banned-list.md:143-144][u15]; [rewrites.md:190-191][u16] | "is designed to" → "will" or rewrite as direct claim; "This tool is designed to help you..." → "This tool helps you..." | 2 | Nunca en claims: "formulado para hidratar" → "hidrata" amplía la alegación |
+| [anti-ai rewrites.md:42][u17] | "revolutionary → new, first (if true), or cut" (y el resto de la tabla de sustituciones) | 2 | Sustituciones prohibidas dentro de claims |
+| [blader SKILL.md:254][u18] | "Otherwise cut the unsupported claim or the list." | 2 | Si la autoridad forma parte de un claim ("clínicamente probado"), se señala; fuera de claims, se pregunta |
+| [blader SKILL.md:245][u19], [:210][u20], [:267][u21], [:171][u22] | "State what the thing is."; "Keep the fact and drop the significance."; "Use *is*, *are*, and *has*."; quitar matices apilados | 2 | Solo fuera de frases con claim |
+| [anti-ai anti-ai-writing.md:250][u23] | "Have a point of view. AI hedges. Humans take a stance." | 1, 2 | No se añade postura ni se quitan matices con apoyo |
+| [anti-ai banned-list.md:109][u24], [:115][u25]; [anti-ai-writing.md:203][u26], [:207][u27] | "All forbidden in copy. No exceptions."; "Hyphens in compound words are also banned. Write around them." | 3; «Español frente a inglés» | Descartado: raya normativa legítima; guion intocable en INCI, códigos y compuestos |
+| [blader SKILL.md:161][u28] | "The final rewrite must not contain em dashes (—) or en dashes (–) unless the writer's sample uses them" | «Español frente a inglés» | Se descarta la prohibición; se mantiene la prioridad de la muestra |
+| [blader SKILL.md:293][u29] | Encabezados en *sentence case* | 3 | Excluir marcas, productos y nombres propios |
+| [blader SKILL.md:50][u30] | "Keep code blocks, inline code, commands, paths, YAML metadata, data, and link targets unchanged." | 3 | Incompleto: añadir INCI, marcas, precios, códigos y citas |
+| [blader SKILL.md:38][u31]; [anti-ai rewrites.md:231][u32]; [anti-ai-writing.md:251][u33] | "Vary sentence length; real writing alternates short and long."; "Vary your sentence lengths." | 4 | Criterio de calidad solo ante una monotonía concreta; nunca como objetivo |
+| [anti-ai discourse-tells.md:231][u34] | "Let one piece be blunt and one be long." | 4 | Se señala la convergencia de lote; no se fuerza variación |
+| [anti-ai discourse-tells.md:174][u35]; [discourse-rewrites.md:208][u36], [:211][u37] | "Anyway. Back in June we tried the opposite..."; "The honest version: I want to run it because I want the case study." | 1, 4 | Prohibido: muletilla insertada y dato inventado |
+| [anti-ai discourse-rewrites.md:245-251][u38] | "Cut the greeting, cut the sign-off, cut anything that reads as a paragraph." y el ejemplo "landing page is live" | 4 | No se imita el descuido para parecer humano |
+| [blader SKILL.md:36][u39], [:44][u40] | "An opinion or reaction is allowed when the voice calls for one"; "you may add a reaction where the writer would"; "Removing tells is half the job; the result must still sound like a person." | 1, 4 | No se añaden opiniones ni reacciones; la voz sale del original o de la muestra |
+| [blader SKILL.md:36][u39] | "Fiction is exempt because invented detail is the task." | 1 | Sin excepción; la ficción queda fuera de alcance en v1 |
+| [Aboudjem SKILL.md:419][u41]; [metrics.js][u42] | "0-20 \| Pristine \| … No detector should flag it." | 4 | Sin puntuación de "probabilidad de IA" en la skill ni en el script |
+| [Aboudjem SKILL.md:279][u43], [:293][u44], [:296][u45] | "AI detectors measure "burstiness""; "Choosing the second or third word that comes to mind"; "informal transitions ("Anyway,", "So here's the thing:", "Look,", "Thing is,")" | 4 | Descartado |
+| [Aboudjem SKILL.md:310][u46] | "Improves performance" becomes "cuts p99 latency from 900ms to 40ms" | 1 | Descartado |
+| [Humanizer-es SKILL.md:441-455][u47]; [humanizar-texto-es SKILL.md:118-140][u48] | Rúbrica /50 y "Puntuación de humanidad" de 0 a 100 | 4 | Descartado |
+| [anti-ai plugin.json:14][u49] | Palabras clave "ai-detection" y "chatgpt-detector" | 4 | prosa-natural no usará palabras clave de detección |
 
 ## 6. Enfoques descartados de raíz
 
@@ -331,7 +333,7 @@ El estudio formuló estas siete propuestas para confirmación. El usuario deleg�
 | Tipografía | ? y ! sin ¿ ni ¡; mayúscula tras dos puntos; exclamaciones por mil palabras | P56-P58 |
 | Registro y variante | Recuento de formas de tú y usted, de vosotros y ustedes; lista corta de léxico americano. Solo aviso | P64 |
 | `--original` | Extrae y normaliza cifras (`1.000`, `1 000`, `1000`; `3,5`, `3.5`; ante la ambigüedad, las dos lecturas), porcentajes (`50 %`, `50%`, "por ciento"), fechas en español ("12 de marzo de 2024", "marzo de 2024", dd/mm/aaaa), precios (€, EUR, euros), duraciones y unidades ("48 h", "50 ml"), códigos y referencias, siglas e INCI en mayúsculas, nombres propios, URL, claims marcados y citas (literales). Informa de lo que falta y de lo nuevo, a diferencia de Aboudjem, que solo informa de lo perdido ([facts.js:178][abj-facts]). Compara también los recuentos de tú/usted | Reglas 1, 2 y 3 |
-| Candidatos a claim | Marca frases con los marcadores de §6.4 y de [estudio.md](estudio.md) §10.5; la decisión es del modelo o del usuario | P30; regla 2 |
+| Candidatos a claim | Marca frases con los marcadores de la heurística de `claims.md`, que incorpora los de [estudio.md](estudio.md) §10.5; la decisión es del modelo o del usuario | P30; regla 2 |
 | Aviso de privacidad (Fase 2) | Detectará patrones de DNI/NIE, IBAN, teléfono y correo de forma local y efímera. Informará solo de categoría y ubicación mínima, sin almacenar, registrar ni repetir el valor. La ausencia de hallazgos no certificará que el texto sea seguro | Regla 6; §7.6 |
 | Salida | JSON estable (`sort_keys`, sin marcas de tiempo). Código de salida 1 si falta o aparece un dato o cambia un claim marcado. Sin puntuación de "probabilidad de IA" y sin métricas de ritmo en v1 | Regla 4 |
 | Tests | Primero hechos y claims; formatos de cifras españoles; un conjunto de prosa humana española que no debe dar hallazgos bloqueantes | §7.6 del estudio |
@@ -408,3 +410,4 @@ La carga progresiva y el presupuesto de reglas activas de §7.7 pertenecen a `SK
 [u47]: https://github.com/mattc95/Humanizer-es/blob/2883d4915df5b51114280d087a4a4195f40caf2a/SKILL.md#L441-L455
 [u48]: https://github.com/ToniPerea/humanizar-texto-es/blob/da5388524250b72d59c15038813813c7b6adb0e8/SKILL.md#L118-L140
 [u49]: https://github.com/avectats7/anti-ai-writing/blob/eeb42e5127d844d06568b15b198b23c4a8339d88/.claude-plugin/plugin.json#L14
+[skill]: ../skill/prosa-natural/SKILL.md
