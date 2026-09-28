@@ -177,6 +177,14 @@ llevar al siguiente nivel | 2026-09-27 | P12 · anti-ai-writing
 se erige como | 2026-09-27 | P18 · PR#151
 se posiciona como | 2026-09-27 | P18 · ADS
 
+### Promesa de revelación
+
+> Anuncia un secreto que después no llega: el contenido que sigue es
+> información corriente presentada como si fuera un hallazgo exclusivo,
+> calco de titulares de marketing y de LinkedIn.
+
+lo que nadie te cuenta | 2026-09-28 | P27 · kjm
+
 ## Débil
 
 ### Apertura y cierre suave

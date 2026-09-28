@@ -57,8 +57,9 @@ parecer menos generado; el objetivo es siempre la calidad del texto.
 
 1. [Contenido](#contenido)
 2. [Sintaxis y construcción](#sintaxis-y-construcción)
-3. Formato y tipografía (parte 2, `patrones.md` §3)
-4. Comunicación con el lector (parte 2, `patrones.md` §4)
+3. [Formato y tipografía](#formato-y-tipografía)
+4. [Comunicación con el lector](#comunicación-con-el-lector)
+5. [Patrones descartados](#patrones-descartados)
 
 ## Contenido
 
@@ -92,8 +93,9 @@ parecer menos generado; el objetivo es siempre la calidad del texto.
   se toca.
 - **Qué hacer:** Cortar la sentencia o decir directamente lo que el
   original afirma; nunca reinterpretar ni añadir contenido.
-- **Ejemplo:** «En el fondo, atender la panadería cada mañana es escuchar
-  al barrio.» → «Atender la panadería cada mañana es escuchar al barrio.»
+- **Ejemplo:** «Panadería Olmo hornea el pan a las seis de la mañana. En el
+  fondo, hacer pan es escuchar al barrio.» → «Panadería Olmo hornea el pan a
+  las seis de la mañana.»
 - **Escáner:** `vocabulario.hallazgos` detecta las expresiones fijas de la
   familia "Sentencia que suena profunda" (débil) de
   [`vocabulario-es.md`](vocabulario-es.md); el molde retórico completo no
@@ -269,9 +271,10 @@ parecer menos generado; el objetivo es siempre la calidad del texto.
   original entrega.
 - **Ejemplo:** «Lo que nadie te cuenta sobre regar las plantas en verano:
   hazlo al anochecer.» → «Riega las plantas al anochecer en verano.»
-- **Escáner:** [`vocabulario-es.md`](vocabulario-es.md) todavía no tiene una
-  familia con formas concretas para este patrón; no lo detecta por ahora —
-  juicio del modelo.
+- **Escáner:** `vocabulario.hallazgos` cubre la familia "Promesa de
+  revelación" (fuerte) de [`vocabulario-es.md`](vocabulario-es.md); otras
+  fórmulas equivalentes que no estén en esa lista no las detecta — juicio
+  del modelo.
 
 ### P28 · Declarativa vaga
 
@@ -563,3 +566,391 @@ parecer menos generado; el objetivo es siempre la calidad del texto.
   vende ya en Ferretería Robledo.» → «El turrón se vende ya en Ferretería
   Robledo.»
 - **Escáner:** no lo detecta: juicio del modelo.
+
+## Formato y tipografía
+
+### P08 · Raya a la inglesa
+
+- **Fuerza:** Débil; fuerte si va espaciada por los dos lados sin aislar un
+  inciso, pegada a las dos palabras que separa, o sustituye a los dos
+  puntos en un encabezado.
+- **Qué es:** Una raya (—) usada como calco del inglés: suelta entre
+  espacios sin función de inciso, en vez de los dos puntos para anunciar
+  una conclusión, o en vez del paréntesis para una sigla.
+- **Por qué es un rasgo:** La Wikilengua recoge estos usos como «impropios
+  de la raya…, la mayoría calcos del inglés»; en un encabezado, sustituir
+  los dos puntos por una raya es además anglicismo de titulación
+  (verificación pendiente en fuente primaria del DPD y la Ortografía,
+  `docs/auditoria.md` §7.5).
+- **Cuándo no tocarlo:** El diálogo, el inciso cerrado y el inciso del
+  narrador cuya raya de cierre se omite legítimamente al terminar la frase
+  o el párrafo («—Ya voy —dijo Marta.») son usos normativos del español,
+  nunca este patrón; tampoco lo es el guion o la semirraya de un intervalo
+  numérico ("1990-2000"), que es un carácter distinto. Se descartó prohibir
+  la raya por completo ("cero rayas en la versión final"): manda la
+  muestra de voz del autor, si existe.
+- **Qué hacer:** Cerrar la raya si de verdad aísla un inciso y le falta el
+  cierre, sustituirla por los dos puntos o el paréntesis si hacía esa
+  función, o quitarla si no cumple ninguna; nunca prohibirla en bloque.
+- **Ejemplo:** «Dos años de pruebas — ese fue el precio de Ferretería
+  Robledo.» → «Dos años de pruebas: ese fue el precio de Ferretería
+  Robledo.»
+- **Escáner:** `rayas.hallazgos` clasifica cada raya en `dialogo`,
+  `inciso_cerrado`, `inciso_sin_cierre`, `raya_inglesa` o `en_encabezado`.
+  Los tres primeros son uso normativo del español y nunca son este patrón;
+  `raya_inglesa` sí lo es siempre, y `en_encabezado` marca cualquier raya
+  dentro de un encabezado, sea cual sea su función, porque ahí calca a los
+  dos puntos.
+
+### P19 · Negrita decorativa
+
+- **Fuerza:** Fuerte
+- **Qué es:** Negrita sin ninguna función de localización: viñetas del
+  tipo «- **Término:** explicación» repetidas como si fueran una
+  plantilla.
+- **Por qué es un rasgo:** El Libro de estilo reserva la negrita para
+  localizar elementos (un término que se busca después, una referencia
+  cruzada), no para decorar cada línea de una lista (verificación
+  pendiente en fuente primaria, `docs/auditoria.md` §7.5).
+- **Cuándo no tocarlo:** La negrita que de verdad marca algo que se va a
+  localizar después (un término de un glosario, el nombre de un elemento
+  de interfaz) es legítima; la negrita que ya viene del original como
+  intocable técnico (código, frontmatter) tampoco se toca.
+- **Qué hacer:** Quitar la negrita decorativa, dejando el texto tal cual;
+  nunca añadir negrita nueva.
+- **Ejemplo:** «- **Cercanía:** conocemos a cada cliente de Panadería
+  Olmo. - **Calidad:** solo trabajamos con harina de proximidad.» →
+  «Conocemos a cada cliente de Panadería Olmo y solo trabajamos con harina
+  de proximidad.»
+- **Escáner:** no lo detecta: juicio del modelo.
+
+### P20 · Encabezados decorativos y Title Case
+
+- **Fuerza:** Fuerte
+- **Qué es:** Mayúscula inicial en cada palabra del encabezado (Title Case
+  calcado del inglés), en vez de solo en la primera.
+- **Por qué es un rasgo:** El Libro de estilo dice que solo lleva
+  mayúscula inicial la primera palabra de un elemento de titulación,
+  además de las que la necesiten por su naturaleza; la Wikilengua
+  considera anglicismo la mayúscula sistemática, incluso en nombres
+  comunes (verificación pendiente en fuente primaria del Libro de estilo,
+  `docs/auditoria.md` §7.5).
+- **Cuándo no tocarlo:** Se excluyen las marcas, los nombres propios, las
+  siglas y los títulos de obra citados en su idioma original; esas
+  palabras conservan su mayúscula aunque no sean la primera del
+  encabezado.
+- **Qué hacer:** Bajar a minúscula las palabras que no sean la primera ni
+  una excepción; nunca tocar el contenido del encabezado.
+- **Ejemplo:** «## Nuestra Historia Y Nuestros Valores En Ferretería
+  Robledo» → «## Nuestra historia y nuestros valores en Ferretería
+  Robledo»
+- **Escáner:** `encabezados.hallazgos[].title_case.ratio` da la proporción
+  de palabras con mayúscula no inicial sobre las palabras elegibles (se
+  excluyen la primera palabra, las funcionales y las siglas en mayúscula);
+  no aplica ningún corte. Limitación documentada en el propio script: no
+  excluye nombres propios ni marcas, así que un encabezado con varias
+  marcas en mayúscula puede dar una ratio alta sin ser este patrón — el
+  modelo debe descartar esos casos al revisar cada hallazgo.
+
+### P24 · Encabezado repetido en la primera frase
+
+- **Fuerza:** Fuerte
+- **Qué es:** La primera frase tras un encabezado se limita a repetir sus
+  mismas palabras, sin añadir ningún hecho nuevo.
+- **Por qué es un rasgo:** Es relleno puro: ocupa una frase entera sin
+  decir nada que el propio encabezado no dijera ya.
+- **Cuándo no tocarlo:** Si esa primera frase añade un dato que el
+  encabezado no daba, no es este patrón, aunque repita alguna palabra.
+- **Qué hacer:** Cortar la frase que solo repite el encabezado, o
+  fusionarla con la frase siguiente que sí aporta el hecho.
+- **Ejemplo:** «## Horarios» seguido de «Los horarios de Ferretería
+  Robledo son muy importantes. Abre de martes a sábado.» → «## Horarios»
+  seguido de «Ferretería Robledo abre de martes a sábado.»
+- **Escáner:** `encabezados.hallazgos[].texto` da el texto de cada
+  encabezado, pero comparar su contenido con el de la frase siguiente
+  exige entender el significado — no lo detecta, juicio del modelo.
+
+### P52 · Markdown fuera de contexto
+
+- **Fuerza:** Fuerte
+- **Qué es:** Asteriscos, almohadillas o guiones de lista en un canal que
+  no interpreta Markdown, de modo que el lector ve los propios símbolos en
+  vez del formato que debían producir.
+- **Por qué es un rasgo:** Delata que el texto se generó pensando en un
+  formato genérico de salida, sin adaptarlo al canal real donde se va a
+  leer.
+- **Cuándo no tocarlo:** Es decidible por el canal declarado: en un
+  README, una entrada de blog o un chat que sí interpreta Markdown, la
+  misma sintaxis es legítima.
+- **Qué hacer:** Quitar la sintaxis de Markdown que el canal no va a
+  interpretar, dejando la puntuación normal que corresponda; nunca añadir
+  contenido nuevo al simplificar.
+- **Ejemplo:** en un mensaje de WhatsApp (no interpreta Markdown):
+  «**Oferta:** 2x1 en pan de Panadería Olmo, solo hoy.» → «Oferta: 2x1 en
+  pan de Panadería Olmo, solo hoy.»
+- **Escáner:** no lo detecta: depende del canal de publicación, un dato
+  que el escáner no tiene — juicio del modelo.
+
+### P53 · Estructura donde bastaba prosa
+
+- **Fuerza:** Débil
+- **Qué es:** Viñetas, tablas diminutas, encabezados vacíos o saltos de
+  nivel para decir algo que una frase corrida diría igual de bien.
+- **Por qué es un rasgo:** "La prosa es la opción por defecto"
+  (anti-ai-writing): fragmentar en estructura un contenido que no la
+  necesita imita una plantilla o una diapositiva, no la escritura natural.
+- **Cuándo no tocarlo:** Las listas reales con varios elementos distintos
+  (ingredientes, pasos, especificaciones) sí necesitan estructura y no son
+  este patrón; los documentos de referencia largos pueden necesitar
+  encabezados.
+- **Qué hacer:** Fusionar la estructura en prosa corrida, conservando
+  todos los hechos; nunca añadir una frase de conexión que invente algo no
+  dado.
+- **Ejemplo:** una tabla de dos filas — «Apertura: 9:00. Cierre: 14:00.» —
+  seguida de «Estos son los horarios de Ferretería Robledo.» → «Ferretería
+  Robledo abre de 9:00 a 14:00.»
+- **Escáner:** no aplica un veredicto directo; los datos brutos de
+  `encabezados.resumen` (total de encabezados, vacíos, saltos de nivel)
+  pueden apoyar el juicio, pero decidir si sobra estructura es del modelo.
+
+### P54 · Encabezado en pregunta
+
+- **Fuerza:** Débil
+- **Qué es:** Un título de sección formulado como pregunta («## ¿Por qué
+  elegir nuestra academia?») fuera de un apartado real de preguntas
+  frecuentes.
+- **Por qué es un rasgo:** Imita el ritmo de una FAQ o un listicle de
+  marketing aunque el texto no lo sea; repetirlo en todos los encabezados
+  de un documento delata una plantilla, no una organización orgánica del
+  contenido.
+- **Cuándo no tocarlo:** Es legítimo en un apartado real de preguntas
+  frecuentes.
+- **Qué hacer:** Convertir el encabezado en una afirmación con las mismas
+  palabras cuando el texto no sea una FAQ; dejarlo si lo es.
+- **Ejemplo:** «## ¿Por qué elegir la Academia Arcilla?» (en una página de
+  "quiénes somos", no en una FAQ) → «## Por qué elegir la Academia
+  Arcilla»
+- **Escáner:** `encabezados.hallazgos[].es_pregunta` marca cada encabezado
+  que termina en "?"; no distingue si el texto es de verdad una FAQ —
+  juicio del modelo.
+
+### P55 · Comillas incoherentes
+
+- **Fuerza:** Débil
+- **Qué es:** Mezclar «», ""/“” y '' en el mismo nivel dentro del mismo
+  texto, o anidarlas al revés de lo que marca la norma.
+- **Por qué es un rasgo:** La Wikilengua es explícita: "No hay diferencia
+  ortográfica alguna entre las comillas españolas y las inglesas […] es
+  una elección esencialmente tipográfica" — las curvas o las rectas por sí
+  solas no prueban nada. Lo que sí delata falta de revisión es cambiar de
+  tipo sin criterio dentro del mismo texto, o invertir el orden de
+  anidamiento (verificación pendiente en fuente primaria de la
+  recomendación del DPD sobre las angulares, `docs/auditoria.md` §7.5).
+- **Cuándo no tocarlo:** Usar un solo tipo de comillas de forma constante
+  en todo el texto es correcto, sea cual sea el tipo elegido; nunca se
+  convierte de un tipo a otro sin que el autor lo confirme o sin una guía
+  de estilo del proyecto que lo pida.
+- **Qué hacer:** Señalar la mezcla o el anidamiento invertido; unificar al
+  tipo predominante del propio texto solo si el autor lo confirma o hay
+  guía de estilo, nunca por sistema.
+- **Ejemplo:** con la guía de estilo del proyecto ya confirmada (comillas
+  angulares): «La ficha de Arcilla destaca "calidad", "servicio" y
+  «precio» en la misma frase.» → «La ficha de Arcilla destaca «calidad»,
+  «servicio» y «precio» en la misma frase.»
+- **Escáner:** `comillas.mezcla_de_tipos` y `comillas.anidamiento_invertido`.
+
+### P56 · Signos de apertura omitidos
+
+- **Fuerza:** Fuerte
+- **Qué es:** Una interrogación o una exclamación sin su signo de apertura
+  («Qué te ha parecido la nueva carta?» en vez de «¿Qué te ha parecido la
+  nueva carta?»).
+- **Por qué es un rasgo:** Los signos de apertura son propios del español
+  y no deben suprimirse por imitación de otras lenguas que no los tienen,
+  como el inglés; el estudio del proyecto lo trata como error objetivo,
+  aunque la referencia exacta del DPD sigue pendiente de verificación en
+  fuente primaria (`docs/auditoria.md` §7.5).
+- **Cuándo no tocarlo:** No hay excepción legítima: la omisión es siempre
+  un calco, nunca una elección de estilo.
+- **Qué hacer:** Añadir el signo de apertura que falta, sin cambiar
+  ninguna otra palabra.
+- **Ejemplo:** «Qué te ha parecido la nueva carta de Panadería Olmo?» →
+  «¿Qué te ha parecido la nueva carta de Panadería Olmo?»
+- **Escáner:** `tipografia.signos_sin_apertura` registra cada `?` o `!` de
+  un párrafo que no tiene su `¿` o `¡` correspondiente.
+
+### P57 · Mayúscula tras dos puntos
+
+- **Fuerza:** Débil
+- **Qué es:** Una mayúscula justo después de dos puntos, fuera de las
+  excepciones normativas.
+- **Por qué es un rasgo:** Tras dos puntos va minúscula salvo en el saludo
+  de una carta, una cita textual o ciertas fórmulas jurídicas y
+  administrativas; una mayúscula sistemática fuera de esos casos sugiere
+  puntuación descuidada o calcada (verificación pendiente en fuente
+  primaria de la referencia exacta del DPD, `docs/auditoria.md` §7.5).
+- **Cuándo no tocarlo:** El saludo de una carta («Querida Marta:» seguido
+  de mayúscula), una cita textual introducida por los dos puntos, y las
+  fórmulas jurídicas o administrativas nunca se tocan.
+- **Qué hacer:** Bajar a minúscula la palabra que sigue a los dos puntos,
+  sin cambiar nada más.
+- **Ejemplo:** «Nota: El horario cambia en agosto en Ferretería Robledo.»
+  → «Nota: el horario cambia en agosto en Ferretería Robledo.»
+- **Escáner:** `tipografia.mayuscula_tras_dos_puntos`, con las mismas
+  excepciones ya incorporadas al detector (no informa ante una cita, un
+  elemento de lista, un encabezado ni una región enmascarada pegada a los
+  dos puntos). El exceso de exclamaciones (P58, sin entrada propia en este
+  archivo) vive en el mismo bloque, en `tipografia.exclamaciones`: da el
+  recuento por mil palabras sin aplicar ningún umbral, porque el de su
+  fuente original es arbitrario.
+
+### P60 · Marcadores de posición
+
+- **Fuerza:** Fuerte
+- **Qué es:** Un hueco de plantilla sin rellenar que queda en el texto que
+  se entrega como definitivo («Firma: [Tu nombre]»).
+- **Por qué es un rasgo:** Determinista: un marcador sin rellenar
+  demuestra que el texto no pasó por una revisión final, sin necesidad de
+  interpretar nada más.
+- **Cuándo no tocarlo:** No hay excepción: si el texto se presenta como
+  terminado, ningún marcador debería quedar sin rellenar.
+- **Qué hacer:** Nunca rellenarlo con un dato inventado; preguntar al
+  autor el valor que falta.
+- **Ejemplo:** «Firma: [Tu nombre]» → pregunta al autor: «¿qué nombre va
+  en la firma? Sin el dato, el marcador se deja tal cual.»
+- **Escáner:** `deterministas.marcadores_de_posicion`.
+
+### P61 · Marcado de chatbot filtrado
+
+- **Fuerza:** Fuerte
+- **Qué es:** Restos técnicos de la interfaz de un modelo que se han
+  colado en el texto final («…según el informe.contentReference[oaicite:0]»).
+- **Por qué es un rasgo:** Determinista: es un resto de copiar y pegar
+  directamente desde una conversación con un asistente, sin limpieza
+  posterior.
+- **Cuándo no tocarlo:** No hay excepción.
+- **Qué hacer:** Quitar el marcado filtrado, dejando intacta la frase que
+  lo rodea.
+- **Ejemplo:** «El horario aparece confirmado en la web oficial.contentReference[oaicite:0].»
+  → «El horario aparece confirmado en la web oficial.»
+- **Escáner:** `deterministas.marcado_filtrado`.
+
+## Comunicación con el lector
+
+### P04 · Preámbulo escenificado
+
+- **Fuerza:** Fuerte
+- **Qué es:** Anunciar que se va a decir algo, con el gancho de una
+  presentación teatral o de teletienda, antes de entrar en el contenido
+  («Vamos a sumergirnos en el mundo del café. ¿El secreto? El tueste.»).
+- **Por qué es un rasgo:** Imita la voz de un asistente que presenta un
+  tema a quien no lo conoce, no la de alguien que ya domina lo que cuenta
+  y lo dice directamente.
+- **Cuándo no tocarlo:** Un "mira" suelto dentro de una frase coloquial es
+  normal en español y no es este patrón; estos arranques solo se quitan,
+  nunca se añaden para simular cercanía.
+- **Qué hacer:** Cortar el preámbulo escenificado y empezar directamente
+  por el contenido.
+- **Ejemplo:** «Vamos a sumergirnos en el proceso de horneado de Panadería
+  Olmo. El secreto: la fermentación lenta.» → «El secreto del horneado de
+  Panadería Olmo es la fermentación lenta.»
+- **Escáner:** `vocabulario.hallazgos` cubre la familia "Preámbulo
+  escenificado" (fuerte) de [`vocabulario-es.md`](vocabulario-es.md)
+  ("profundicemos en", "descubramos juntos", "vamos a sumergirnos en"); el
+  molde retórico completo, fuera de esas fórmulas fijas, no lo detecta —
+  juicio del modelo.
+
+### P22 · Restos de chatbot
+
+- **Fuerza:** Fuerte
+- **Qué es:** Saludo servil, eco de la petición del usuario, oferta de
+  seguir ayudando, o pasos de razonamiento expuestos («¡Claro! Aquí tienes
+  una versión más breve. ¿Quieres que la adapte a Instagram?»).
+- **Por qué es un rasgo:** Es el rasgo más seguro de todo el catálogo:
+  esta forma de hablar solo existe en la interfaz de un asistente
+  conversacional, nunca en un texto final que se sostiene solo.
+- **Cuándo no tocarlo:** Los saludos y despedidas propios de una carta o
+  un correo real no cuentan (P63); una réplica real de diálogo donde
+  alguien dice de verdad "¡Claro!" tampoco es este patrón.
+- **Qué hacer:** Cortar el saludo servil, el eco de la petición y la
+  oferta de seguir ayudando; dejar solo el contenido entregado.
+- **Ejemplo:** «¡Claro! Aquí tienes la nueva descripción de Ferretería
+  Robledo: lleva treinta años en el mismo local. ¿Quieres que la acorte
+  más?» → «Ferretería Robledo lleva treinta años en el mismo local.»
+- **Escáner:** `vocabulario.hallazgos` cubre la familia "Restos de
+  chatbot" (fuerte) de [`vocabulario-es.md`](vocabulario-es.md)
+  ("¡claro!", "¡por supuesto!", "espero que te sea útil"); el resto de
+  fórmulas de eco o de oferta de continuar no están en la lista y no las
+  detecta — juicio del modelo.
+
+### P49 · Metadiscurso que anuncia
+
+- **Fuerza:** Débil
+- **Qué es:** Anunciar la estructura o "los factores a tener en cuenta" en
+  vez de exponerlos directamente («En las siguientes líneas veremos los
+  factores clave…»).
+- **Por qué es un rasgo:** Es frecuente también en la prosa académica
+  humana, así que solo cuenta por acumulación; pero anunciar lo que viene
+  en vez de decirlo aplaza el contenido sin aportar nada por sí mismo.
+- **Cuándo no tocarlo:** Una sola aparición en un documento largo, o un
+  anuncio que de verdad ayuda a navegar una estructura compleja, no es
+  este patrón.
+- **Qué hacer:** Cortar el anuncio y dejar directamente el contenido que
+  anunciaba.
+- **Ejemplo:** «En las siguientes líneas veremos los factores clave del
+  crecimiento de Arcilla: la cercanía con el cliente y la calidad del
+  producto.» → «Arcilla ha crecido por la cercanía con el cliente y la
+  calidad del producto.»
+- **Escáner:** no lo detecta todavía: [`vocabulario-es.md`](vocabulario-es.md)
+  no tiene ninguna familia etiquetada con P49 (solo lo menciona como nota
+  de exclusión para "exploraremos") — juicio del modelo.
+
+### P63 · Fórmulas epistolares fuera de lugar
+
+- **Fuerza:** Débil
+- **Qué es:** Un saludo o una despedida propios de una carta o un correo,
+  en un texto que no lo es («Quedo a la espera de sus comentarios. Un
+  cordial saludo.» al final de una entrada de blog).
+- **Por qué es un rasgo:** Son marcadores del género epistolar; usados
+  fuera de ese género, delatan que el texto se generó como un "mensaje"
+  genérico en vez de adaptarse al formato real.
+- **Cuándo no tocarlo:** Son plenamente legítimos en una carta o un correo
+  real: los saludos y despedidas propios de ese género nunca se tocan.
+- **Qué hacer:** Cortar la fórmula epistolar cuando el género del texto no
+  sea correspondencia; dejarla si lo es.
+- **Ejemplo:** al final de una entrada de blog sobre Panadería Olmo:
+  «Panadería Olmo abre de martes a domingo. Quedo a la espera de sus
+  comentarios. Un cordial saludo.» → «Panadería Olmo abre de martes a
+  domingo.»
+- **Escáner:** `vocabulario.hallazgos` cubre la entrada "espero que te sea
+  útil" (familia "Restos de chatbot", fuerte, compartida con P22) de
+  [`vocabulario-es.md`](vocabulario-es.md); el resto de despedidas
+  epistolares no está en la lista y no las detecta — juicio del modelo.
+
+## Patrones descartados
+
+Estos 19 patrones se estudiaron y se descartaron en `docs/auditoria.md`,
+§2: no tienen entrada en este archivo y no deben reintroducirse sin una
+decisión nueva que revise el motivo del descarte.
+
+| Id | Motivo del descarte |
+|---|---|
+| P10 | Guion en compuestos: es norma inglesa; en español rompería el INCI y los códigos. |
+| P21 | Comillas curvas: no son error en español; lo sustituye P55. |
+| P67 | Hilo único: arreglarlo exige añadir una trama que el original no da (cero invención). |
+| P68 | Resolución fabricada: el arreglo reescribiría lo que el autor afirma (cero invención). |
+| P69 | Señales humanas a restaurar: restaurarlas sería añadir contenido (cero invención). |
+| P70 | Huella por modelo: sirve para atribuir autoría, no para mejorar el texto, y caduca con cada modelo nuevo. |
+| P71 | Variación elegante: evitar la repetición es norma escolar española; blader v3 la retiró de su propio catálogo. |
+| P72 | Falsos rangos: retirado por blader v3 y por Wikipedia. |
+| P73 | Longitud de frase uniforme: es la métrica de *burstiness* que la regla dura 4 prohíbe. |
+| P74 | Prosa densa: la prosa formal española usa periodos largos con normalidad. |
+| P75 | Emoción declarada: StoryScope muestra que los humanos etiquetan la emoción más, no menos, que los textos de IA. |
+| P76 | Vocabulario inglés por eras: no se traduce a un vocabulario equivalente en español. |
+| P77 | Prohibiciones generales (adverbios, pasiva, arranques con "Wh-", palabras extremas): sin matiz, y los extremos pueden ser un claim. |
+| P78 | Alternancia de perfección y errores: no es un rasgo de estilo; la regla de cero invención ya cubre lo relevante. |
+| P79 | Etiquetas compuestas inventadas: rechazado en su propia fuente, y raro en español. |
+| P80 | Locuciones prepositivas de relleno ("a la hora de"): muy frecuentes en la prosa humana peninsular. |
+| P81 | Nominalización pesada: es un consejo de estilo general, con riesgo alto de falso positivo en registro técnico o jurídico. |
+| P82 | Puntos suspensivos de un carácter: sin base normativa. |
+| P83 | *Sino* / *si no* y la coma ante *sino*: es una corrección ortográfica general, no un rasgo de texto generado. |
