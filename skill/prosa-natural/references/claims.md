@@ -201,8 +201,8 @@ porcentaje) y relleno sin ningún claim:
 
 > Botánica Iris presenta su nueva crema de manos. [[claim]]Clínicamente
 > probado: hidrata durante 24 horas.[[/claim]] Elimina el 99 % de la
-> sequedad de la piel. Además, cabe destacar que esta joya para tus manos
-> es un auténtico placer para los sentidos.
+> sequedad de la piel. Además, cabe destacar que la crema viene en un tubo
+> de aluminio.
 
 Como el texto tiene un claim marcado y un candidato heurístico (la frase
 del 99 % dispara a la vez las reglas `verbo_eficacia` y `porcentaje`), y
@@ -212,10 +212,15 @@ no se ha elegido un modo, la skill pasa a Revisión con una frase como:
 > candidato con un porcentaje), así que se revisa sin tocar su redacción
 > en vez de reescribirlo directamente.
 
-La edición se limita al relleno (P31, metadiscurso vacío; P16, lenguaje
-de folleto), sin tocar ninguno de los dos claims y sin añadir ningún dato
-nuevo:
+En Revisión la skill no reescribe: señala los dos claims y sugiere cortar
+el metadiscurso vacío (P31). Si después se pide la reescritura, la edición
+se limita a ese relleno, sin tocar ninguno de los dos claims y sin añadir
+ningún dato nuevo:
 
 > Botánica Iris presenta su nueva crema de manos. [[claim]]Clínicamente
 > probado: hidrata durante 24 horas.[[/claim]] Elimina el 99 % de la
-> sequedad de la piel.
+> sequedad de la piel. La crema viene en un tubo de aluminio.
+
+Una frase de autoevaluación como «esta joya es un placer para los
+sentidos» no se borraría en ese paso: es un candidato a claim (P30) y se
+señala, no se reescribe.
