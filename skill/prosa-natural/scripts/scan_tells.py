@@ -1813,7 +1813,7 @@ def analyze_registro(ctx):
 # porcentajes, fechas, precios, duraciones/unidades, códigos, siglas,
 # nombres propios y URL) de dos textos y señala, por categoría, lo que falta
 # en el nuevo texto y lo que aparece de nuevo, en ambas direcciones
-# (auditoria.md :333; a diferencia de Aboudjem, que solo informa de lo
+# (auditoria.md §8; a diferencia de Aboudjem, que solo informa de lo
 # perdido, aquí se informa también de lo añadido). Los claims marcados
 # ``[[claim]]…[[/claim]]`` y las citas literales se comparan aparte, de
 # forma literal y con los espacios normalizados. También se comparan los
@@ -2275,7 +2275,7 @@ def _find_citas_literales(text, line_starts, privacy_spans):
     return hallazgos
 
 
-def _diff_by_any_reading(originales, nuevas):
+def _diff_by_any_reading(originales, nuevas, sigue_en_nuevo=None, estaba_en_original=None):
     """Compara dos listas de ocurrencias por presencia de lectura, no por
     multiconjunto: si un dato aparece dos veces en un texto y una sola en
     el otro, no se marca como falta. Lo relevante para "cero invención" es
@@ -2283,6 +2283,12 @@ def _diff_by_any_reading(originales, nuevas):
     simplificación se documenta como límite conocido del diseño. Una
     ocurrencia con varias lecturas (cifras ambiguas) cuenta como
     encontrada si CUALQUIERA de sus lecturas aparece en el otro lado.
+
+    ``sigue_en_nuevo`` y ``estaba_en_original`` son comprobaciones
+    opcionales sobre el texto completo del otro lado: si devuelven True
+    para una ocurrencia, esta no se informa aunque su lectura no esté
+    entre los hechos extraídos del otro texto (lo usan los nombres
+    propios, cuya extracción ignora las mayúsculas de inicio de frase).
     """
     lecturas_nuevas = set()
     for it in nuevas:
@@ -2297,13 +2303,31 @@ def _diff_by_any_reading(originales, nuevas):
     # mostrarlo (revisión review-4e912a0ac78c9cff, R1-001). La redacción
     # ocurre después, solo sobre los elementos que de verdad van a
     # aparecer en el informe.
-    faltantes = [it for it in originales if not (set(it["lecturas"]) & lecturas_nuevas)]
-    agregadas = [it for it in nuevas if not (set(it["lecturas"]) & lecturas_originales)]
+    faltantes = [
+        it for it in originales
+        if not (set(it["lecturas"]) & lecturas_nuevas)
+        and not (sigue_en_nuevo is not None and sigue_en_nuevo(it))
+    ]
+    agregadas = [
+        it for it in nuevas
+        if not (set(it["lecturas"]) & lecturas_originales)
+        and not (estaba_en_original is not None and estaba_en_original(it))
+    ]
     faltantes = [_redactar_si_privado(it) for it in faltantes]
     agregadas = [_redactar_si_privado(it) for it in agregadas]
     faltantes.sort(key=lambda h: (h["linea"], h["columna"]))
     agregadas.sort(key=lambda h: (h["linea"], h["columna"]))
     return faltantes, agregadas
+
+
+def _aparece_como_palabra(lecturas, texto):
+    """True si alguna de las ``lecturas`` aparece en ``texto`` como palabra
+    completa, distinguiendo mayúsculas (una marca «Olmo» no es el árbol
+    «olmo»)."""
+    for lectura in lecturas:
+        if re.search(r"(?<!\w)" + re.escape(lectura) + r"(?!\w)", texto):
+            return True
+    return False
 
 
 def _extract_all_facts(text, line_starts):
@@ -2383,13 +2407,31 @@ def _build_comparacion(ctx, original_text, registro_nuevo):
     hechos_originales = _extract_all_facts(original_text, original_line_starts)
     hechos_nuevos = _extract_all_facts(ctx.original_text, ctx.line_starts)
 
-    resultado = {}
-    for clave in hechos_originales:
-        faltantes, nuevas = _diff_by_any_reading(hechos_originales[clave], hechos_nuevos[clave])
-        resultado[clave] = {"faltantes": faltantes, "nuevas": nuevas}
-
     base_original = _mask_for_comparacion(original_text)
     base_nuevo = _mask_for_comparacion(ctx.original_text)
+
+    # Un nombre propio solo falta (o es nuevo) si no aparece como palabra,
+    # con su misma mayúscula, en NINGUNA parte del otro texto. La extracción
+    # ignora las mayúsculas de inicio de frase, así que un arreglo que deja
+    # «Panadería Olmo» al principio de la frase no debe darla por perdida;
+    # un nombre cambiado de verdad («Marta» → «Laura») sigue informándose.
+    sin_urls_original, _ = _mask_pattern(base_original, _URL_RE)
+    sin_urls_nuevo, _ = _mask_pattern(base_nuevo, _URL_RE)
+    comprobaciones = {
+        "nombres_propios": (
+            lambda it: _aparece_como_palabra(it["lecturas"], sin_urls_nuevo),
+            lambda it: _aparece_como_palabra(it["lecturas"], sin_urls_original),
+        ),
+    }
+
+    resultado = {}
+    for clave in hechos_originales:
+        sigue_en_nuevo, estaba_en_original = comprobaciones.get(clave, (None, None))
+        faltantes, nuevas = _diff_by_any_reading(
+            hechos_originales[clave], hechos_nuevos[clave], sigue_en_nuevo, estaba_en_original
+        )
+        resultado[clave] = {"faltantes": faltantes, "nuevas": nuevas}
+
     privacy_original = _find_privacy_spans(base_original)
     privacy_nuevo = _find_privacy_spans(base_nuevo)
 

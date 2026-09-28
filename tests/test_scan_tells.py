@@ -1626,6 +1626,32 @@ class TestComparacionNombresPropios(unittest.TestCase):
         self.assertEqual(nombres["faltantes"], [])
         self.assertEqual(nombres["nuevas"], [])
 
+    def test_brand_moved_to_sentence_start_is_not_missing(self):
+        # Un arreglo típico (quitar una apertura vacía) deja la marca al
+        # principio de la frase: no ha desaparecido, solo ha cambiado de sitio.
+        original = "Hoy, en el corazón del barrio, Panadería Olmo abre a las siete.\n"
+        nuevo = "Panadería Olmo abre a las siete.\n"
+        report = _con_original(self.module, nuevo, original)
+        nombres = report["comparacion"]["nombres_propios"]
+        self.assertEqual(nombres["faltantes"], [])
+        self.assertEqual(nombres["nuevas"], [])
+
+    def test_name_moved_from_sentence_start_is_not_new(self):
+        original = "Marta abre la tienda de Arcilla por la mañana.\n"
+        nuevo = "Por la mañana, la tienda de Arcilla la abre Marta.\n"
+        report = _con_original(self.module, nuevo, original)
+        nombres = report["comparacion"]["nombres_propios"]
+        self.assertEqual(nombres["faltantes"], [])
+        self.assertEqual(nombres["nuevas"], [])
+
+    def test_name_replaced_at_sentence_start_is_still_reported(self):
+        original = "Hoy te atiende Marta en la tienda de Arcilla.\n"
+        nuevo = "Laura te atiende hoy en la tienda de Arcilla.\n"
+        report = _con_original(self.module, nuevo, original)
+        nombres = report["comparacion"]["nombres_propios"]
+        self.assertEqual([h["texto"] for h in nombres["faltantes"]], ["Marta"])
+        self.assertEqual(nombres["nuevas"], [])
+
     def test_changed_proper_noun_right_after_colon_is_reported(self):
         # Revisión del tramo 06: tratar la mayúscula tras dos puntos como
         # principio de oración ocultaba un nombre cambiado. La comprobación
@@ -1900,6 +1926,12 @@ class TestComparacionExitCodes(unittest.TestCase):
         ):
             self.assertEqual(comparacion[clave]["faltantes"], [], clave)
             self.assertEqual(comparacion[clave]["nuevas"], [], clave)
+
+    def test_removing_empty_opening_before_a_brand_exits_0(self):
+        original = "¡Claro! Te cuento que Panadería Olmo abre a las siete.\n"
+        nuevo = "Panadería Olmo abre a las siete.\n"
+        result = self._run(nuevo, original)
+        self.assertEqual(result.returncode, 0)
 
     def test_changed_four_digit_price_exits_1(self):
         original = "El sofá Arcilla cuesta 1500 € en la tienda.\n"

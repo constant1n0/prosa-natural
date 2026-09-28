@@ -303,8 +303,9 @@ antes de fiarse del código de salida:
 - compara por presencia, no por número de apariciones;
 - no convierte unidades ("48 h" y "2 días" cuentan como datos distintos);
 - los nombres propios se detectan por la mayúscula fuera de inicio de
-  frase: si un arreglo lleva una marca al principio de la frase, puede
-  darla por perdida, y eso se comprueba a mano;
+  frase, y solo se dan por perdidos o nuevos si no aparecen en ninguna
+  parte del otro texto; un nombre que en los dos textos solo aparece al
+  principio de una frase no se compara, y eso se comprueba a mano;
 - las siglas y el registro son solo informativos y no cambian el código;
 - la proporción de mayúsculas de los encabezados no excluye nombres
   propios, y las tríadas y estructuras son siempre "probables";

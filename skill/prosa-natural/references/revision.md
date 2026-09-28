@@ -117,9 +117,13 @@ código de salida más de lo que da de sí:
 - No hay conversión de unidades: "48 h" y "2 días" se tratan como datos
   distintos aunque signifiquen lo mismo.
 - La heurística de nombres propios se basa en la mayúscula inicial fuera de
-  posición de inicio de frase; puede dar alguna falsa alarma en casos poco
-  frecuentes, pero el diseño prefiere esa falsa alarma ocasional a dejar
-  pasar en silencio un nombre cambiado (regla de cero invención).
+  posición de inicio de frase. Un nombre solo se da por perdido o nuevo si
+  no aparece, con la misma mayúscula, en ninguna parte del otro texto: un
+  arreglo que deja una marca al principio de la frase no la pierde. Un
+  nombre que en los dos textos solo aparece al principio de una frase no se
+  compara. Queda alguna falsa alarma poco frecuente (por ejemplo, tras dos
+  puntos), que el diseño prefiere a dejar pasar en silencio un nombre
+  cambiado (regla de cero invención).
 
 Además, las siglas (`comparacion.siglas`) y el aviso de registro
 (`comparacion.registro`) son solo informativos: una diferencia ahí nunca
