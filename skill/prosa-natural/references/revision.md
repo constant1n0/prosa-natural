@@ -62,13 +62,17 @@ veredicto de adewale/anti-slop-writing y traducidos al español
 - **Preguntar al autor.** La edición correcta necesita un dato o una
   decisión que solo el autor tiene (qué estudio respalda "según estudios",
   si una relación entre dos párrafos existe de verdad, qué emoción hay
-  detrás de una sensación contada en un diario). Nunca se inventa ese dato
-  ni se elige por el autor.
-- **Rechazar.** El texto no se puede publicar tal cual: un claim alterado o
-  sin marcar, un intocable técnico cambiado (INCI, marca, precio, código,
-  URL, cita textual), un dato inventado o perdido, un marcador de posición
-  sin rellenar, marcado de chatbot filtrado que se ha colado en el texto, o
-  un dato personal que no debería estar ahí.
+  detrás de una sensación contada en un diario, si un candidato a claim
+  sin marcar lo es de verdad). Nunca se inventa ese dato ni se elige por el
+  autor.
+- **Rechazar.** El texto no se puede publicar tal cual: un claim alterado
+  respecto al original, un intocable técnico cambiado (INCI, marca, precio,
+  código, URL, cita textual), un dato inventado o perdido, un marcador de
+  posición sin rellenar, marcado de chatbot filtrado (tokens como
+  `oaicite` o `turn0search0`, P61) o un dato personal que no debería estar
+  ahí. Un candidato a claim sin marcar no se rechaza: se señala y su
+  veredicto es *preguntar al autor*. Una apertura de chatbot como
+  «¡Claro!» es P22 y su veredicto es *revisar*, no *rechazar*.
 
 ## Veredicto global del texto
 
@@ -91,8 +95,8 @@ severidad — el primero que se cumpla decide el veredicto global:
 Los hallazgos que llevan veredicto rechazar son los que anti-ai-writing
 trataba como severidad crítica en su revisión estricta, adaptados al
 vocabulario de veredicto de esta skill (`docs/auditoria.md` §2.2, fila
-"Revisión estricta"): un claim alterado o sin marcar, un intocable técnico
-cambiado, un dato nuevo o perdido, un marcador de posición o un dato
+"Revisión estricta"): un claim alterado respecto al original, un intocable
+técnico cambiado, un dato nuevo o perdido, un marcador de posición o un dato
 personal fuera de lugar. La razón de tratarlos aparte no es que sean más
 "IA" que el resto de patrones, sino que revierten una de las reglas duras
 del proyecto (cero invención, claims protegidos o intocables técnicos), y
