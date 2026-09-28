@@ -222,5 +222,9 @@ ningún dato nuevo:
 > sequedad de la piel. La crema viene en un tubo de aluminio.
 
 Una frase de autoevaluación como «esta joya es un placer para los
-sentidos» no se borraría en ese paso: es un candidato a claim (P30) y se
-señala, no se reescribe.
+sentidos» no se borraría en ese paso: por su significado es una
+autoevaluación de calidad (P30) y se señala, no se reescribe. Esto es un
+juicio del modelo sobre el significado de la frase, no un hallazgo del
+escáner: la regla `autoevaluacion` de `candidatos_claim` solo reconoce las
+formas fijas que lista más arriba ("el/la mejor", "el más…", "número uno",
+"líder"), y esta frase no coincide con ninguna de ellas.

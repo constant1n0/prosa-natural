@@ -57,6 +57,13 @@ entre 40 y 200, entre 200 y 800, y más de 800 (docs/estudio.md §6, fila
 
 ## Patrones de discurso
 
+Los ejemplos de estos siete patrones son fragmentos abreviados de textos más
+largos, recortados a una o dos frases para mostrar solo dónde aparece el
+rasgo; ninguno es el texto completo. La banda de longitud de la sección
+anterior se mide siempre sobre el texto completo que se está revisando,
+nunca sobre el fragmento recortado del ejemplo: un ejemplo de una frase no
+significa que el patrón se aplique a textos de una frase.
+
 ### P43 · Moraleja, resumen o epílogo
 
 - **Fuerza:** Fuerte
