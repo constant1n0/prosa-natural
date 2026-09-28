@@ -185,6 +185,20 @@ se posiciona como | 2026-09-27 | P18 · ADS
 
 lo que nadie te cuenta | 2026-09-28 | P27 · kjm
 
+### Calcos censurados por la norma
+
+> El DPD censura "a nivel de" cuando no hay una idea real de altura o
+> jerarquía, y la RAE, en su duda lingüística, recomienda "tener sentido"
+> frente a "hacer sentido": la base normativa de estas dos entradas ya está
+> comprobada en fuente primaria (`docs/auditoria.md` §7.5). Aun así, cada
+> aparición se juzga en su contexto — "a nivel de" con una idea real de
+> jerarquía es correcto, y ninguna de las dos frases es un claim ni un
+> intocable — así que se señalan para que decida quien revisa, no se
+> corrigen sin más.
+
+a nivel de | 2026-09-27 | P33 · semilla
+hacer sentido | 2026-09-27 | P33 · semilla
+
 ## Débil
 
 ### Apertura y cierre suave
@@ -317,24 +331,32 @@ sinérgico | 2026-09-27 | P12 · humanamente
 disruptivo | 2026-09-27 | P12 · humanamente
 vanguardista | 2026-09-27 | P12 · humanamente
 
-### Calcos y construcciones importadas
+### Calcos admitidos, menos recomendables
 
-> La norma que censuraría estas construcciones (DPD, Fundéu) está pendiente
-> de comprobar en fuente primaria porque la descarga automática de esas
-> fuentes está bloqueada. Mientras siga pendiente, ninguna de estas
-> entradas autoriza una corrección automática ni se presenta como regla
-> establecida: se señalan igual que el resto de entradas débiles, para que
-> decida quien revisa. Según la auditoría, "en base a" es admisible
-> aunque menos recomendable y "jugar un papel" no es incorrecto; esas
-> lecturas del DPD también están pendientes de comprobar. Se listan por su
-> frecuencia en texto calcado, no como error.
+> El DPD admite estas construcciones y no las trata como error, aunque
+> recomienda alternativas: "en base a" es admisible, aunque menos
+> recomendable que las opciones tradicionales; "de cara a" se desaconseja
+> solo con el sentido de "en relación con" (es correcto como "frente a" o
+> "con vistas a"); "jugar un papel/rol" está ya muy arraigado en la lengua
+> culta y no cabe censurarlo, aunque se recomienda usar con preferencia
+> "hacer", "desempeñar" o "representar". Estas lecturas ya están
+> comprobadas en fuente primaria (`docs/auditoria.md` §7.5). Se listan por
+> su frecuencia en texto calcado, no como error; solo pesan por
+> acumulación, igual que el resto de entradas débiles.
 
-a nivel de | 2026-09-27 | P33 · semilla | pendiente
-hacer sentido | 2026-09-27 | P33 · semilla | pendiente
-en base a | 2026-09-27 | P34 · semilla | pendiente
-de cara a | 2026-09-27 | P34 · semilla | pendiente
-jugar un papel clave | 2026-09-27 | P34 · semilla | pendiente
-jugar un rol clave | 2026-09-27 | P34 · semilla | pendiente
+en base a | 2026-09-27 | P34 · semilla
+de cara a | 2026-09-27 | P34 · semilla
+jugar un papel clave | 2026-09-27 | P34 · semilla
+jugar un rol clave | 2026-09-27 | P34 · semilla
+
+### Sin pronunciamiento normativo localizado
+
+> Esta construcción todavía no tiene una censura ni una recomendación
+> localizada en fuente primaria. Mientras siga pendiente, no autoriza
+> ninguna corrección automática ni se presenta como regla establecida: se
+> señala igual que el resto de entradas débiles, para que decida quien
+> revisa.
+
 tomar lugar | 2026-09-27 | P36 · semilla | pendiente
 
 ## Excluidas y variantes
@@ -358,14 +380,16 @@ pos de". Se descartaron del catálogo entero, no solo de este archivo: son
 demasiado frecuentes en prosa humana española para funcionar como señal.
 
 **Anglicismos y calcos admitidos sin censura localizada** (`docs/estudio.md`, §4.5):
-"empoderar", "asumir" (en el sentido de "dar por sentado"), "impactar",
-"remarcar", "evento", "sinergia". Ninguno se trata como calco-error en la
-familia "Calcos y construcciones importadas"; la fuente primaria que los
-admitiría sin reservas también está pendiente de comprobar, pero mientras
-tanto no hay indicio de que estén censurados. "Empoderar" y "sinergia" sí
-aparecen arriba, en "Vocabulario de registro IA", por un motivo distinto:
-ahí no se juzga si son calcos, sino si se repiten como vocabulario típico
-de texto generado.
+"empoderar", "asumir" (en el sentido de "dar por sentado") e "impactar" ya
+están comprobados en fuente primaria como registrados sin censura (DPD
+*empoderar*, *asumir*, *impactar*); "remarcar", "evento" y "sinergia" no
+tienen página citada, así que siguen sin comprobar. Ninguno se trata como
+calco-error en las familias "Calcos censurados por la norma" ni "Calcos
+admitidos, menos recomendables"; mientras no haya indicio de censura, no
+hay razón para tratarlos así. "Empoderar" y "sinergia" sí aparecen arriba,
+en "Vocabulario de registro IA", por un motivo distinto: ahí no se juzga
+si son calcos, sino si se repiten como vocabulario típico de texto
+generado.
 
 **Variante ES-LatAm** (P64, `docs/auditoria.md`, §2; `docs/estudio.md`, §4.10):
 "computadora" frente a "ordenador", y "ustedes" cuando convive en el mismo

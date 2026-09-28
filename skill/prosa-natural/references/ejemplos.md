@@ -28,20 +28,18 @@ no se aplica en ese caso concreto no fuerza un cambio (`patrones.md`,
   interpretación que el original no sustenta. Ver P13 en
   [`patrones.md`](patrones.md).
 
-## Sintaxis y construcción — P15 · Gerundio de posterioridad
+## Sintaxis y construcción — P37 · Conectores apilados
 
-- **Antes:** «Panadería Olmo amplió el horno de leña, mejorando la
-  producción de pan al día siguiente.»
-- **Después:** «Panadería Olmo amplió el horno de leña y mejoró la
-  producción de pan al día siguiente.»
-- **Por qué:** El gerundio no describe algo simultáneo a ampliar el horno,
-  sino un hecho posterior y distinto; se separan las dos frases sin
-  inventar ninguna relación nueva entre ellas, y se conservan los dos
-  hechos tal cual. Ver P15 en [`patrones.md`](patrones.md); la referencia
-  exacta del DPD para el gerundio de posterioridad sigue con verificación
-  pendiente en fuente primaria (`docs/auditoria.md` §7.5), así que esta
-  corrección se apoya en el criterio del proyecto, no en una cita ya
-  verificada.
+- **Antes:** «Ferretería Robledo repara electrodomésticos pequeños.
+  Asimismo, presta herramientas a sus clientes habituales. Por otro lado,
+  abre también los domingos de mercado.»
+- **Después:** «Ferretería Robledo repara electrodomésticos pequeños,
+  presta herramientas a sus clientes habituales y abre también los
+  domingos de mercado.»
+- **Por qué:** Los tres son párrafos seguidos que abren con un conector
+  distinto sin que ninguno aporte una relación real entre las frases; se
+  fusionan en uno solo sin perder ningún hecho (los tres servicios y el
+  horario de domingo). Ver P37 en [`patrones.md`](patrones.md).
 
 ## Formato y tipografía — P56 · Signos de apertura omitidos
 

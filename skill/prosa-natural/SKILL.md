@@ -220,12 +220,14 @@ clasificado como mantener, adaptar o descartar para el español. Por rasgo:
   se cambian sin confirmación. "Ustedes" como plural formal, solo, es
   correcto en España.
 
-Algunas normas de la RAE y de Fundéu citadas en las referencias siguen
-pendientes de verificar en fuente primaria; van marcadas (`pendiente` en el
-vocabulario, "verificación pendiente" en los patrones). Mientras lo estén,
-se señalan como un posible uso a revisar y nunca se presentan como regla
-establecida ni se corrigen de forma automática. *Por qué:* no se puede
-imponer una norma que nadie ha comprobado en su fuente.
+La mayoría de las normas de la RAE citadas en las referencias ya se
+comprobaron en fuente primaria (verificación del 2026-09-27,
+`docs/auditoria.md` §7.5). Las pocas que quedan sin comprobar siguen
+marcadas (`pendiente` en el vocabulario, "verificación pendiente" en los
+patrones); mientras lo estén, se señalan como un posible uso a revisar y
+nunca se presentan como regla establecida ni se corrigen de forma
+automática. *Por qué:* no se puede imponer una norma que nadie ha
+comprobado en su fuente.
 
 ## Registro y longitud
 

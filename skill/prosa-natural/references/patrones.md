@@ -33,6 +33,10 @@ Cada patrón lleva una fuerza:
 
 - **Fuerte**: una sola aparición ya justifica editar, porque no tiene un uso
   corriente legítimo fuera del contexto que delata.
+- **Media**: una fuente normativa la admite en unos casos y la censura o
+  desaconseja en otros. La skill señala el caso y propone una alternativa,
+  pero no lo trata como error ni lo corrige de forma automática; decide
+  siempre quien revisa.
 - **Débil**: es una construcción que también aparece en prosa humana
   corriente. Sola no significa nada; solo pesa por acumulación, cuando se
   repite varias veces en el mismo texto o convive con otras señales.
@@ -317,10 +321,9 @@ parecer menos generado; el objetivo es siempre la calidad del texto.
   X, se trata de Y", "más que X, Y", o el mismo contraste partido en dos
   frases.
 - **Por qué es un rasgo:** Es una correlación correcta en español —el DPD
-  la valida con coma delante de "sino" (verificación pendiente en fuente
-  primaria, `docs/auditoria.md` §7.5)— pero se repite como molde retórico
-  automático incluso cuando la mitad negativa no corrige ninguna creencia
-  real; se marca el molde, nunca la construcción en sí.
+  (*sino*, 2.4) la valida con coma delante de "sino"— pero se repite como
+  molde retórico automático incluso cuando la mitad negativa no corrige
+  ninguna creencia real; se marca el molde, nunca la construcción en sí.
 - **Cuándo no tocarlo:** Se conserva si corrige una creencia real que el
   lector podría tener, o si las dos mitades informan (cada una aporta un
   dato distinto). No se corrige partiendo el contraste en dos frases
@@ -397,13 +400,18 @@ parecer menos generado; el objetivo es siempre la calidad del texto.
 - **Fuerza:** Débil
 - **Qué es:** "Fue + participio + por" sin necesidad real, o impersonales
   de relleno como "se hace necesario señalar", "se podría decir que".
-- **Por qué es un rasgo:** En el español actual la pasiva refleja sería más
-  frecuente que la perifrástica según la NGLE (verificación pendiente en
-  fuente primaria, `docs/auditoria.md` §7.5); el tic real en castellano no
-  es tanto la pasiva inglesa como el impersonal de relleno.
+- **Por qué es un rasgo:** En el español actual, la pasiva refleja es más
+  frecuente que la perifrástica tanto en la lengua oral como en la escrita
+  (NGLE, *la pasiva refleja (I)*, 41.11l); el tic real en castellano no es
+  tanto la pasiva inglesa como el impersonal de relleno.
 - **Cuándo no tocarlo:** La pasiva refleja ("se lanzó la campaña en
-  marzo") nunca se marca. Se exceptúa además el registro jurídico y
-  administrativo, donde la perifrástica es propia del género.
+  marzo") nunca se marca, tenga o no complemento agente. En el registro
+  jurídico y administrativo esto pesa más: aunque en general la refleja
+  opone más resistencia a llevar un complemento agente, la NGLE señala que
+  ahí "se aceptan a menudo en el código restrictivo del lenguaje jurídico"
+  (NGLE, *la pasiva refleja (I)*, 41.11h). No hay fuente que respalde que
+  en ese registro se prefiera además la perifrástica: se descarta esa
+  lectura anterior.
 - **Qué hacer:** Sustituir la perifrástica innecesaria por activa y cortar
   el impersonal de relleno, sin cambiar quién hace qué.
 - **Ejemplo:** «La campaña fue lanzada por el equipo de Arcilla en marzo.»
@@ -412,22 +420,32 @@ parecer menos generado; el objetivo es siempre la calidad del texto.
 
 ### P15 · Gerundio ilativo o de posterioridad
 
-- **Fuerza:** Fuerte (posterioridad pura); Débil (consecuencia sin apoyo)
-- **Qué es:** Un gerundio que cuelga un hecho posterior o una
-  interpretación sin apoyo en el original.
-- **Por qué es un rasgo:** El gerundio de pura posterioridad se da por
-  incorrecto según el DPD (verificación pendiente en fuente primaria,
-  `docs/auditoria.md` §7.5); el de consecuencia es gramatical, y se
-  convierte en rasgo solo cuando cuelga una interpretación que el original
-  no respalda.
+- **Fuerza:** Media (posterioridad pura); Débil (consecuencia sin apoyo)
+- **Qué es:** Un gerundio que expresa una mera sucesión temporal posterior
+  al verbo principal, o uno que cuelga una interpretación sin apoyo en el
+  original.
+- **Por qué es un rasgo:** La NGLE considera hoy incorrecto el gerundio que
+  introduce una mera sucesión temporal; el DPD matiza esa censura y lo da
+  por "admisible cuando puede inferirse una sucesión o una relación
+  lógicas" (DPD, *gerundio*, 5; `docs/auditoria.md` §7.5). Por eso la skill
+  señala el gerundio de posterioridad pura y propone una alternativa, pero
+  no lo trata como error ni lo corrige sola: decide quien revisa. El
+  gerundio de consecuencia es gramatical y solo se convierte en rasgo
+  cuando cuelga una interpretación que el original no respalda; ahí sí se
+  corrige, porque el problema no es la norma, sino que añade un dato que no
+  está en el original.
 - **Cuándo no tocarlo:** El gerundio de consecuencia inmediata o casi
-  simultánea es correcto y no se toca; solo se corrige la pura
-  posterioridad temporal o la interpretación sin apoyo.
-- **Qué hacer:** Si es posterioridad pura, separar en dos frases sin
-  inventar la relación entre ellas; si es una interpretación sin apoyo,
-  cortarla y dejar el hecho tal cual.
-- **Ejemplo:** «La tienda abrió en 2019, convirtiéndose en un referente
-  del barrio.» → «La tienda abrió en 2019.»
+  simultánea, con apoyo en el original, es correcto y no se toca. Tampoco
+  se corrige de oficio la posterioridad pura: se señala y se propone una
+  alternativa, y decide el autor si la aplica.
+- **Qué hacer:** Ante la posterioridad pura, señalar el gerundio y proponer
+  como alternativa separarlo en dos frases, sin aplicarla de forma
+  automática. Ante una interpretación de consecuencia sin apoyo en el
+  original, cortarla y dejar el hecho tal cual.
+- **Ejemplo:** «El taller abrió en 2019, mudándose después a un local más
+  grande.» — Gerundio de posterioridad pura: se señala y se propone la
+  alternativa «El taller abrió en 2019. Después se mudó a un local más
+  grande.», sin aplicarla de oficio.
 - **Escáner:** no lo detecta: juicio del modelo (el escáner no analiza
   gramática; requiere criterio sobre si el gerundio expresa posterioridad
   o consecuencia).
@@ -534,10 +552,13 @@ parecer menos generado; el objetivo es siempre la calidad del texto.
 - **Fuerza:** Débil
 - **Qué es:** Un epíteto antepuesto más adjetivos pospuestos en serie ("un
   exquisito aroma intenso, envolvente y sofisticado").
-- **Por qué es un rasgo:** La anteposición de un epíteto sería un rasgo
-  gramatical normal de la lengua literaria según la NGLE (verificación
-  pendiente en fuente primaria, `docs/auditoria.md` §7.5); el rasgo no es
-  anteponer un adjetivo, sino acumular varios hasta saturar el sustantivo.
+- **Por qué es un rasgo:** La anteposición de un epíteto es un rasgo
+  gramatical normal en español: la Gramática básica dice que el epíteto
+  "admite con mayor facilidad la anteposición" (Gramática básica, 7.4.1), y
+  la NGLE explica que "el adjetivo antepuesto se convirtió pronto en un
+  rasgo característico de la lengua literaria" (NGLE, *posición del
+  adjetivo*, 13.13b); el rasgo no es anteponer un adjetivo, sino acumular
+  varios hasta saturar el sustantivo.
 - **Cuándo no tocarlo:** Nunca se marca un solo epíteto antepuesto; solo la
   acumulación de varios adjetivos alrededor del mismo sustantivo.
 - **Qué hacer:** Quitar los adjetivos que no añadan información distinta,
@@ -579,9 +600,8 @@ parecer menos generado; el objetivo es siempre la calidad del texto.
   una conclusión, o en vez del paréntesis para una sigla.
 - **Por qué es un rasgo:** La Wikilengua recoge estos usos como «impropios
   de la raya…, la mayoría calcos del inglés»; en un encabezado, sustituir
-  los dos puntos por una raya es además anglicismo de titulación
-  (verificación pendiente en fuente primaria del DPD y la Ortografía,
-  `docs/auditoria.md` §7.5).
+  los dos puntos por una raya es además anglicismo de titulación, también
+  según la Wikilengua (sin copia guardada, verificación pendiente).
 - **Cuándo no tocarlo:** El diálogo, el inciso cerrado y el inciso del
   narrador cuya raya de cierre se omite legítimamente al terminar la frase
   o el párrafo («—Ya voy —dijo Marta.») son usos normativos del español,
@@ -629,12 +649,11 @@ parecer menos generado; el objetivo es siempre la calidad del texto.
 - **Fuerza:** Fuerte
 - **Qué es:** Mayúscula inicial en cada palabra del encabezado (Title Case
   calcado del inglés), en vez de solo en la primera.
-- **Por qué es un rasgo:** El Libro de estilo dice que solo lleva
-  mayúscula inicial la primera palabra de un elemento de titulación,
-  además de las que la necesiten por su naturaleza; la Wikilengua
-  considera anglicismo la mayúscula sistemática, incluso en nombres
-  comunes (verificación pendiente en fuente primaria del Libro de estilo,
-  `docs/auditoria.md` §7.5).
+- **Por qué es un rasgo:** El Libro de estilo dice que "solo se escribe con
+  mayúscula inicial la primera palabra de los elementos de titulación,
+  además de aquellas que lo requieran por su naturaleza" (Libro de estilo,
+  *elementos de titulación*); la Wikilengua, sin copia guardada, considera
+  además anglicismo la mayúscula sistemática, incluso en nombres comunes.
 - **Cuándo no tocarlo:** Se excluyen las marcas, los nombres propios, las
   siglas y los títulos de obra citados en su idioma original; esas
   palabras conservan su mayúscula aunque no sean la primera del
@@ -741,11 +760,12 @@ parecer menos generado; el objetivo es siempre la calidad del texto.
   texto, o anidarlas al revés de lo que marca la norma.
 - **Por qué es un rasgo:** La Wikilengua es explícita: "No hay diferencia
   ortográfica alguna entre las comillas españolas y las inglesas […] es
-  una elección esencialmente tipográfica" — las curvas o las rectas por sí
-  solas no prueban nada. Lo que sí delata falta de revisión es cambiar de
-  tipo sin criterio dentro del mismo texto, o invertir el orden de
-  anidamiento (verificación pendiente en fuente primaria de la
-  recomendación del DPD sobre las angulares, `docs/auditoria.md` §7.5).
+  una elección esencialmente tipográfica" (sin copia guardada) — las
+  curvas o las rectas por sí solas no prueban nada. El DPD y la Ortografía
+  sí recomiendan las angulares en primer lugar en textos impresos, y esa
+  lectura ya está comprobada en fuente primaria. Lo que delata falta de
+  revisión es cambiar de tipo sin criterio dentro del mismo texto, o
+  invertir el orden de anidamiento recomendado.
 - **Cuándo no tocarlo:** Usar un solo tipo de comillas de forma constante
   en todo el texto es correcto, sea cual sea el tipo elegido; nunca se
   convierte de un tipo a otro sin que el autor lo confirme o sin una guía
@@ -765,11 +785,10 @@ parecer menos generado; el objetivo es siempre la calidad del texto.
 - **Qué es:** Una interrogación o una exclamación sin su signo de apertura
   («Qué te ha parecido la nueva carta?» en vez de «¿Qué te ha parecido la
   nueva carta?»).
-- **Por qué es un rasgo:** Los signos de apertura son propios del español
-  y no deben suprimirse por imitación de otras lenguas que no los tienen,
-  como el inglés; el estudio del proyecto lo trata como error objetivo,
-  aunque la referencia exacta del DPD sigue pendiente de verificación en
-  fuente primaria (`docs/auditoria.md` §7.5).
+- **Por qué es un rasgo:** Los signos de apertura "son característicos del
+  español y no deben suprimirse por imitación de otras lenguas" (DPD,
+  *signos de interrogación y exclamación*, 2.1); el estudio del proyecto lo
+  trata como error objetivo.
 - **Cuándo no tocarlo:** No hay excepción legítima: la omisión es siempre
   un calco, nunca una elección de estilo.
 - **Qué hacer:** Añadir el signo de apertura que falta, sin cambiar
@@ -784,18 +803,27 @@ parecer menos generado; el objetivo es siempre la calidad del texto.
 - **Fuerza:** Débil
 - **Qué es:** Una mayúscula justo después de dos puntos, fuera de las
   excepciones normativas.
-- **Por qué es un rasgo:** Tras dos puntos va minúscula salvo en el saludo
-  de una carta, una cita textual o ciertas fórmulas jurídicas y
-  administrativas; una mayúscula sistemática fuera de esos casos sugiere
-  puntuación descuidada o calcada (verificación pendiente en fuente
-  primaria de la referencia exacta del DPD, `docs/auditoria.md` §7.5).
+- **Por qué es un rasgo:** El DPD no formula una regla general sobre la
+  mayúscula tras los dos puntos: pide minúscula tras un conector como
+  "pues bien" ("La oración que los sigue se inicia con minúscula", DPD,
+  *dos puntos*, 2.6), mayúscula tras el saludo de una carta y tras el verbo
+  que abre ciertos textos jurídicos y administrativos, y muestra la cita
+  textual con mayúscula en su propio ejemplo; para el resto remite a
+  *mayúsculas* (sin copia guardada). Por eso este patrón solo señala el
+  uso: una mayúscula sistemática fuera de esos casos puede ser puntuación
+  descuidada o calcada, pero no hay una regla general que lo confirme
+  siempre.
 - **Cuándo no tocarlo:** El saludo de una carta («Querida Marta:» seguido
   de mayúscula), una cita textual introducida por los dos puntos, y las
   fórmulas jurídicas o administrativas nunca se tocan.
-- **Qué hacer:** Bajar a minúscula la palabra que sigue a los dos puntos,
-  sin cambiar nada más.
+- **Qué hacer:** Señalar la mayúscula que sigue a los dos puntos cuando no
+  encaje en ninguna de esas excepciones, para que decida quien revisa; no
+  se corrige de oficio, porque no hay una regla general que lo respalde en
+  todos los casos.
 - **Ejemplo:** «Nota: El horario cambia en agosto en Ferretería Robledo.»
-  → «Nota: el horario cambia en agosto en Ferretería Robledo.»
+  — Se señala la mayúscula tras los dos puntos, porque no es un saludo, una
+  cita ni una fórmula jurídica; decide quien revisa si la baja a
+  minúscula.
 - **Escáner:** `tipografia.mayuscula_tras_dos_puntos`, con las mismas
   excepciones ya incorporadas al detector (no informa ante una cita, un
   elemento de lista, un encabezado ni una región enmascarada pegada a los
