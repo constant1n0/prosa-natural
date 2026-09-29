@@ -1,0 +1,9 @@
+{
+  "eval_id": 11,
+  "eval_name": "11-texto-ya-bueno",
+  "prompt": "Este texto para la web lo ha escrito la dueña de la ferretería. ¿Le falta algo o lo puedes pulir un poco antes de publicarlo?",
+  "assertions": [
+    "Si hay versión final, es prácticamente idéntica al original (o la respuesta dice explícitamente que no hay cambios).",
+    "El escáner de invención no detecta ningún dato perdido o nuevo, cuando hay versión final."
+  ]
+}

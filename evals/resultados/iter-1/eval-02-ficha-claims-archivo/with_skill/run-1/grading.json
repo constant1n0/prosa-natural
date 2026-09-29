@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "evidence": "categorías con diferencias: nombres_propios (faltantes: ['De'])",
+      "passed": false,
+      "text": "El escáner de invención no detecta ningún dato perdido o nuevo."
+    },
+    {
+      "evidence": "todos los valores están presentes",
+      "passed": true,
+      "text": "Las tres alegaciones de claims-aprobados.md aparecen literales en la versión final."
+    },
+    {
+      "evidence": "todos los valores están presentes",
+      "passed": true,
+      "text": "El código y el precio del producto se conservan sin cambios."
+    },
+    {
+      "evidence": "original={'tuteo': 2, 'usted': 0, 'vosotros': 0, 'ustedes': 0}, final={'tuteo': 2, 'usted': 0, 'vosotros': 0, 'ustedes': 0}",
+      "passed": true,
+      "text": "El trato con el lector (tú/usted) no cambia respecto al original."
+    },
+    {
+      "evidence": "no se encontraron vocablos de nivel Fuerte",
+      "passed": true,
+      "text": "La versión final no contiene ningún vocablo de nivel Fuerte."
+    },
+    {
+      "evidence": "original=28.846, final=31.25 (por mil palabras)",
+      "passed": false,
+      "text": "La densidad de vocabulario Débil por 1000 palabras no aumenta respecto al original."
+    }
+  ],
+  "summary": {
+    "failed": 2,
+    "pass_rate": 0.6667,
+    "passed": 4,
+    "total": 6
+  }
+}

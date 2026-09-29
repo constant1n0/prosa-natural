@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "evidence": "sin versión final: no aplica",
+      "passed": true,
+      "text": "El escáner de invención no detecta ningún dato perdido o nuevo."
+    },
+    {
+      "evidence": "no hay versión final",
+      "passed": false,
+      "text": "El número de pedido, la fecha de compra y el importe del reembolso se conservan."
+    },
+    {
+      "evidence": "no hay versión final",
+      "passed": false,
+      "text": "El trato de usted se mantiene, no cambia a tú."
+    },
+    {
+      "evidence": "no hay versión final",
+      "passed": false,
+      "text": "La versión final no contiene ningún vocablo de nivel Fuerte."
+    },
+    {
+      "evidence": "no hay versión final",
+      "passed": false,
+      "text": "La densidad de vocabulario Débil por 1000 palabras no aumenta respecto al original."
+    }
+  ],
+  "summary": {
+    "failed": 4,
+    "pass_rate": 0.2,
+    "passed": 1,
+    "total": 5
+  }
+}

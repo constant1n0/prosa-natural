@@ -1,0 +1,13 @@
+{
+  "eval_id": 8,
+  "eval_name": "08-articulo-largo",
+  "prompt": "Es un artículo largo sobre el cuidado de la piel en otoño para el blog. ¿Lo puedes pulir? Es bastante largo, así que con el diagnóstico y la versión final me vale, no hace falta que me enseñes el borrador intermedio.",
+  "assertions": [
+    "El escáner de invención no detecta ningún dato, cita o nombre propio perdido o nuevo.",
+    "La URL de la fuente se conserva exactamente igual.",
+    "El nombre de la dermatóloga citada y el porcentaje del estudio se mantienen.",
+    "El trato con el lector no cambia respecto al original.",
+    "La versión final no contiene ningún vocablo de nivel Fuerte.",
+    "La densidad de vocabulario Débil por 1000 palabras no aumenta respecto al original."
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "eval_id": 4,
+  "eval_name": "04-post-redes-tuteo",
+  "prompt": "Este es el post que vamos a publicar en Instagram sobre la mascarilla de arcilla verde. ¿Me lo puedes pulir para que no suene tan a texto generado?",
+  "assertions": [
+    "El escáner de invención no detecta ningún dato perdido o nuevo.",
+    "El enlace del post se conserva exactamente igual.",
+    "Los tres hashtags se mantienen sin cambios.",
+    "El tuteo se mantiene, no cambia a usted.",
+    "La versión final no contiene ningún vocablo de nivel Fuerte.",
+    "La densidad de vocabulario Débil por 1000 palabras no aumenta respecto al original."
+  ]
+}

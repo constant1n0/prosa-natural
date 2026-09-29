@@ -1,0 +1,8 @@
+He leído el texto y está muy bien tal cual: tiene voz propia, detalles concretos (los veintitrés años, tu padre, la anécdota del cliente con la fuga de cobre) y no cae en la palabrería genérica que suele sobrar en este tipo de textos ("comprometidos con la excelencia", "en un mundo cada vez más digital"...). Tampoco he encontrado erratas ni fallos de puntuación: la raya del diálogo está bien puesta y el cierre ("Es la forma en que siempre hemos trabajado, y no tenemos intención de cambiarla") funciona muy bien como remate, yo no lo tocaría.
+
+No le haría cambios de fondo. Como mucho, dos matices a valorar, no correcciones:
+
+- Ahora mismo el nombre "Ferretería Robledo" aparece en la segunda frase del segundo párrafo, casi como una revelación. Si el texto va a publicarse sin más contexto alrededor (sin titular ni logo visible), puede merecer la pena adelantarlo a la primera línea para que quede claro desde el principio de qué negocio se habla. Si en la página ya hay un título o el nombre del negocio a la vista, déjalo donde está: tal y como lo tienes funciona bien.
+- El texto no incluye dirección, horario ni ningún enlace o llamada a la acción. Puede ser intencionado (esos datos suelen ir en otra parte de la web), pero si este bloque va a quedar solo, quizá quieras cerrarlo invitando a pasarse por la tienda.
+
+Antes de darlo por definitivo, una pregunta: ¿este texto va a ir acompañado de esos datos de contacto en otro sitio de la página, o necesitas que añada algo al final para cerrarlo? Si quieres que añada una frase de cierre con dirección, horario o similar, dime qué datos exactos quieres que ponga: no voy a inventarme horarios ni ubicación que no me hayas dado.

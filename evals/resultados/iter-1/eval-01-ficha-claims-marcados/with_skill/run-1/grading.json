@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "evidence": "categorías con diferencias: claims_marcados (faltantes: ['Reduce la apariencia de las arrugas hasta en un 30 % en 4 semanas', 'dermatológicamente testado', 'hidrata la piel durante 24 horas']); nombres_propios (faltantes: ['Clave', 'De'])",
+      "passed": false,
+      "text": "El escáner de invención no detecta ningún dato ni claim marcado perdido o nuevo."
+    },
+    {
+      "evidence": "faltan: ['[[claim]]Reduce la apariencia de las arrugas hasta en un 30 % en 4 semanas[[/claim]]', '[[claim]]dermatológicamente testado[[/claim]]', '[[claim]]hidrata la piel durante 24 horas[[/claim]]']",
+      "passed": false,
+      "text": "Los tres claims se conservan literales, con sus marcas [[claim]]…[[/claim]] intactas."
+    },
+    {
+      "evidence": "todos los valores están presentes",
+      "passed": true,
+      "text": "El precio y el código de referencia del producto se conservan sin cambios."
+    },
+    {
+      "evidence": "original={'tuteo': 1, 'usted': 0, 'vosotros': 0, 'ustedes': 0}, final={'tuteo': 0, 'usted': 0, 'vosotros': 0, 'ustedes': 0}",
+      "passed": false,
+      "text": "El trato con el lector (tú/usted) no cambia respecto al original."
+    },
+    {
+      "evidence": "no se encontraron vocablos de nivel Fuerte",
+      "passed": true,
+      "text": "La versión final no contiene ningún vocablo de nivel Fuerte."
+    },
+    {
+      "evidence": "original=6.803, final=6.667 (por mil palabras)",
+      "passed": true,
+      "text": "La densidad de vocabulario Débil por 1000 palabras no aumenta respecto al original."
+    }
+  ],
+  "summary": {
+    "failed": 3,
+    "pass_rate": 0.5,
+    "passed": 3,
+    "total": 6
+  }
+}
