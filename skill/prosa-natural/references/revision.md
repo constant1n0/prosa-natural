@@ -11,11 +11,14 @@ veredicto en cualquier texto que audite.
 - El usuario lo pide explícitamente ("revisa este texto", "audita esta
   ficha", "dame tu opinión sin cambiar nada").
 - El texto tiene claims marcados o candidatos a claim y el usuario no ha
-  elegido un modo (Reescritura, Revisión o Archivo): la skill entra en
-  Revisión por su cuenta y lo explica en una sola frase antes de tocar
-  nada, porque una alegación de eficacia, salud o seguridad no se debe
-  reformular sin que alguien decida primero qué hacer con ella
-  ([`claims.md`](claims.md)).
+  dado ninguna instrucción sobre qué hacer con el texto (no ha elegido
+  Reescritura, Revisión ni Archivo): la skill entra en Revisión por su
+  cuenta y lo explica en una sola frase antes de tocar nada, porque una
+  alegación de eficacia, salud o seguridad no se debe reformular sin que
+  alguien decida primero qué hacer con ella ([`claims.md`](claims.md)). Una
+  petición explícita de pulir, reescribir, mejorar, limpiar o humanizar el
+  texto ya elige Reescritura, aunque haya claims: ahí este modo no se
+  activa por su cuenta (`SKILL.md`, «Modos»).
 
 En ambos casos la salida de este modo es siempre la de este archivo: un
 veredicto global más una lista de hallazgos. Si después se pide una
