@@ -331,9 +331,12 @@ antes de fiarse del código de salida:
 - compara por presencia, no por número de apariciones;
 - no convierte unidades ("48 h" y "2 días" cuentan como datos distintos);
 - los nombres propios se detectan por la mayúscula fuera de inicio de
-  frase, y solo se dan por perdidos o nuevos si no aparecen en ninguna
-  parte del otro texto; un nombre que en los dos textos solo aparece al
-  principio de una frase no se compara, y eso se comprueba a mano;
+  frase. Los de un encabezado se buscan sin distinguir mayúsculas (bajar
+  «Guía Clave» a «Guía clave» no pierde nada); los demás, si en el otro
+  texto solo aparecen al abrir una frase, cuentan solo si comparten una
+  palabra vecina. Un nombre que solo abre frase en los dos textos no se
+  compara, y quien cambia todas sus vecinas puede darse por perdido:
+  ambas cosas se comprueban a mano;
 - las siglas y el registro son solo informativos y no cambian el código;
 - la proporción de mayúsculas de los encabezados no excluye nombres
   propios, y las tríadas y estructuras son siempre "probables";

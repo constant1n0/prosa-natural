@@ -120,12 +120,22 @@ código de salida más de lo que da de sí:
 - No hay conversión de unidades: "48 h" y "2 días" se tratan como datos
   distintos aunque signifiquen lo mismo.
 - La heurística de nombres propios se basa en la mayúscula inicial fuera de
-  posición de inicio de frase. Un nombre solo se da por perdido o nuevo si
-  no aparece, con la misma mayúscula, en ninguna parte del otro texto: un
-  arreglo que deja una marca al principio de la frase no la pierde. Un
-  nombre que en los dos textos solo aparece al principio de una frase no se
-  compara. Queda alguna falsa alarma poco frecuente (por ejemplo, tras dos
-  puntos), que el diseño prefiere a dejar pasar en silencio un nombre
+  posición de inicio de frase (también tras un emoji que sigue a un final de
+  frase, o tras una marca `[[claim]]`). Las palabras de un encabezado se
+  buscan en el otro texto sin distinguir mayúsculas: pasar «Guía Clave De
+  Cuidado» a «Guía clave de cuidado» no pierde nada, pero una marca que solo
+  estaba en un encabezado y desaparece sí se informa. Para el resto, un
+  nombre solo se da por perdido o nuevo si no aparece, con la misma
+  mayúscula, en el otro texto; si allí solo aparece abriendo una frase, cuenta
+  únicamente cuando comparte una palabra vecina de cuatro letras o más con
+  la aparición original. Así, un arreglo que deja una marca al principio de
+  la frase no la pierde, y una palabra común que abre frase («Rosa huele
+  bien») no oculta que el nombre «Rosa» ha desaparecido. Quedan dos puntos
+  ciegos: un nombre que en los dos textos solo abre frase no se compara, y
+  una palabra común que abre frase junto a una vecina coincidente sigue
+  ocultando el nombre perdido. Y una falsa alarma poco frecuente: un nombre
+  que cambia de sitio y de todas sus vecinas, o el que va tras dos puntos.
+  El diseño prefiere esas alarmas a dejar pasar en silencio un nombre
   cambiado (regla de cero invención).
 
 Además, las siglas (`comparacion.siglas`) y el aviso de registro
