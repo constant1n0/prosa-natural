@@ -26,3 +26,6 @@ __pycache__/
 
 # Sistema
 .DS_Store
+
+# Comentarios del visor de evals (skill-creator): notas de revisión locales
+evals/resultados/*/feedback.json

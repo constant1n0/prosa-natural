@@ -1,0 +1,12 @@
+{
+  "eval_id": 9,
+  "eval_name": "09-atencion-cliente",
+  "prompt": "Aquí tienes la respuesta que le vamos a mandar a un cliente sobre la devolución de su pedido. ¿La puedes pulir antes de que la enviemos?",
+  "assertions": [
+    "El escáner de invención no detecta ningún dato perdido o nuevo.",
+    "El número de pedido, la fecha de compra y el importe del reembolso se conservan.",
+    "El trato de usted se mantiene, no cambia a tú.",
+    "La versión final no contiene ningún vocablo de nivel Fuerte.",
+    "La densidad de vocabulario Débil por 1000 palabras no aumenta respecto al original."
+  ]
+}

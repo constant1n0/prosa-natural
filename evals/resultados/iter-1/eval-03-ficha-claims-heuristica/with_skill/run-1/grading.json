@@ -1,0 +1,25 @@
+{
+  "expectations": [
+    {
+      "evidence": "no hay versión final",
+      "passed": true,
+      "text": "No se entrega una versión final reescrita: el texto queda en modo Revisión."
+    },
+    {
+      "evidence": "todos los patrones coinciden",
+      "passed": true,
+      "text": "El veredicto global declarado es «requiere decisión del autor»."
+    },
+    {
+      "evidence": "todos los patrones coinciden",
+      "passed": true,
+      "text": "Los candidatos a claim sin marcar se señalan con el veredicto «preguntar al autor»."
+    }
+  ],
+  "summary": {
+    "failed": 0,
+    "pass_rate": 1.0,
+    "passed": 3,
+    "total": 3
+  }
+}

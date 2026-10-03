@@ -1355,10 +1355,10 @@ _ENUM_FINAL_RE = re.compile(
 )
 
 # Conectores al inicio de párrafo (P37, "conectores apilados"): un conector
-# suelto no es un rasgo (auditoria.md :199, "un 'sin embargo' no es un
-# tic"), así que aquí solo se cuenta, nunca se juzga la cadena.
-# Lista derivada de auditoria.md P37/P43 (:55,:157,:167,:196,:199,:208) y de
-# los ejemplos del encargo de esta tarea.
+# suelto no es un rasgo (auditoria.md, tabla principal, P37: "un 'sin
+# embargo' no es un tic"), así que aquí solo se cuenta, nunca se juzga la
+# cadena. Lista derivada de auditoria.md (tabla principal P37/P43, §3 y §4)
+# y de los ejemplos del encargo de esta tarea.
 _CONECTORES_PARRAFO = (
     "además",
     "asimismo",
@@ -1729,7 +1729,7 @@ def analyze_deterministas(ctx):
 # ---------------------------------------------------------------------------
 # Analizador: registro. Recuento tú/usted y vosotros/ustedes, y léxico
 # americano corto (P64), sobre ``masked_text``. Solo aviso: nunca cambia
-# nada ni etiqueta una forma como error (auditoria.md :218, "ustedes"
+# nada ni etiqueta una forma como error (auditoria.md, P64: "ustedes"
 # formal es correcto en ES-ES). Lista conservadora y documentada
 # de pronombres y formas inequívocas; ante la duda, se prefiere no contar
 # antes que arriesgar un falso positivo (p. ej. no se cuentan "su"/"le", que
@@ -1757,7 +1757,7 @@ _VOSOTROS_MARCADORES = ("vosotros", "vosotras", "vuestro", "vuestra", "vuestros"
 _USTEDES_MARCADORES = ("ustedes",)
 
 # Léxico americano corto y explícitamente citado (fase2-mapa.md §3.2,
-# auditoria.md :272, P64): solo se lista lo que las fuentes leídas nombran,
+# auditoria.md, P64 y §8): solo se lista lo que las fuentes leídas nombran,
 # nunca se amplía por criterio propio.
 _LEXICO_AMERICANO = (("computadora", "ordenador"),)
 
@@ -2143,6 +2143,8 @@ _PALABRA_CAPITALIZADA_RE = re.compile(r"\b[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+\b"
 # apertura solo amplía qué se EXCLUYE de nombres propios, nunca al revés,
 # así que no crea un falso negativo de privacidad ni de cifras.
 _APERTURA_ORACION_CHARS = "«“‘\"" + _EM_DASH
+# La marca de apertura de un claim no cambia si lo que sigue abre frase.
+_CLAIM_APERTURA = "[[claim]]"
 _ENCABEZADO_PREFIJO_RE = re.compile(r"^#{1,6}[ \t]+$")
 _LISTA_PREFIJO_RE = re.compile(r"^[ \t]*(?:[-*+]|\d+[.)])[ \t]+$")
 
@@ -2166,6 +2168,13 @@ def _prefijo_de_linea_es_marcador(text, pos):
     )
 
 
+def _es_adorno(ch):
+    """True para un emoji o símbolo decorativo (y sus selectores de
+    variación o uniones), que se salta al buscar el signo que cierra la
+    frase anterior: «¿Ya lo probaste? 🌿✨ En el mundo…» abre frase en «En»."""
+    return ch in "\ufe0f\u200d" or unicodedata.category(ch) in ("So", "Sk")
+
+
 def _es_inicio_de_oracion(text, inicio):
     """True si la posición ``inicio`` empieza una oración (o un párrafo, o
     el texto), y por tanto una mayúscula ahí nunca debe tratarse como
@@ -2175,9 +2184,11 @@ def _es_inicio_de_oracion(text, inicio):
     o más saltos de línea seguidos), se consideran principio de oración:
     justo tras un signo de apertura español ("¿" o "¡"); al principio de
     la línea, tras un marcador de lista Markdown ("-", "*", "+" o "1.") o
-    tras las almohadillas de un encabezado ("#" a "######"); y tras una
-    comilla de apertura o una raya que a su vez sean principio de oración
-    (la raya de diálogo, o una cita que reproduce una frase completa). Las
+    tras las almohadillas de un encabezado ("#" a "######"); tras un
+    final de frase seguido de emojis o símbolos decorativos; y tras una
+    comilla de apertura, una marca «[[claim]]» o una raya que a su vez
+    sean principio de oración (la raya de diálogo, o una cita que
+    reproduce una frase completa). Las
     cadenas de comillas y rayas se recorren con un bucle, sin recursión,
     para que una racha muy larga no agote la pila.
 
@@ -2190,7 +2201,7 @@ def _es_inicio_de_oracion(text, inicio):
     while True:
         j = pos
         saltos_seguidos = 0
-        while j > 0 and text[j - 1] in " \t\n":
+        while j > 0 and (text[j - 1] in " \t\n" or _es_adorno(text[j - 1])):
             if text[j - 1] == "\n":
                 saltos_seguidos += 1
             j -= 1
@@ -2203,6 +2214,9 @@ def _es_inicio_de_oracion(text, inicio):
             return True
         if anterior in _APERTURA_ORACION_CHARS:
             pos = j - 1
+            continue
+        if text.endswith(_CLAIM_APERTURA, 0, j):
+            pos = j - len(_CLAIM_APERTURA)
             continue
         return False
 
@@ -2320,12 +2334,68 @@ def _diff_by_any_reading(originales, nuevas, sigue_en_nuevo=None, estaba_en_orig
     return faltantes, agregadas
 
 
-def _aparece_como_palabra(lecturas, texto):
-    """True si alguna de las ``lecturas`` aparece en ``texto`` como palabra
-    completa, distinguiendo mayúsculas (una marca «Olmo» no es el árbol
-    «olmo»)."""
-    for lectura in lecturas:
-        if re.search(r"(?<!\w)" + re.escape(lectura) + r"(?!\w)", texto):
+_ENCABEZADO_LINEA_RE = re.compile(r"^[ \t]*#{1,6}[ \t]+")
+
+# Una palabra vecina solo sirve de prueba si es lo bastante larga para no
+# ser un artículo o una preposición («de», «la», «que»).
+_VECINA_MIN_LETRAS = 4
+_VECINA_SIGUIENTE_RE = re.compile(r"[ \t,;:]+(\w+)")
+_VECINA_ANTERIOR_RE = re.compile(r"(\w+)[ \t,;:]+$")
+
+
+def _lineas_de_encabezado(text):
+    """Números de línea (desde 1) que son encabezados Markdown."""
+    return {
+        n for n, linea in enumerate(text.split("\n"), start=1)
+        if _ENCABEZADO_LINEA_RE.match(linea)
+    }
+
+
+def _palabras_vecinas(text, inicio, fin, abre_oracion):
+    """Palabras (minúsculas, de al menos ``_VECINA_MIN_LETRAS`` letras) que
+    rodean a la palabra en [``inicio``, ``fin``): la siguiente y, salvo que
+    la palabra abra frase (la anterior sería de otra frase), la anterior.
+    Se busca dentro de la misma frase: un punto corta la vecindad."""
+    vecinas = []
+    m = _VECINA_SIGUIENTE_RE.match(text, fin)
+    if m:
+        vecinas.append(m.group(1))
+    if not abre_oracion:
+        m = _VECINA_ANTERIOR_RE.search(text[max(0, inicio - 60):inicio])
+        if m:
+            vecinas.append(m.group(1))
+    return {v.lower() for v in vecinas if len(v) >= _VECINA_MIN_LETRAS}
+
+
+def _nombre_aparece_en(it, propio, propio_line_starts, propio_encabezados, otro):
+    """True si el nombre propio ``it`` (extraído de ``propio``) aparece en
+    ``otro`` como palabra completa. Es lo que evita dar por perdido (o por
+    nuevo) un nombre que la extracción no ve en el otro texto.
+
+    - Un nombre de un encabezado se busca sin distinguir mayúsculas: pasar
+      «Guía Clave De Cuidado» a «Guía clave de cuidado» (P20) no pierde
+      nada. Un nombre que desaparece por completo sí se informa.
+    - Cualquier otro nombre se busca con su misma mayúscula (una marca
+      «Olmo» no es el árbol «olmo»). Una aparición a mitad de frase vale.
+      Una que abre frase solo vale si comparte una palabra vecina con la
+      aparición original: así «Panadería Olmo abre…» no se da por perdida
+      al perder su apertura, pero una palabra común que abre frase
+      («Rosa huele bien») no oculta que el nombre «Rosa» ha desaparecido.
+      Punto ciego conocido: si cambian todas las palabras vecinas, un
+      nombre que solo cambia de sitio se informa (falsa alarma).
+    """
+    palabra = it["texto"]
+    patron = r"(?<!\w)" + re.escape(palabra) + r"(?!\w)"
+    if it["linea"] in propio_encabezados:
+        return re.search(patron, otro, re.IGNORECASE) is not None
+    vecinas_propias = None
+    for m in re.finditer(patron, otro):
+        if not _es_inicio_de_oracion(otro, m.start()):
+            return True
+        if vecinas_propias is None:
+            inicio = propio_line_starts[it["linea"] - 1] + it["columna"] - 1
+            vecinas_propias = _palabras_vecinas(propio, inicio, inicio + len(palabra), False)
+        if vecinas_propias & _palabras_vecinas(otro, m.start(), m.end(), True):
             return True
     return False
 
@@ -2410,17 +2480,23 @@ def _build_comparacion(ctx, original_text, registro_nuevo):
     base_original = _mask_for_comparacion(original_text)
     base_nuevo = _mask_for_comparacion(ctx.original_text)
 
-    # Un nombre propio solo falta (o es nuevo) si no aparece como palabra,
-    # con su misma mayúscula, en NINGUNA parte del otro texto. La extracción
-    # ignora las mayúsculas de inicio de frase, así que un arreglo que deja
-    # «Panadería Olmo» al principio de la frase no debe darla por perdida;
-    # un nombre cambiado de verdad («Marta» → «Laura») sigue informándose.
+    # Un nombre propio solo falta (o es nuevo) si no aparece en el otro
+    # texto según ``_nombre_aparece_en``. La extracción ignora las
+    # mayúsculas de inicio de frase, así que un arreglo que deja «Panadería
+    # Olmo» al principio de la frase no debe darla por perdida; un nombre
+    # cambiado de verdad («Marta» → «Laura») sigue informándose.
     sin_urls_original, _ = _mask_pattern(base_original, _URL_RE)
     sin_urls_nuevo, _ = _mask_pattern(base_nuevo, _URL_RE)
+    encabezados_original = _lineas_de_encabezado(original_text)
+    encabezados_nuevo = _lineas_de_encabezado(ctx.original_text)
     comprobaciones = {
         "nombres_propios": (
-            lambda it: _aparece_como_palabra(it["lecturas"], sin_urls_nuevo),
-            lambda it: _aparece_como_palabra(it["lecturas"], sin_urls_original),
+            lambda it: _nombre_aparece_en(
+                it, sin_urls_original, original_line_starts, encabezados_original, sin_urls_nuevo
+            ),
+            lambda it: _nombre_aparece_en(
+                it, sin_urls_nuevo, ctx.line_starts, encabezados_nuevo, sin_urls_original
+            ),
         ),
     }
 
@@ -2598,7 +2674,7 @@ def analyze_candidatos_claim(ctx):
 # ---------------------------------------------------------------------------
 # Analizador: privacidad. Detecta DNI/NIE, IBAN, teléfono y correo, local y
 # efímero: informa solo la categoría y la línea, nunca el valor, y nunca lo
-# guarda ni lo registra (auditoria.md :308-312). La ausencia de hallazgos
+# guarda ni lo registra (auditoria.md §7.6). La ausencia de hallazgos
 # no certifica que el texto esté libre de datos personales.
 # ---------------------------------------------------------------------------
 

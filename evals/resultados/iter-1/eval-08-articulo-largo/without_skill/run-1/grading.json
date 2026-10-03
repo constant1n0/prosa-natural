@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "evidence": "categorías con diferencias: nombres_propios (faltantes: ['Tu', 'Piel', 'Otoño', 'Guía', 'Completa', 'Le', 'Pasa', 'Piel', 'Otoño', 'Tres', 'Pasos', 'De', 'Rutina', 'De', 'Otoño', 'Habituales', 'Al', 'Cambiar', 'De', 'Rutina', 'Ingredientes', 'Buscar', 'Esta', 'Temporada', 'Otros', 'Hábitos', 'Que', 'Ayudan', 'Rutina', 'Que', 'Se', 'Adapta', 'Que', 'Se', 'Impone'])",
+      "passed": false,
+      "text": "El escáner de invención no detecta ningún dato, cita o nombre propio perdido o nuevo."
+    },
+    {
+      "evidence": "todos los elementos intocables se conservan",
+      "passed": true,
+      "text": "La URL de la fuente se conserva exactamente igual."
+    },
+    {
+      "evidence": "todos los valores están presentes",
+      "passed": true,
+      "text": "El nombre de la dermatóloga citada y el porcentaje del estudio se mantienen."
+    },
+    {
+      "evidence": "original={'tuteo': 5, 'usted': 0, 'vosotros': 0, 'ustedes': 0}, final={'tuteo': 3, 'usted': 0, 'vosotros': 0, 'ustedes': 0}",
+      "passed": true,
+      "text": "El trato con el lector no cambia respecto al original."
+    },
+    {
+      "evidence": "no se encontraron vocablos de nivel Fuerte",
+      "passed": true,
+      "text": "La versión final no contiene ningún vocablo de nivel Fuerte."
+    },
+    {
+      "evidence": "original=1.896, final=0.0 (por mil palabras)",
+      "passed": true,
+      "text": "La densidad de vocabulario Débil por 1000 palabras no aumenta respecto al original."
+    }
+  ],
+  "summary": {
+    "failed": 1,
+    "pass_rate": 0.8333,
+    "passed": 5,
+    "total": 6
+  }
+}

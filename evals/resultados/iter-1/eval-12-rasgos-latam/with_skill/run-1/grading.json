@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "evidence": "categorías con diferencias: nombres_propios (faltantes: ['Al', 'Taller', 'De', 'Costura', 'De', 'Octubre'])",
+      "passed": false,
+      "text": "El escáner de invención no detecta ningún dato perdido o nuevo."
+    },
+    {
+      "evidence": "todos los valores están presentes",
+      "passed": true,
+      "text": "La palabra «computadora» se mantiene, no se cambia a «ordenador»."
+    },
+    {
+      "evidence": "original={'tuteo': 1, 'usted': 0, 'vosotros': 1, 'ustedes': 1}, final={'tuteo': 1, 'usted': 0, 'vosotros': 1, 'ustedes': 1}",
+      "passed": true,
+      "text": "La mezcla de ustedes, vosotros y tú se mantiene igual: ni se corrige ni se unifica."
+    },
+    {
+      "evidence": "no se encontraron vocablos de nivel Fuerte",
+      "passed": true,
+      "text": "La versión final no contiene ningún vocablo de nivel Fuerte."
+    },
+    {
+      "evidence": "original=0.0, final=0.0 (por mil palabras)",
+      "passed": true,
+      "text": "La densidad de vocabulario Débil por 1000 palabras no aumenta respecto al original."
+    }
+  ],
+  "summary": {
+    "failed": 1,
+    "pass_rate": 0.8,
+    "passed": 4,
+    "total": 5
+  }
+}

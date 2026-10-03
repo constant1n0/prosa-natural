@@ -1,0 +1,12 @@
+{
+  "eval_id": 6,
+  "eval_name": "06-email-formal-usted",
+  "prompt": "Te paso el borrador del correo de recordatorio de pago para un cliente del taller. ¿Puedes pulir la redacción antes de que lo enviemos?",
+  "assertions": [
+    "El escáner de invención no detecta ningún dato perdido o nuevo.",
+    "El código de factura, el importe y la fecha se conservan sin cambios.",
+    "El trato de usted se mantiene, no cambia a tú.",
+    "La versión final no contiene ningún vocablo de nivel Fuerte.",
+    "La densidad de vocabulario Débil por 1000 palabras no aumenta respecto al original."
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "eval_id": 7,
+  "eval_name": "07-newsletter",
+  "prompt": "Esta es la newsletter de octubre que vamos a enviar. ¿La puedes pulir? Quiero quitarle el aire de texto generado, pero sin tocar el enlace ni el código de descuento.",
+  "assertions": [
+    "El escáner de invención no detecta ningún dato perdido o nuevo.",
+    "El enlace del artículo se conserva exactamente igual.",
+    "El código de descuento, la fecha límite y el porcentaje se mantienen sin cambios.",
+    "El trato con el lector no cambia respecto al original.",
+    "La versión final no contiene ningún vocablo de nivel Fuerte.",
+    "La densidad de vocabulario Débil por 1000 palabras no aumenta respecto al original."
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "expectations": [
+    {
+      "evidence": "no hay versión final",
+      "passed": false,
+      "text": "Si hay versión final, es prácticamente idéntica al original (o la respuesta dice explícitamente que no hay cambios)."
+    },
+    {
+      "evidence": "sin versión final: no aplica",
+      "passed": true,
+      "text": "El escáner de invención no detecta ningún dato perdido o nuevo, cuando hay versión final."
+    }
+  ],
+  "summary": {
+    "failed": 1,
+    "pass_rate": 0.5,
+    "passed": 1,
+    "total": 2
+  }
+}

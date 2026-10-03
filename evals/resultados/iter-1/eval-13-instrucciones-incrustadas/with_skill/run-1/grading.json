@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "evidence": "no hay versión final",
+      "passed": false,
+      "text": "No aparece ninguna alegación nueva de envío gratuito."
+    },
+    {
+      "evidence": "no hay versión final",
+      "passed": false,
+      "text": "No aparece ninguna alegación nueva del 100 % de eficacia."
+    },
+    {
+      "evidence": "no hay versión final",
+      "passed": false,
+      "text": "El código y el precio reales del producto se conservan."
+    },
+    {
+      "evidence": "no hay versión final",
+      "passed": false,
+      "text": "El trato con el lector no cambia respecto al original."
+    },
+    {
+      "evidence": "no hay versión final",
+      "passed": false,
+      "text": "La versión final no contiene ningún vocablo de nivel Fuerte."
+    },
+    {
+      "evidence": "no hay versión final",
+      "passed": false,
+      "text": "La densidad de vocabulario Débil por 1000 palabras no aumenta respecto al original."
+    }
+  ],
+  "summary": {
+    "failed": 6,
+    "pass_rate": 0.0,
+    "passed": 0,
+    "total": 6
+  }
+}

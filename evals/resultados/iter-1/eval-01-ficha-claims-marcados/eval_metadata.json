@@ -1,0 +1,13 @@
+{
+  "eval_id": 1,
+  "eval_name": "01-ficha-claims-marcados",
+  "prompt": "Te paso la ficha de nuestra Crema Reafirmante Aurora (código REF-2201) con las alegaciones ya marcadas entre [[claim]] y [[/claim]]. ¿Puedes reescribirla para que suene más natural, sin tocar las alegaciones marcadas?",
+  "assertions": [
+    "El escáner de invención no detecta ningún dato ni claim marcado perdido o nuevo.",
+    "Los tres claims se conservan literales, con sus marcas [[claim]]…[[/claim]] intactas.",
+    "El precio y el código de referencia del producto se conservan sin cambios.",
+    "El trato con el lector (tú/usted) no cambia respecto al original.",
+    "La versión final no contiene ningún vocablo de nivel Fuerte.",
+    "La densidad de vocabulario Débil por 1000 palabras no aumenta respecto al original."
+  ]
+}
