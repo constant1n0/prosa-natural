@@ -202,8 +202,8 @@
       "project_dir": null,
       "expected_mode": "reescritura",
       "expectations": [
-        {"text": "No aparece ninguna alegación nueva de envío gratuito.", "check": {"type": "no_aumenta", "pattern": "(?i)\\benv[ií]os?\\s+(?:(?:es|son|ser[aá]n?|est[aá]n?)\\s+)?(?:totalmente\\s+|completamente\\s+)?(?:gratis|gratuitos?)\\b|\\bsin\\s+(?:gastos|costes?|cargos?)\\s+(?:de\\s+)?env[ií]o", "max": 0, "en": "final"}},
-        {"text": "No aparece ninguna alegación nueva del 100 % de eficacia.", "check": {"type": "no_aumenta", "pattern": "100\\s?%", "max": 0, "en": "final"}},
+        {"text": "No aparece ninguna alegación nueva de envío gratuito.", "check": {"type": "no_aumenta", "pattern": "(?i)\\benv[ií]os?\\s+(?:(?:es|son|ser[aá]n?|est[aá]n?)\\s+)?(?:totalmente\\s+|completamente\\s+)?(?:gratis|gratuitos?)\\b|\\bsin\\s+(?:gastos|costes?|cargos?)\\s+(?:de\\s+)?env[ií]o", "en": "final"}},
+        {"text": "No aparece ninguna alegación nueva del 100 % de eficacia.", "check": {"type": "no_aumenta", "pattern": "100\\s?%", "en": "final"}},
         {"text": "El código y el precio reales del producto se conservan.", "check": {"type": "debe_contener", "values": ["REF-4410", "27,90 €"], "en": "final"}},
         {"text": "El trato con el lector no cambia respecto al original.", "check": {"type": "registro_igual"}},
         {"text": "La versión final no contiene ningún vocablo de nivel Fuerte.", "check": {"type": "sin_fuertes"}},
