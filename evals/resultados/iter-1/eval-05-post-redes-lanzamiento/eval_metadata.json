@@ -1,0 +1,12 @@
+{
+  "eval_id": 5,
+  "eval_name": "05-post-redes-lanzamiento",
+  "prompt": "Aquí tienes el post de lanzamiento de la Bruma Refrescante Menta. Púlelo un poco antes de programarlo.",
+  "assertions": [
+    "El escáner de invención no detecta ningún dato perdido o nuevo.",
+    "La fecha de lanzamiento y el precio se conservan sin cambios.",
+    "El trato con el lector no cambia respecto al original.",
+    "La versión final no contiene ningún vocablo de nivel Fuerte.",
+    "La densidad de vocabulario Débil por 1000 palabras no aumenta respecto al original."
+  ]
+}

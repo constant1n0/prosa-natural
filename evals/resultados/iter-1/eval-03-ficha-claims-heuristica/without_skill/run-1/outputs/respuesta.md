@@ -1,0 +1,3 @@
+He leído la ficha de la Crema Hidratante 24h. Antes de tocar nada, ¿qué necesitas exactamente que haga con ella: revisar/pulir la redacción, comprobar y dejar claras las alegaciones (la hidratación 24h, "dermatológicamente testado", "sin parabenos y sin siliconas", "no testado en animales" y el dato de "mejora un 20 % la luminosidad... según estudios internos"), o adaptar el texto a un formato concreto (web, packaging, ficha técnica)?
+
+Lo pregunto porque esa última alegación de eficacia (el 20 % de luminosidad) es un dato cuantificado que debería mantenerse tal cual figura en el estudio interno y no parafrasearse, así que quiero confirmar el objetivo antes de reescribir cualquier parte del texto.

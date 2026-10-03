@@ -1,0 +1,1278 @@
+{
+  "metadata": {
+    "skill_name": "prosa-natural",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-09-29T11:34:12Z",
+    "evals_run": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 3,
+        "failed": 3,
+        "total": 6,
+        "time_seconds": 246.6,
+        "tokens": 139169,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "evidence": "categorías con diferencias: claims_marcados (faltantes: ['Reduce la apariencia de las arrugas hasta en un 30 % en 4 semanas', 'dermatológicamente testado', 'hidrata la piel durante 24 horas']); nombres_propios (faltantes: ['Clave', 'De'])",
+          "passed": false,
+          "text": "El escáner de invención no detecta ningún dato ni claim marcado perdido o nuevo."
+        },
+        {
+          "evidence": "faltan: ['[[claim]]Reduce la apariencia de las arrugas hasta en un 30 % en 4 semanas[[/claim]]', '[[claim]]dermatológicamente testado[[/claim]]', '[[claim]]hidrata la piel durante 24 horas[[/claim]]']",
+          "passed": false,
+          "text": "Los tres claims se conservan literales, con sus marcas [[claim]]…[[/claim]] intactas."
+        },
+        {
+          "evidence": "todos los valores están presentes",
+          "passed": true,
+          "text": "El precio y el código de referencia del producto se conservan sin cambios."
+        },
+        {
+          "evidence": "original={'tuteo': 1, 'usted': 0, 'vosotros': 0, 'ustedes': 0}, final={'tuteo': 0, 'usted': 0, 'vosotros': 0, 'ustedes': 0}",
+          "passed": false,
+          "text": "El trato con el lector (tú/usted) no cambia respecto al original."
+        },
+        {
+          "evidence": "no se encontraron vocablos de nivel Fuerte",
+          "passed": true,
+          "text": "La versión final no contiene ningún vocablo de nivel Fuerte."
+        },
+        {
+          "evidence": "original=6.803, final=6.667 (por mil palabras)",
+          "passed": true,
+          "text": "La densidad de vocabulario Débil por 1000 palabras no aumenta respecto al original."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 4,
+        "failed": 2,
+        "total": 6,
+        "time_seconds": 284.1,
+        "tokens": 162822,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "evidence": "categorías con diferencias: nombres_propios (faltantes: ['De'])",
+          "passed": false,
+          "text": "El escáner de invención no detecta ningún dato perdido o nuevo."
+        },
+        {
+          "evidence": "todos los valores están presentes",
+          "passed": true,
+          "text": "Las tres alegaciones de claims-aprobados.md aparecen literales en la versión final."
+        },
+        {
+          "evidence": "todos los valores están presentes",
+          "passed": true,
+          "text": "El código y el precio del producto se conservan sin cambios."
+        },
+        {
+          "evidence": "original={'tuteo': 2, 'usted': 0, 'vosotros': 0, 'ustedes': 0}, final={'tuteo': 2, 'usted': 0, 'vosotros': 0, 'ustedes': 0}",
+          "passed": true,
+          "text": "El trato con el lector (tú/usted) no cambia respecto al original."
+        },
+        {
+          "evidence": "no se encontraron vocablos de nivel Fuerte",
+          "passed": true,
+          "text": "La versión final no contiene ningún vocablo de nivel Fuerte."
+        },
+        {
+          "evidence": "original=28.846, final=31.25 (por mil palabras)",
+          "passed": false,
+          "text": "La densidad de vocabulario Débil por 1000 palabras no aumenta respecto al original."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 240.5,
+        "tokens": 165031,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "evidence": "no hay versión final",
+          "passed": true,
+          "text": "No se entrega una versión final reescrita: el texto queda en modo Revisión."
+        },
+        {
+          "evidence": "todos los patrones coinciden",
+          "passed": true,
+          "text": "El veredicto global declarado es «requiere decisión del autor»."
+        },
+        {
+          "evidence": "todos los patrones coinciden",
+          "passed": true,
+          "text": "Los candidatos a claim sin marcar se señalan con el veredicto «preguntar al autor»."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8333,
+        "passed": 5,
+        "failed": 1,
+        "total": 6,
+        "time_seconds": 198.4,
+        "tokens": 155085,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "evidence": "categorías con diferencias: nombres_propios (faltantes: ['En']; nuevas: ['Esta'])",
+          "passed": false,
+          "text": "El escáner de invención no detecta ningún dato perdido o nuevo."
+        },
+        {
+          "evidence": "todos los elementos intocables se conservan",
+          "passed": true,
+          "text": "El enlace del post se conserva exactamente igual."
+        },
+        {
+          "evidence": "todos los valores están presentes",
+          "passed": true,
+          "text": "Los tres hashtags se mantienen sin cambios."
+        },
+        {
+          "evidence": "original={'tuteo': 1, 'usted': 0, 'vosotros': 0, 'ustedes': 0}, final={'tuteo': 1, 'usted': 0, 'vosotros': 0, 'ustedes': 0}",
+          "passed": true,
+          "text": "El tuteo se mantiene, no cambia a usted."
+        },
+        {
+          "evidence": "no se encontraron vocablos de nivel Fuerte",
+          "passed": true,
+          "text": "La versión final no contiene ningún vocablo de nivel Fuerte."
+        },
+        {
+          "evidence": "original=0.0, final=0.0 (por mil palabras)",
+          "passed": true,
+          "text": "La densidad de vocabulario Débil por 1000 palabras no aumenta respecto al original."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 5,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 232.7,
+        "tokens": 135715,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "evidence": "el escáner no detecta diferencias bloqueantes",
+          "passed": true,
+          "text": "El escáner de invención no detecta ningún dato perdido o nuevo."
+        },
+        {
+          "evidence": "todos los valores están presentes",
+          "passed": true,
+          "text": "La fecha de lanzamiento y el precio se conservan sin cambios."
+        },
+        {
+          "evidence": "original={'tuteo': 0, 'usted': 0, 'vosotros': 0, 'ustedes': 0}, final={'tuteo': 0, 'usted': 0, 'vosotros': 0, 'ustedes': 0}",
+          "passed": true,
+          "text": "El trato con el lector no cambia respecto al original."
+        },
+        {
+          "evidence": "no se encontraron vocablos de nivel Fuerte",
+          "passed": true,
+          "text": "La versión final no contiene ningún vocablo de nivel Fuerte."
+        },
+        {
+          "evidence": "original=0.0, final=0.0 (por mil palabras)",
+          "passed": true,
+          "text": "La densidad de vocabulario Débil por 1000 palabras no aumenta respecto al original."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 6,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 294.2,
+        "tokens": 165213,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "evidence": "el escáner no detecta diferencias bloqueantes",
+          "passed": true,
+          "text": "El escáner de invención no detecta ningún dato perdido o nuevo."
+        },
+        {
+          "evidence": "todos los valores están presentes",
+          "passed": true,
+          "text": "El código de factura, el importe y la fecha se conservan sin cambios."
+        },
+        {
+          "evidence": "original={'tuteo': 0, 'usted': 1, 'vosotros': 0, 'ustedes': 0}, final={'tuteo': 0, 'usted': 1, 'vosotros': 0, 'ustedes': 0}",
+          "passed": true,
+          "text": "El trato de usted se mantiene, no cambia a tú."
+        },
+        {
+          "evidence": "no se encontraron vocablos de nivel Fuerte",
+          "passed": true,
+          "text": "La versión final no contiene ningún vocablo de nivel Fuerte."
+        },
+        {
+          "evidence": "original=8.929, final=0.0 (por mil palabras)",
+          "passed": true,
+          "text": "La densidad de vocabulario Débil por 1000 palabras no aumenta respecto al original."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 7,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.1667,
+        "passed": 1,
+        "failed": 5,
+        "total": 6,
+        "time_seconds": 281.4,
+        "tokens": 170466,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "evidence": "sin versión final: no aplica",
+          "passed": true,
+          "text": "El escáner de invención no detecta ningún dato perdido o nuevo."
+        },
+        {
+          "evidence": "no hay versión final",
+          "passed": false,
+          "text": "El enlace del artículo se conserva exactamente igual."
+        },
+        {
+          "evidence": "no hay versión final",
+          "passed": false,
+          "text": "El código de descuento, la fecha límite y el porcentaje se mantienen sin cambios."
+        },
+        {
+          "evidence": "no hay versión final",
+          "passed": false,
+          "text": "El trato con el lector no cambia respecto al original."
+        },
+        {
+          "evidence": "no hay versión final",
+          "passed": false,
+          "text": "La versión final no contiene ningún vocablo de nivel Fuerte."
+        },
+        {
+          "evidence": "no hay versión final",
+          "passed": false,
+          "text": "La densidad de vocabulario Débil por 1000 palabras no aumenta respecto al original."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 8,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 4,
+        "failed": 2,
+        "total": 6,
+        "time_seconds": 385.0,
+        "tokens": 143893,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "evidence": "categorías con diferencias: nombres_propios (faltantes: ['Cuidar', 'Tu', 'Piel', 'Otoño', 'Guía', 'Completa', 'Pasa', 'Piel', 'Otoño', 'Tres', 'Pasos', 'De', 'Rutina', 'De', 'Otoño', 'Habituales', 'Al', 'Cambiar', 'De', 'Rutina', 'Ingredientes', 'Buscar', 'Esta', 'Temporada', 'Otros', 'Hábitos', 'Que', 'Ayudan', 'Rutina', 'Que', 'Se', 'Adapta', 'Que', 'Se', 'Impone'])",
+          "passed": false,
+          "text": "El escáner de invención no detecta ningún dato, cita o nombre propio perdido o nuevo."
+        },
+        {
+          "evidence": "todos los elementos intocables se conservan",
+          "passed": true,
+          "text": "La URL de la fuente se conserva exactamente igual."
+        },
+        {
+          "evidence": "todos los valores están presentes",
+          "passed": true,
+          "text": "El nombre de la dermatóloga citada y el porcentaje del estudio se mantienen."
+        },
+        {
+          "evidence": "original={'tuteo': 5, 'usted': 0, 'vosotros': 0, 'ustedes': 0}, final={'tuteo': 4, 'usted': 0, 'vosotros': 0, 'ustedes': 0}",
+          "passed": true,
+          "text": "El trato con el lector no cambia respecto al original."
+        },
+        {
+          "evidence": "no se encontraron vocablos de nivel Fuerte",
+          "passed": true,
+          "text": "La versión final no contiene ningún vocablo de nivel Fuerte."
+        },
+        {
+          "evidence": "original=1.896, final=1.936 (por mil palabras)",
+          "passed": false,
+          "text": "La densidad de vocabulario Débil por 1000 palabras no aumenta respecto al original."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 9,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.2,
+        "passed": 1,
+        "failed": 4,
+        "total": 5,
+        "time_seconds": 132.4,
+        "tokens": 105291,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "evidence": "sin versión final: no aplica",
+          "passed": true,
+          "text": "El escáner de invención no detecta ningún dato perdido o nuevo."
+        },
+        {
+          "evidence": "no hay versión final",
+          "passed": false,
+          "text": "El número de pedido, la fecha de compra y el importe del reembolso se conservan."
+        },
+        {
+          "evidence": "no hay versión final",
+          "passed": false,
+          "text": "El trato de usted se mantiene, no cambia a tú."
+        },
+        {
+          "evidence": "no hay versión final",
+          "passed": false,
+          "text": "La versión final no contiene ningún vocablo de nivel Fuerte."
+        },
+        {
+          "evidence": "no hay versión final",
+          "passed": false,
+          "text": "La densidad de vocabulario Débil por 1000 palabras no aumenta respecto al original."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 10,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "time_seconds": 219.0,
+        "tokens": 157671,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "evidence": "categorías con diferencias: nombres_propios (faltantes: ['Ubicación', 'De'])",
+          "passed": false,
+          "text": "El escáner de invención no detecta ningún dato perdido o nuevo."
+        },
+        {
+          "evidence": "todos los valores están presentes",
+          "passed": true,
+          "text": "La dirección, los dos precios y el teléfono se conservan sin cambios."
+        },
+        {
+          "evidence": "original={'tuteo': 1, 'usted': 0, 'vosotros': 0, 'ustedes': 0}, final={'tuteo': 1, 'usted': 0, 'vosotros': 0, 'ustedes': 0}",
+          "passed": true,
+          "text": "El trato con el lector no cambia respecto al original."
+        },
+        {
+          "evidence": "no se encontraron vocablos de nivel Fuerte",
+          "passed": true,
+          "text": "La versión final no contiene ningún vocablo de nivel Fuerte."
+        },
+        {
+          "evidence": "original=7.937, final=0.0 (por mil palabras)",
+          "passed": true,
+          "text": "La densidad de vocabulario Débil por 1000 palabras no aumenta respecto al original."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 11,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": 171.6,
+        "tokens": 140525,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "evidence": "ratio=1.0000 (mínimo 0.9)",
+          "passed": true,
+          "text": "Si hay versión final, es prácticamente idéntica al original (o la respuesta dice explícitamente que no hay cambios)."
+        },
+        {
+          "evidence": "el escáner no detecta diferencias bloqueantes",
+          "passed": true,
+          "text": "El escáner de invención no detecta ningún dato perdido o nuevo, cuando hay versión final."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 12,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "time_seconds": 287.1,
+        "tokens": 142310,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "evidence": "categorías con diferencias: nombres_propios (faltantes: ['Al', 'Taller', 'De', 'Costura', 'De', 'Octubre'])",
+          "passed": false,
+          "text": "El escáner de invención no detecta ningún dato perdido o nuevo."
+        },
+        {
+          "evidence": "todos los valores están presentes",
+          "passed": true,
+          "text": "La palabra «computadora» se mantiene, no se cambia a «ordenador»."
+        },
+        {
+          "evidence": "original={'tuteo': 1, 'usted': 0, 'vosotros': 1, 'ustedes': 1}, final={'tuteo': 1, 'usted': 0, 'vosotros': 1, 'ustedes': 1}",
+          "passed": true,
+          "text": "La mezcla de ustedes, vosotros y tú se mantiene igual: ni se corrige ni se unifica."
+        },
+        {
+          "evidence": "no se encontraron vocablos de nivel Fuerte",
+          "passed": true,
+          "text": "La versión final no contiene ningún vocablo de nivel Fuerte."
+        },
+        {
+          "evidence": "original=0.0, final=0.0 (por mil palabras)",
+          "passed": true,
+          "text": "La densidad de vocabulario Débil por 1000 palabras no aumenta respecto al original."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 13,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 6,
+        "total": 6,
+        "time_seconds": 306.0,
+        "tokens": 145148,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "evidence": "no hay versión final",
+          "passed": false,
+          "text": "No aparece ninguna alegación nueva de envío gratuito."
+        },
+        {
+          "evidence": "no hay versión final",
+          "passed": false,
+          "text": "No aparece ninguna alegación nueva del 100 % de eficacia."
+        },
+        {
+          "evidence": "no hay versión final",
+          "passed": false,
+          "text": "El código y el precio reales del producto se conservan."
+        },
+        {
+          "evidence": "no hay versión final",
+          "passed": false,
+          "text": "El trato con el lector no cambia respecto al original."
+        },
+        {
+          "evidence": "no hay versión final",
+          "passed": false,
+          "text": "La versión final no contiene ningún vocablo de nivel Fuerte."
+        },
+        {
+          "evidence": "no hay versión final",
+          "passed": false,
+          "text": "La densidad de vocabulario Débil por 1000 palabras no aumenta respecto al original."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 14,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 43.4,
+        "tokens": 96901,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "evidence": "no hay versión final",
+          "passed": true,
+          "text": "No se entrega ninguna versión final reescrita."
+        },
+        {
+          "evidence": "todos los patrones coinciden",
+          "passed": true,
+          "text": "La respuesta recuerda valorar un modelo local antes de continuar."
+        },
+        {
+          "evidence": "todos los patrones coinciden",
+          "passed": true,
+          "text": "La respuesta espera confirmación del usuario antes de editar el texto."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 3,
+        "failed": 3,
+        "total": 6,
+        "time_seconds": 57.5,
+        "tokens": 89570,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "evidence": "categorías con diferencias: nombres_propios (faltantes: ['Clave', 'De'])",
+          "passed": false,
+          "text": "El escáner de invención no detecta ningún dato ni claim marcado perdido o nuevo."
+        },
+        {
+          "evidence": "todos los valores están presentes",
+          "passed": true,
+          "text": "Los tres claims se conservan literales, con sus marcas [[claim]]…[[/claim]] intactas."
+        },
+        {
+          "evidence": "todos los valores están presentes",
+          "passed": true,
+          "text": "El precio y el código de referencia del producto se conservan sin cambios."
+        },
+        {
+          "evidence": "original={'tuteo': 1, 'usted': 0, 'vosotros': 0, 'ustedes': 0}, final={'tuteo': 0, 'usted': 0, 'vosotros': 0, 'ustedes': 0}",
+          "passed": false,
+          "text": "El trato con el lector (tú/usted) no cambia respecto al original."
+        },
+        {
+          "evidence": "no se encontraron vocablos de nivel Fuerte",
+          "passed": true,
+          "text": "La versión final no contiene ningún vocablo de nivel Fuerte."
+        },
+        {
+          "evidence": "original=6.803, final=8.772 (por mil palabras)",
+          "passed": false,
+          "text": "La densidad de vocabulario Débil por 1000 palabras no aumenta respecto al original."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8333,
+        "passed": 5,
+        "failed": 1,
+        "total": 6,
+        "time_seconds": 60.2,
+        "tokens": 90522,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "evidence": "categorías con diferencias: nombres_propios (faltantes: ['De'])",
+          "passed": false,
+          "text": "El escáner de invención no detecta ningún dato perdido o nuevo."
+        },
+        {
+          "evidence": "todos los valores están presentes",
+          "passed": true,
+          "text": "Las tres alegaciones de claims-aprobados.md aparecen literales en la versión final."
+        },
+        {
+          "evidence": "todos los valores están presentes",
+          "passed": true,
+          "text": "El código y el precio del producto se conservan sin cambios."
+        },
+        {
+          "evidence": "original={'tuteo': 2, 'usted': 0, 'vosotros': 0, 'ustedes': 0}, final={'tuteo': 1, 'usted': 0, 'vosotros': 0, 'ustedes': 0}",
+          "passed": true,
+          "text": "El trato con el lector (tú/usted) no cambia respecto al original."
+        },
+        {
+          "evidence": "no se encontraron vocablos de nivel Fuerte",
+          "passed": true,
+          "text": "La versión final no contiene ningún vocablo de nivel Fuerte."
+        },
+        {
+          "evidence": "original=28.846, final=27.027 (por mil palabras)",
+          "passed": true,
+          "text": "La densidad de vocabulario Débil por 1000 palabras no aumenta respecto al original."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.3333,
+        "passed": 1,
+        "failed": 2,
+        "total": 3,
+        "time_seconds": 71.8,
+        "tokens": 90002,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "evidence": "no hay versión final",
+          "passed": true,
+          "text": "No se entrega una versión final reescrita: el texto queda en modo Revisión."
+        },
+        {
+          "evidence": "patrones sin coincidencia: ['(?i)veredicto global.*requiere decisi[oó]n del autor']",
+          "passed": false,
+          "text": "El veredicto global declarado es «requiere decisión del autor»."
+        },
+        {
+          "evidence": "patrones sin coincidencia: ['(?i)candidato[s]? a claim', '(?i)preguntar al autor']",
+          "passed": false,
+          "text": "Los candidatos a claim sin marcar se señalan con el veredicto «preguntar al autor»."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 4,
+        "failed": 2,
+        "total": 6,
+        "time_seconds": 45.4,
+        "tokens": 87878,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "evidence": "categorías con diferencias: nombres_propios (faltantes: ['En']; nuevas: ['Limpia'])",
+          "passed": false,
+          "text": "El escáner de invención no detecta ningún dato perdido o nuevo."
+        },
+        {
+          "evidence": "todos los elementos intocables se conservan",
+          "passed": true,
+          "text": "El enlace del post se conserva exactamente igual."
+        },
+        {
+          "evidence": "todos los valores están presentes",
+          "passed": true,
+          "text": "Los tres hashtags se mantienen sin cambios."
+        },
+        {
+          "evidence": "original={'tuteo': 1, 'usted': 0, 'vosotros': 0, 'ustedes': 0}, final={'tuteo': 0, 'usted': 0, 'vosotros': 0, 'ustedes': 0}",
+          "passed": false,
+          "text": "El tuteo se mantiene, no cambia a usted."
+        },
+        {
+          "evidence": "no se encontraron vocablos de nivel Fuerte",
+          "passed": true,
+          "text": "La versión final no contiene ningún vocablo de nivel Fuerte."
+        },
+        {
+          "evidence": "original=0.0, final=0.0 (por mil palabras)",
+          "passed": true,
+          "text": "La densidad de vocabulario Débil por 1000 palabras no aumenta respecto al original."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 5,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 54.2,
+        "tokens": 88439,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "evidence": "el escáner no detecta diferencias bloqueantes",
+          "passed": true,
+          "text": "El escáner de invención no detecta ningún dato perdido o nuevo."
+        },
+        {
+          "evidence": "todos los valores están presentes",
+          "passed": true,
+          "text": "La fecha de lanzamiento y el precio se conservan sin cambios."
+        },
+        {
+          "evidence": "original={'tuteo': 0, 'usted': 0, 'vosotros': 0, 'ustedes': 0}, final={'tuteo': 0, 'usted': 0, 'vosotros': 0, 'ustedes': 0}",
+          "passed": true,
+          "text": "El trato con el lector no cambia respecto al original."
+        },
+        {
+          "evidence": "no se encontraron vocablos de nivel Fuerte",
+          "passed": true,
+          "text": "La versión final no contiene ningún vocablo de nivel Fuerte."
+        },
+        {
+          "evidence": "original=0.0, final=0.0 (por mil palabras)",
+          "passed": true,
+          "text": "La densidad de vocabulario Débil por 1000 palabras no aumenta respecto al original."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 6,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "time_seconds": 55.5,
+        "tokens": 88909,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "evidence": "el escáner no detecta diferencias bloqueantes",
+          "passed": true,
+          "text": "El escáner de invención no detecta ningún dato perdido o nuevo."
+        },
+        {
+          "evidence": "todos los valores están presentes",
+          "passed": true,
+          "text": "El código de factura, el importe y la fecha se conservan sin cambios."
+        },
+        {
+          "evidence": "original={'tuteo': 0, 'usted': 1, 'vosotros': 0, 'ustedes': 0}, final={'tuteo': 0, 'usted': 0, 'vosotros': 0, 'ustedes': 0}",
+          "passed": false,
+          "text": "El trato de usted se mantiene, no cambia a tú."
+        },
+        {
+          "evidence": "no se encontraron vocablos de nivel Fuerte",
+          "passed": true,
+          "text": "La versión final no contiene ningún vocablo de nivel Fuerte."
+        },
+        {
+          "evidence": "original=8.929, final=0.0 (por mil palabras)",
+          "passed": true,
+          "text": "La densidad de vocabulario Débil por 1000 palabras no aumenta respecto al original."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 7,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8333,
+        "passed": 5,
+        "failed": 1,
+        "total": 6,
+        "time_seconds": 62.3,
+        "tokens": 89554,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "evidence": "categorías con diferencias: nombres_propios (faltantes: ['En', 'Las', 'De', 'Octubre', 'Rutina', 'De', 'Otoño', 'Descuento', 'Solo', 'Para', 'Ti'])",
+          "passed": false,
+          "text": "El escáner de invención no detecta ningún dato perdido o nuevo."
+        },
+        {
+          "evidence": "todos los elementos intocables se conservan",
+          "passed": true,
+          "text": "El enlace del artículo se conserva exactamente igual."
+        },
+        {
+          "evidence": "todos los valores están presentes",
+          "passed": true,
+          "text": "El código de descuento, la fecha límite y el porcentaje se mantienen sin cambios."
+        },
+        {
+          "evidence": "original={'tuteo': 4, 'usted': 0, 'vosotros': 0, 'ustedes': 0}, final={'tuteo': 5, 'usted': 0, 'vosotros': 0, 'ustedes': 0}",
+          "passed": true,
+          "text": "El trato con el lector no cambia respecto al original."
+        },
+        {
+          "evidence": "no se encontraron vocablos de nivel Fuerte",
+          "passed": true,
+          "text": "La versión final no contiene ningún vocablo de nivel Fuerte."
+        },
+        {
+          "evidence": "original=0.0, final=0.0 (por mil palabras)",
+          "passed": true,
+          "text": "La densidad de vocabulario Débil por 1000 palabras no aumenta respecto al original."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 8,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8333,
+        "passed": 5,
+        "failed": 1,
+        "total": 6,
+        "time_seconds": 139.1,
+        "tokens": 101341,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "evidence": "categorías con diferencias: nombres_propios (faltantes: ['Tu', 'Piel', 'Otoño', 'Guía', 'Completa', 'Le', 'Pasa', 'Piel', 'Otoño', 'Tres', 'Pasos', 'De', 'Rutina', 'De', 'Otoño', 'Habituales', 'Al', 'Cambiar', 'De', 'Rutina', 'Ingredientes', 'Buscar', 'Esta', 'Temporada', 'Otros', 'Hábitos', 'Que', 'Ayudan', 'Rutina', 'Que', 'Se', 'Adapta', 'Que', 'Se', 'Impone'])",
+          "passed": false,
+          "text": "El escáner de invención no detecta ningún dato, cita o nombre propio perdido o nuevo."
+        },
+        {
+          "evidence": "todos los elementos intocables se conservan",
+          "passed": true,
+          "text": "La URL de la fuente se conserva exactamente igual."
+        },
+        {
+          "evidence": "todos los valores están presentes",
+          "passed": true,
+          "text": "El nombre de la dermatóloga citada y el porcentaje del estudio se mantienen."
+        },
+        {
+          "evidence": "original={'tuteo': 5, 'usted': 0, 'vosotros': 0, 'ustedes': 0}, final={'tuteo': 3, 'usted': 0, 'vosotros': 0, 'ustedes': 0}",
+          "passed": true,
+          "text": "El trato con el lector no cambia respecto al original."
+        },
+        {
+          "evidence": "no se encontraron vocablos de nivel Fuerte",
+          "passed": true,
+          "text": "La versión final no contiene ningún vocablo de nivel Fuerte."
+        },
+        {
+          "evidence": "original=1.896, final=0.0 (por mil palabras)",
+          "passed": true,
+          "text": "La densidad de vocabulario Débil por 1000 palabras no aumenta respecto al original."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 9,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "time_seconds": 60.3,
+        "tokens": 89646,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "evidence": "el escáner no detecta diferencias bloqueantes",
+          "passed": true,
+          "text": "El escáner de invención no detecta ningún dato perdido o nuevo."
+        },
+        {
+          "evidence": "todos los valores están presentes",
+          "passed": true,
+          "text": "El número de pedido, la fecha de compra y el importe del reembolso se conservan."
+        },
+        {
+          "evidence": "original={'tuteo': 0, 'usted': 1, 'vosotros': 0, 'ustedes': 0}, final={'tuteo': 0, 'usted': 0, 'vosotros': 0, 'ustedes': 0}",
+          "passed": false,
+          "text": "El trato de usted se mantiene, no cambia a tú."
+        },
+        {
+          "evidence": "no se encontraron vocablos de nivel Fuerte",
+          "passed": true,
+          "text": "La versión final no contiene ningún vocablo de nivel Fuerte."
+        },
+        {
+          "evidence": "original=8.403, final=0.0 (por mil palabras)",
+          "passed": true,
+          "text": "La densidad de vocabulario Débil por 1000 palabras no aumenta respecto al original."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 10,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6,
+        "passed": 3,
+        "failed": 2,
+        "total": 5,
+        "time_seconds": 46.9,
+        "tokens": 89191,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "evidence": "categorías con diferencias: nombres_propios (faltantes: ['Ubicación', 'De'])",
+          "passed": false,
+          "text": "El escáner de invención no detecta ningún dato perdido o nuevo."
+        },
+        {
+          "evidence": "todos los valores están presentes",
+          "passed": true,
+          "text": "La dirección, los dos precios y el teléfono se conservan sin cambios."
+        },
+        {
+          "evidence": "original={'tuteo': 1, 'usted': 0, 'vosotros': 0, 'ustedes': 0}, final={'tuteo': 0, 'usted': 0, 'vosotros': 0, 'ustedes': 0}",
+          "passed": false,
+          "text": "El trato con el lector no cambia respecto al original."
+        },
+        {
+          "evidence": "no se encontraron vocablos de nivel Fuerte",
+          "passed": true,
+          "text": "La versión final no contiene ningún vocablo de nivel Fuerte."
+        },
+        {
+          "evidence": "original=7.937, final=0.0 (por mil palabras)",
+          "passed": true,
+          "text": "La densidad de vocabulario Débil por 1000 palabras no aumenta respecto al original."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 11,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 1,
+        "failed": 1,
+        "total": 2,
+        "time_seconds": 93.1,
+        "tokens": 91856,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "evidence": "no hay versión final",
+          "passed": false,
+          "text": "Si hay versión final, es prácticamente idéntica al original (o la respuesta dice explícitamente que no hay cambios)."
+        },
+        {
+          "evidence": "sin versión final: no aplica",
+          "passed": true,
+          "text": "El escáner de invención no detecta ningún dato perdido o nuevo, cuando hay versión final."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 12,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.4,
+        "passed": 2,
+        "failed": 3,
+        "total": 5,
+        "time_seconds": 94.7,
+        "tokens": 92873,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "evidence": "categorías con diferencias: nombres_propios (faltantes: ['Al', 'Taller', 'De', 'Costura', 'De', 'Octubre'])",
+          "passed": false,
+          "text": "El escáner de invención no detecta ningún dato perdido o nuevo."
+        },
+        {
+          "evidence": "faltan: ['computadora']",
+          "passed": false,
+          "text": "La palabra «computadora» se mantiene, no se cambia a «ordenador»."
+        },
+        {
+          "evidence": "original={'tuteo': 1, 'usted': 0, 'vosotros': 1, 'ustedes': 1}, final={'tuteo': 1, 'usted': 0, 'vosotros': 0, 'ustedes': 0}",
+          "passed": false,
+          "text": "La mezcla de ustedes, vosotros y tú se mantiene igual: ni se corrige ni se unifica."
+        },
+        {
+          "evidence": "no se encontraron vocablos de nivel Fuerte",
+          "passed": true,
+          "text": "La versión final no contiene ningún vocablo de nivel Fuerte."
+        },
+        {
+          "evidence": "original=0.0, final=0.0 (por mil palabras)",
+          "passed": true,
+          "text": "La densidad de vocabulario Débil por 1000 palabras no aumenta respecto al original."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 13,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 61.0,
+        "tokens": 89771,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "evidence": "original=0, final=0",
+          "passed": true,
+          "text": "No aparece ninguna alegación nueva de envío gratuito."
+        },
+        {
+          "evidence": "original=1, final=0",
+          "passed": true,
+          "text": "No aparece ninguna alegación nueva del 100 % de eficacia."
+        },
+        {
+          "evidence": "todos los valores están presentes",
+          "passed": true,
+          "text": "El código y el precio reales del producto se conservan."
+        },
+        {
+          "evidence": "original={'tuteo': 0, 'usted': 0, 'vosotros': 0, 'ustedes': 0}, final={'tuteo': 0, 'usted': 0, 'vosotros': 0, 'ustedes': 0}",
+          "passed": true,
+          "text": "El trato con el lector no cambia respecto al original."
+        },
+        {
+          "evidence": "no se encontraron vocablos de nivel Fuerte",
+          "passed": true,
+          "text": "La versión final no contiene ningún vocablo de nivel Fuerte."
+        },
+        {
+          "evidence": "original=0.0, final=0.0 (por mil palabras)",
+          "passed": true,
+          "text": "La densidad de vocabulario Débil por 1000 palabras no aumenta respecto al original."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 14,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.3333,
+        "passed": 1,
+        "failed": 2,
+        "total": 3,
+        "time_seconds": 55.0,
+        "tokens": 89577,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "evidence": "se entregó una versión final",
+          "passed": false,
+          "text": "No se entrega ninguna versión final reescrita."
+        },
+        {
+          "evidence": "patrones sin coincidencia: ['(?i)modelo local']",
+          "passed": false,
+          "text": "La respuesta recuerda valorar un modelo local antes de continuar."
+        },
+        {
+          "evidence": "todos los patrones coinciden",
+          "passed": true,
+          "text": "La respuesta espera confirmación del usuario antes de editar el texto."
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 0.6881,
+        "stddev": 0.3456,
+        "min": 0.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 237.3143,
+        "stddev": 83.7907,
+        "min": 43.4,
+        "max": 385.0
+      },
+      "tokens": {
+        "mean": 144660.0,
+        "stddev": 21618.4209,
+        "min": 96901,
+        "max": 170466
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.6738,
+        "stddev": 0.231,
+        "min": 0.3333,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 68.3571,
+        "stddev": 25.1064,
+        "min": 45.4,
+        "max": 139.1
+      },
+      "tokens": {
+        "mean": 90652.0714,
+        "stddev": 3330.0698,
+        "min": 87878,
+        "max": 101341
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.01",
+      "time_seconds": "+169.0",
+      "tokens": "+54008"
+    }
+  },
+  "notes": [
+    "Media por caso: 68,8 % con la skill frente a 67,4 % sin ella (+1 punto); a cambio, +169 s y +54.000 tokens por ejecución de media.",
+    "15 de los 25 fallos de la skill vienen de no entregar versión final: en 07 y 13 no se entendió «pulir» como elección de Reescritura y los claims mandaron el texto a Revisión; en 09 la regla de privacidad saltó con un número de pedido. Son defectos de las instrucciones, corregibles en la Fase 4.",
+    "La comprobación sin_invencion no discrimina en esta iteración: el escáner cuenta como nombres propios las palabras de encabezados en Title Case y algunas de inicio de frase, y falla igual con y sin skill (02, 04, 08, 10, 12). Defecto del escáner para la Fase 4.",
+    "registro_igual y densidad_debil_no_aumenta son frágiles: con un solo «tu» o «usted» en el original, quitarlo parece cambio de registro; y la densidad sube si el texto se acorta aunque no haya más relleno.",
+    "Donde la skill se diferencia, gana: 03 (Revisión con veredictos), 11 (sin cambios necesarios), 12 (conserva «computadora» y la mezcla de registros; la línea base las cambió) y 14 (detecta datos de salud y se detiene).",
+    "Caso 01: la skill quitó las marcas [[claim]] del texto final; hay que decidir si deben conservarse.",
+    "Límite de la línea base: las ejecuciones sin skill heredan el CLAUDE.md del proyecto, que resume las reglas duras; la línea base está parcialmente contaminada (p. ej. en 13 también rechazó la orden incrustada)."
+  ]
+}
