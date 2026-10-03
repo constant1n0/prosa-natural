@@ -82,9 +82,18 @@ skill prefiere marcar de más a dejar sin proteger una alegación real
 - El relleno alrededor del claim sí puede editarse con los patrones de
   `patrones.md` y `discurso.md`; ningún patrón se aplica dentro del propio
   claim.
-- Si se detectan claims (marcados o candidatos) y el usuario no ha elegido
-  un modo, la skill pasa a modo Revisión y lo explica en una sola frase,
-  antes de tocar nada del texto.
+- Pedir pulir, reescribir, mejorar, limpiar o humanizar el texto elige el
+  modo Reescritura aunque haya claims: ahí se aplican los dos puntos
+  anteriores. Solo cuando el usuario no da ninguna instrucción sobre qué
+  hacer con el texto y este tiene claims (marcados o candidatos), la skill
+  pasa a modo Revisión por su cuenta y lo explica en una sola frase antes de
+  tocar nada del texto (`SKILL.md`, «Modos»).
+- Si el texto de entrada trae marcas `[[claim]] … [[/claim]]`, la versión
+  final las conserva exactamente igual; después de esa versión, la
+  respuesta ofrece también una copia sin las marcas para publicar, y el
+  usuario decide cuál usar. Las marcas son la anotación de quien las puso,
+  no de la skill, y permiten volver a comprobar cada claim con
+  `scan_tells.py --original`.
 - Nunca se añade ni se quita nada de un claim: ni un dato que lo refuerce,
   ni una cautela que lo suavice.
 - Si una frase mejoraría con un dato concreto que el original no da (por
@@ -220,6 +229,9 @@ ningún dato nuevo:
 > Botánica Iris presenta su nueva crema de manos. [[claim]]Clínicamente
 > probado: hidrata durante 24 horas.[[/claim]] Elimina el 99 % de la
 > sequedad de la piel. La crema viene en un tubo de aluminio.
+
+Junto a esta versión, la respuesta también ofrecería una copia sin las
+marcas `[[claim]]`/`[[/claim]]`, lista para publicar.
 
 Una frase de autoevaluación como «esta joya es un placer para los
 sentidos» no se borraría en ese paso: por su significado es una

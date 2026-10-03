@@ -1,0 +1,12 @@
+{
+  "eval_id": 12,
+  "eval_name": "12-rasgos-latam",
+  "prompt": "Te paso el texto de la web de la academia de costura para el público de Madrid. ¿Lo puedes pulir un poco?",
+  "assertions": [
+    "El escáner de invención no detecta ningún dato perdido o nuevo.",
+    "La palabra «computadora» se mantiene, no se cambia a «ordenador».",
+    "La mezcla de ustedes, vosotros y tú se mantiene igual: ni se corrige ni se unifica.",
+    "La versión final no contiene ningún vocablo de nivel Fuerte.",
+    "La densidad de vocabulario Débil por 1000 palabras no aumenta respecto al original."
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "expectations": [
+    {
+      "evidence": "no hay versión final",
+      "passed": true,
+      "text": "No se entrega una versión final reescrita: el texto queda en modo Revisión."
+    },
+    {
+      "evidence": "patrones sin coincidencia: ['(?i)veredicto global.*requiere decisi[oó]n del autor']",
+      "passed": false,
+      "text": "El veredicto global declarado es «requiere decisión del autor»."
+    },
+    {
+      "evidence": "patrones sin coincidencia: ['(?i)candidato[s]? a claim', '(?i)preguntar al autor']",
+      "passed": false,
+      "text": "Los candidatos a claim sin marcar se señalan con el veredicto «preguntar al autor»."
+    }
+  ],
+  "summary": {
+    "failed": 2,
+    "pass_rate": 0.3333,
+    "passed": 1,
+    "total": 3
+  }
+}

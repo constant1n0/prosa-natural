@@ -1650,7 +1650,112 @@ class TestComparacionNombresPropios(unittest.TestCase):
         report = _con_original(self.module, nuevo, original)
         nombres = report["comparacion"]["nombres_propios"]
         self.assertEqual([h["texto"] for h in nombres["faltantes"]], ["Marta"])
+        # Punto ciego documentado: «Laura» abre la frase, así que la
+        # extracción no la ve y no se informa como nueva. Lo cubre la
+        # revisión a mano (SKILL.md, límites del escáner).
         self.assertEqual(nombres["nuevas"], [])
+
+    def test_lost_name_is_reported_when_other_text_has_it_only_as_sentence_opening_word(self):
+        # R3-001: «Rosa» desaparece de verdad y en el otro texto solo
+        # queda una palabra común que abre una frase. Sin vecina común
+        # no hay prueba de que sea el mismo nombre.
+        original = "Hoy nos atiende Rosa en la tienda de Arcilla.\n"
+        nuevo = "Rosa huele muy bien en primavera. Nos atiende otra persona en la tienda de Arcilla.\n"
+        report = _con_original(self.module, nuevo, original)
+        nombres = report["comparacion"]["nombres_propios"]
+        self.assertEqual([h["texto"] for h in nombres["faltantes"]], ["Rosa"])
+
+    def test_new_name_is_reported_when_original_has_it_only_as_sentence_opening_word(self):
+        original = "Luz natural entra por la ventana. Nos atiende Marta en la tienda de Arcilla.\n"
+        nuevo = "Nos atiende Luz en la tienda de Arcilla. Marta descansa hoy mismo.\n"
+        report = _con_original(self.module, nuevo, original)
+        nombres = report["comparacion"]["nombres_propios"]
+        self.assertEqual([h["texto"] for h in nombres["nuevas"]], ["Luz"])
+
+    def test_single_word_brand_moved_to_sentence_start_keeps_a_neighbour(self):
+        # Una marca de una sola palabra que pasa a abrir la frase sigue
+        # sin informarse mientras conserve una palabra vecina (aquí «abre»).
+        original = "Te cuento que Olmo abre a las siete.\n"
+        nuevo = "Olmo abre a las siete.\n"
+        report = _con_original(self.module, nuevo, original)
+        nombres = report["comparacion"]["nombres_propios"]
+        self.assertEqual(nombres["faltantes"], [])
+        self.assertEqual(nombres["nuevas"], [])
+
+    def test_name_only_inside_a_url_of_the_other_text_does_not_count(self):
+        # R3-002: una URL no cuenta como aparición de un nombre.
+        original = "Nos atiende Marta en la tienda de Arcilla.\n"
+        nuevo = "Nos atiende en la tienda de Arcilla https://ejemplo.example/Marta/tienda ahora.\n"
+        report = _con_original(self.module, nuevo, original)
+        nombres = report["comparacion"]["nombres_propios"]
+        self.assertEqual([h["texto"] for h in nombres["faltantes"]], ["Marta"])
+
+    def test_recased_title_case_heading_is_not_reported(self):
+        # Fase 3, evals 01, 02, 08 y 12: quitar las mayúsculas de un
+        # encabezado (P20) no pierde ninguna palabra.
+        original = "## Guía Clave De Cuidado\n\nSigue estos pasos cada día.\n"
+        nuevo = "## Guía clave de cuidado\n\nSigue estos pasos cada día.\n"
+        report = _con_original(self.module, nuevo, original)
+        nombres = report["comparacion"]["nombres_propios"]
+        self.assertEqual(nombres["faltantes"], [])
+        self.assertEqual(nombres["nuevas"], [])
+
+    def test_title_casing_a_heading_is_not_reported_as_new_names(self):
+        original = "## Guía clave de cuidado\n\nSigue estos pasos cada día.\n"
+        nuevo = "## Guía Clave De Cuidado\n\nSigue estos pasos cada día.\n"
+        report = _con_original(self.module, nuevo, original)
+        nombres = report["comparacion"]["nombres_propios"]
+        self.assertEqual(nombres["faltantes"], [])
+        self.assertEqual(nombres["nuevas"], [])
+
+    def test_brand_that_only_appeared_in_a_heading_and_is_gone_is_reported(self):
+        original = "## Novedades De Panadería Olmo\n\nAbrimos a las siete.\n"
+        nuevo = "## Novedades de la panadería\n\nAbrimos a las siete.\n"
+        report = _con_original(self.module, nuevo, original)
+        nombres = report["comparacion"]["nombres_propios"]
+        self.assertEqual([h["texto"] for h in nombres["faltantes"]], ["Olmo"])
+
+    def test_brand_new_in_a_heading_is_reported(self):
+        original = "## Novedades de la panadería\n\nAbrimos a las siete.\n"
+        nuevo = "## Novedades De Panadería Olmo\n\nAbrimos a las siete.\n"
+        report = _con_original(self.module, nuevo, original)
+        nombres = report["comparacion"]["nombres_propios"]
+        self.assertEqual([h["texto"] for h in nombres["nuevas"]], ["Olmo"])
+
+    def test_recased_heading_word_matches_the_body_of_the_other_text(self):
+        original = "## Guía De Otoño\n\nSigue estos pasos cada día.\n"
+        nuevo = "## Guía\n\nSigue estos pasos cada día de otoño.\n"
+        report = _con_original(self.module, nuevo, original)
+        nombres = report["comparacion"]["nombres_propios"]
+        self.assertEqual(nombres["faltantes"], [])
+
+    def test_sentence_after_emoji_following_a_question_is_a_sentence_start(self):
+        # Fase 3, eval 04: «En» tras «? 🌿✨» abre frase; no es un nombre.
+        original = "¿Ya probaste la mascarilla? 🌿✨ En el mundo actual, esta joya limpia la piel.\n"
+        nuevo = "¿Ya probaste la mascarilla? 🌿✨ Esta joya limpia la piel.\n"
+        report = _con_original(self.module, nuevo, original)
+        nombres = report["comparacion"]["nombres_propios"]
+        self.assertEqual(nombres["faltantes"], [])
+        self.assertEqual(nombres["nuevas"], [])
+
+    def test_capital_right_after_claim_marker_at_sentence_start_is_not_a_proper_noun(self):
+        # Fase 3, eval 01: «[[claim]]Reduce…» abre frase aunque la marca
+        # de claim vaya delante; sin ella (copia sin marcas) no debe
+        # aparecer «Reduce» como nombre perdido.
+        original = "[[claim]]Reduce las arrugas[[/claim]]. Crema Aurora hidrata la piel.\n"
+        nuevo = "Reduce las arrugas. Crema Aurora hidrata la piel.\n"
+        report = _con_original(self.module, nuevo, original)
+        nombres = report["comparacion"]["nombres_propios"]
+        self.assertEqual(nombres["faltantes"], [])
+        self.assertEqual(nombres["nuevas"], [])
+
+    def test_capital_after_emoji_without_sentence_end_is_still_a_candidate(self):
+        original = "Ven a la tienda ✨ Marta te espera en Arcilla.\n"
+        nuevo = "Ven a la tienda ✨ Laura te espera en Arcilla.\n"
+        report = _con_original(self.module, nuevo, original)
+        nombres = report["comparacion"]["nombres_propios"]
+        self.assertEqual([h["texto"] for h in nombres["faltantes"]], ["Marta"])
+        self.assertEqual([h["texto"] for h in nombres["nuevas"]], ["Laura"])
 
     def test_changed_proper_noun_right_after_colon_is_reported(self):
         # Revisión del tramo 06: tratar la mayúscula tras dos puntos como

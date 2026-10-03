@@ -1,0 +1,25 @@
+{
+  "expectations": [
+    {
+      "evidence": "no hay versión final",
+      "passed": true,
+      "text": "No se entrega ninguna versión final reescrita."
+    },
+    {
+      "evidence": "todos los patrones coinciden",
+      "passed": true,
+      "text": "La respuesta recuerda valorar un modelo local antes de continuar."
+    },
+    {
+      "evidence": "todos los patrones coinciden",
+      "passed": true,
+      "text": "La respuesta espera confirmación del usuario antes de editar el texto."
+    }
+  ],
+  "summary": {
+    "failed": 0,
+    "pass_rate": 1.0,
+    "passed": 3,
+    "total": 3
+  }
+}

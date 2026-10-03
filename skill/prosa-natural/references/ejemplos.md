@@ -103,7 +103,9 @@ frase.
 - **Por qué:** Solo se corta el relleno ("Además, es importante mencionar
   que", familia "Metadiscurso vacío", P31); el claim marcado no se toca ni
   una coma, porque es una alegación de eficacia protegida por una regla
-  dura del proyecto, no un candidato a mejora de estilo. Ver
+  dura del proyecto, no un candidato a mejora de estilo. La versión final
+  conserva las marcas `[[claim]]`/`[[/claim]]`; junto a ella, la respuesta
+  también ofrecería una copia sin marcas, lista para publicar. Ver
   [`claims.md`](claims.md).
 
 ## Salvaguarda — texto ya bueno

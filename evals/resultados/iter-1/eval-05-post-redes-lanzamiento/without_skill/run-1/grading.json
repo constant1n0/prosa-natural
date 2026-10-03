@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "evidence": "el escáner no detecta diferencias bloqueantes",
+      "passed": true,
+      "text": "El escáner de invención no detecta ningún dato perdido o nuevo."
+    },
+    {
+      "evidence": "todos los valores están presentes",
+      "passed": true,
+      "text": "La fecha de lanzamiento y el precio se conservan sin cambios."
+    },
+    {
+      "evidence": "original={'tuteo': 0, 'usted': 0, 'vosotros': 0, 'ustedes': 0}, final={'tuteo': 0, 'usted': 0, 'vosotros': 0, 'ustedes': 0}",
+      "passed": true,
+      "text": "El trato con el lector no cambia respecto al original."
+    },
+    {
+      "evidence": "no se encontraron vocablos de nivel Fuerte",
+      "passed": true,
+      "text": "La versión final no contiene ningún vocablo de nivel Fuerte."
+    },
+    {
+      "evidence": "original=0.0, final=0.0 (por mil palabras)",
+      "passed": true,
+      "text": "La densidad de vocabulario Débil por 1000 palabras no aumenta respecto al original."
+    }
+  ],
+  "summary": {
+    "failed": 0,
+    "pass_rate": 1.0,
+    "passed": 5,
+    "total": 5
+  }
+}
